@@ -1,0 +1,13 @@
+{
+  "name": "EXO Team Retreat 2027 · Xiamen",
+  "short_name": "Xiamen 2027",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f7f1e7",
+  "theme_color": "#14324a",
+  "icons": [
+    { "src": "img/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "img/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

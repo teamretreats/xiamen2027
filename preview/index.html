@@ -6,6 +6,13 @@
 <meta name="robots" content="noindex,nofollow">
 <meta name="theme-color" content="#14324a">
 <title>Xiamen 2027</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+<link rel="icon" href="img/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Xiamen 2027">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <style>
 :root{
   --sea:#14324a; --sea-2:#1f4a68; --sand:#f7f1e7; --card:#fffdf9;
@@ -179,6 +186,13 @@ button{font:inherit;cursor:pointer}
 .calls a.wide{grid-column:span 3;text-align:left;padding:10px 14px}
 .calls a.wide b{display:inline;font-size:16px;color:var(--sea-2)}
 
+/* Save-offline banner */
+.install{background:var(--sea);color:#fff;border-radius:14px;padding:12px 14px;margin:18px 0 0;font-size:14px;position:relative}
+.install b{display:block;font-size:15px;margin-bottom:2px;padding-right:24px}
+.install ol{margin:8px 0 0;padding-left:20px}
+.install li{margin:2px 0}
+.install .x{position:absolute;top:8px;right:8px;border:0;background:transparent;color:#fff;font-size:18px;opacity:.7}
+
 /* Coming soon panels */
 .soon{background:var(--card);border:1px dashed var(--line);border-radius:var(--radius);padding:28px 18px;text-align:center;margin-top:24px;color:var(--muted)}
 .soon .ic{font-size:34px}
@@ -233,6 +247,12 @@ nav button.on .i{transform:translateY(-1px)}
   <!-- NEXT UP -->
   <section id="tab-next">
     <div class="hero" id="hero"></div>
+    <div class="install" id="install" hidden>
+      <button class="x" id="installX" aria-label="Dismiss">✕</button>
+      <b>📲 Save to your Home Screen</b>
+      Works offline in China, no roaming needed.
+      <ol id="installSteps"></ol>
+    </div>
     <div class="sec">
       <h3>What's waiting for you</h3>
       <div class="carousel" id="carousel"></div>
@@ -772,6 +792,24 @@ document.addEventListener("click", e => {
   }
 });
 document.getElementById("drvClose").onclick = () => document.getElementById("driver").classList.remove("open");
+
+/* ---------- Offline (Add to Home Screen) ---------- */
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+(function () {
+  const standalone = window.matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+  let dismissed = false;
+  try { dismissed = localStorage.getItem("xm27-install") === "x"; } catch (e) {}
+  if (standalone || dismissed) return;
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  document.getElementById("installSteps").innerHTML = ios
+    ? "<li>Open this page in <b style='display:inline'>Safari</b></li><li>Tap Share ⬆️ → <b style='display:inline'>Add to Home Screen</b></li><li>Open it once from your Home Screen before you fly</li>"
+    : "<li>Open this page in <b style='display:inline'>Chrome</b></li><li>Tap ⋮ → <b style='display:inline'>Add to Home screen</b> (or Install)</li><li>Open it once from your Home Screen before you fly</li>";
+  document.getElementById("install").hidden = false;
+  document.getElementById("installX").onclick = () => {
+    document.getElementById("install").hidden = true;
+    try { localStorage.setItem("xm27-install", "x"); } catch (e) {}
+  };
+})();
 
 renderCarousel();
 renderHero();
