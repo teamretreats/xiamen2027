@@ -29,7 +29,7 @@ button{font:inherit;cursor:pointer}
 .cover .wrap{position:relative;z-index:1}
 .eyebrow{font-size:12px;letter-spacing:.18em;text-transform:uppercase;opacity:.85;margin:0}
 .cover h1{font-family:var(--serif);font-weight:600;font-size:40px;line-height:1.1;margin:8px 0 4px;letter-spacing:.01em}
-.cover h1 span{display:block;font-size:22px;opacity:.9;letter-spacing:.3em;margin-top:6px}
+.cover h1 span{display:block;font-size:22px;opacity:.9;letter-spacing:.12em;margin-top:6px}
 .cover .dates{margin:10px 0 0;font-size:15px;opacity:.95}
 .cover svg{position:absolute;left:0;right:0;bottom:-2px;width:100%;height:120px}
 
@@ -133,7 +133,7 @@ nav button.on .i{transform:translateY(-1px)}
 <header class="cover">
   <div class="wrap">
     <p class="eyebrow">Team Retreat 2027</p>
-    <h1>Xiamen · Amoy<span>厦 门</span></h1>
+    <h1>Xiamen<span>厦门 · Amoy</span></h1>
     <p class="dates">Mon 11 – Thu 14 January 2027</p>
   </div>
   <svg viewBox="0 0 400 120" preserveAspectRatio="none" aria-hidden="true">
@@ -199,7 +199,7 @@ nav button.on .i{transform:translateY(-1px)}
 /* ---------- Trip data (all times are Xiamen time, UTC+8, same as Singapore) ---------- */
 const PLACES = {
   hotel: {
-    name: "Lujiang Mega Hotel", zh: "厦门鹭江·佲家酒店", copyLabel: "Copy Hotel Name for DiDi",
+    name: "Lujiang Mega Hotel · 鹭江·佲家酒店", zh: "厦门鹭江·佲家酒店", copyLabel: "Copy Hotel Name for DiDi",
     addrEn: "No. 382 Longhushan Road, Siming District, Xiamen",
     addrZh: "福建省厦门市思明区龙虎山路382号"
   },
@@ -265,8 +265,7 @@ function placeHTML(key, withHint) {
     <p class="zh">${esc(p.addrZh)}</p>
     <p class="addr">${esc(p.addrEn)}</p>
     <div class="btns">
-      <button class="btn primary" data-copy="${key}">📋 ${esc(p.copyLabel)}</button>
-      <button class="btn" data-driver="${key}">🚕 Show driver</button>
+      <button class="btn primary" data-copy="${key}">${esc(p.copyLabel)}</button>
     </div>
     ${withHint ? `<p class="hint">In WeChat, open the 腾讯地图 mini program and paste the name.</p>` : ""}
   </div>`;
