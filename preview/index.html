@@ -140,6 +140,45 @@ button{font:inherit;cursor:pointer}
 .credit{font-size:11px;color:var(--muted);margin:6px 0 0}
 .credit a{color:inherit}
 
+/* Info tab */
+.icard{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin:18px 0 0}
+.icard h3{font-family:var(--serif);font-size:20px;margin:0 0 10px;color:var(--sea)}
+.icard h4{font-size:15px;margin:16px 0 6px}
+.icard p{margin:6px 0}
+.icard .muted{color:var(--muted);font-size:14px}
+.icard .center{text-align:center}
+.addrbox{background:#f3ede2;border-radius:12px;padding:10px 12px;font-family:var(--serif);font-size:16px;margin:8px 0}
+.apps{display:grid;grid-template-columns:auto 1fr;gap:10px 12px;align-items:baseline;margin:0}
+.apps dt{font-weight:600;font-size:14px;white-space:nowrap}
+.apps dd{margin:0;font-size:15px}
+.apps dd small{color:var(--muted)}
+.check{list-style:none;padding:0;margin:0}
+.check li{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line)}
+.check li:last-child{border-bottom:0}
+.check input{width:20px;height:20px;margin:2px 0 0;accent-color:var(--ok);flex:0 0 auto}
+.check label{flex:1;font-size:15px}
+.check label small{display:block;color:var(--muted);font-size:13px}
+.check a{color:var(--sea-2)}
+.wx{background:linear-gradient(135deg,#e8f1f7,#fdf3e7);border-radius:14px;padding:12px 14px;margin:10px 0 0}
+.wx .now{display:flex;align-items:center;gap:12px}
+.wx .temp{font-size:34px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--sea)}
+.wx .days{display:flex;gap:6px;margin-top:10px}
+.wx .days div{flex:1;background:rgba(255,255,255,.7);border-radius:10px;padding:6px 2px;text-align:center;font-size:12px}
+.wx .days b{display:block;font-size:14px}
+.scams{counter-reset:s;list-style:none;padding:0;margin:0}
+.scams li{counter-increment:s;position:relative;padding:10px 0 10px 34px;border-bottom:1px solid var(--line);font-size:15px}
+.scams li:last-child{border-bottom:0}
+.scams li::before{content:counter(s);position:absolute;left:0;top:10px;width:24px;height:24px;border-radius:50%;background:#fde9dc;color:#b4561f;
+  font-size:13px;font-weight:600;display:grid;place-items:center}
+.scams b{display:block}
+.motto{text-align:center;font-weight:600;color:var(--sea);letter-spacing:.06em;margin:14px 0 0}
+.calls{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.calls a{display:block;text-align:center;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 4px;color:var(--ink);text-decoration:none}
+.calls a b{display:block;font-size:20px;color:var(--rose)}
+.calls a small{font-size:12px;color:var(--muted)}
+.calls a.wide{grid-column:span 3;text-align:left;padding:10px 14px}
+.calls a.wide b{display:inline;font-size:16px;color:var(--sea-2)}
+
 /* Coming soon panels */
 .soon{background:var(--card);border:1px dashed var(--line);border-radius:var(--radius);padding:28px 18px;text-align:center;margin-top:24px;color:var(--muted)}
 .soon .ic{font-size:34px}
@@ -215,8 +254,87 @@ nav button.on .i{transform:translateY(-1px)}
 
   <!-- INFO -->
   <section id="tab-info" hidden>
-    <div class="soon"><div class="ic">ℹ️</div><h3>Handy info is coming</h3>
-      <p>Hotel details, useful apps, scam alerts, before-you-fly checklist and emergency numbers.</p></div>
+    <div class="icard">
+      <h3>🏨 Our Villa</h3>
+      <p><b>Lujiang Mega Hotel · 鹭江·佲家酒店</b></p>
+      <p class="muted">福建省厦门市思明区龙虎山路382号<br>No. 382 Longhushan Road, Siming District, Xiamen</p>
+      <p class="muted">Check-in 15:00 · Check-out 12:00</p>
+      <div id="infoStrip"></div>
+      <div class="btns" style="justify-content:center;margin-top:12px">
+        <button class="btn primary" data-copy="hotel">Copy Hotel Name for DiDi</button>
+        <button class="btn" data-driver="hotel">🚕 Show driver</button>
+      </div>
+      <h4>📦 Food &amp; parcel delivery</h4>
+      <div class="addrbox">厦门鹭江·佲家酒店（龙虎山路382号）+ Villa Block No. + Name + Mobile No.</div>
+      <p>🍜 Food: hotel staff bring it to your villa block<br>📦 Parcels: collect at reception</p>
+      <div class="btns" style="justify-content:center;margin-top:10px">
+        <button class="btn" data-copytext="厦门鹭江·佲家酒店（龙虎山路382号）">Copy Delivery Address</button>
+      </div>
+    </div>
+
+    <div class="icard">
+      <h3>📱 Useful China Apps</h3>
+      <dl class="apps">
+        <dt>💳 Payment</dt><dd>Alipay · WeChat Pay <small>(in WeChat)</small></dd>
+        <dt>🚕 Transport</dt><dd>DiDi <small>(in Alipay)</small></dd>
+        <dt>🗺️ Maps</dt><dd>Amap · 腾讯地图 <small>(in WeChat)</small></dd>
+        <dt>🍜 Food Delivery</dt><dd>Meituan · Taobao 闪购 <small>(in Taobao)</small></dd>
+        <dt>🎟️ Tickets</dt><dd>Trip.com</dd>
+        <dt>⛴️ Gulangyu Ferry</dt><dd>厦门轮渡+ <small>(mini program in WeChat)</small></dd>
+      </dl>
+    </div>
+
+    <div class="icard">
+      <h3>✈️ Before You Fly</h3>
+      <ul class="check" id="checklist">
+        <li><input type="checkbox" id="c1"><label for="c1">Passport valid 6+ months</label></li>
+        <li><input type="checkbox" id="c2"><label for="c2">MFA eRegister your trip
+          <small>With Singpass · <a href="https://eregister.mfa.gov.sg/eregisterportal/landing.html" target="_blank" rel="noopener">eregister.mfa.gov.sg</a></small></label></li>
+        <li><input type="checkbox" id="c3"><label for="c3">China Online Arrival Card
+          <small>By China's National Immigration Administration (NIA). Submit before you fly via the NIA website, NIA 12367 app or WeChat/Alipay mini program — or on arrival.</small></label></li>
+        <li><input type="checkbox" id="c4"><label for="c4">Travel insurance</label></li>
+        <li><input type="checkbox" id="c5"><label for="c5">Data roaming or eSIM
+          <small>Google, WhatsApp &amp; Instagram need it in China</small></label></li>
+        <li><input type="checkbox" id="c6"><label for="c6">Alipay / WeChat Pay: 实名认证 done
+          <small>Real-name verification with your passport, then link your card</small></label></li>
+        <li><input type="checkbox" id="c7"><label for="c7">China plug adaptor</label></li>
+      </ul>
+      <h4>🌤️ Xiamen weather</h4>
+      <div class="wx" id="wx"><p class="muted" style="margin:0">Loading live weather…</p></div>
+    </div>
+
+    <div class="icard">
+      <h3>⚠️ Common Tourist Scams</h3>
+      <ol class="scams">
+        <li><b>Gulangyu ferry touts</b>Claim official tickets are sold out, then push pricey packages or unlicensed guides. Official tickets are only sold on the 厦门轮渡+ mini program.</li>
+        <li><b>Seafood rip-offs</b>"Recommended" stalls with rigged weighing, swapped seafood, hidden cooking fees, or prices per 两 instead of 斤.</li>
+        <li><b>Cheap day-tour flyers</b>"¥99, no shopping" tours that add fees on the bus and spend the day at shops.</li>
+        <li><b>Boat trip touts (Huandao Road)</b>Cheap sea trips with surprise surcharges and short, poor rides.</li>
+        <li><b>Beach photo &amp; flower traps</b>Costumed characters pose for photos or someone hands you roses, then asks for money.</li>
+        <li><b>Nanputuo "blessings"</b>Fake monks or "volunteers" offer free incense or fortune readings, then ask for big donations.</li>
+        <li><b>E-bike rental traps</b>Private rentals invent damage to keep your deposit.</li>
+        <li><b>Tea &amp; specialty shops</b>Tastings priced by weight, with the unit price only revealed at the till, plus fake dried goods.</li>
+        <li><b>Taxi detours</b>Chatty drivers take the long way or steer you to shops that pay them commission.</li>
+        <li><b>Street photographers</b>One price is quoted, then they charge per person afterwards.</li>
+      </ol>
+      <p class="motto">Stay Alert · Stay Safe</p>
+    </div>
+
+    <div class="icard">
+      <h3>🆘 Emergency</h3>
+      <div class="calls">
+        <a href="tel:110"><b>110</b><small>Police</small></a>
+        <a href="tel:120"><b>120</b><small>Ambulance</small></a>
+        <a href="tel:119"><b>119</b><small>Fire</small></a>
+        <a class="wide" href="tel:+865922684691"><small>Singapore Consulate-General, Xiamen · Office</small><br><b>+86 592 268 4691</b></a>
+        <a class="wide" href="tel:+8613806071221"><small>Singapore Consulate-General · After-hours emergency</small><br><b>+86 138 0607 1221</b></a>
+      </div>
+    </div>
+
+    <div class="icard">
+      <h3>👥 Groups &amp; ICs</h3>
+      <p>Your group &amp; IC are shared in the team WhatsApp group.</p>
+    </div>
   </section>
 
   <!-- ALBUM -->
@@ -536,6 +654,63 @@ function closeViewer() { document.getElementById("viewer").classList.remove("ope
   });
 })();
 
+/* ---------- Info tab ---------- */
+document.getElementById("infoStrip").innerHTML = stripHTML("hotel");
+
+// Before-you-fly ticks are remembered on this phone only
+(function () {
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem("xm27-check") || "{}"); } catch (e) {}
+  document.querySelectorAll("#checklist input").forEach(cb => {
+    cb.checked = !!saved[cb.id];
+    cb.addEventListener("change", () => {
+      saved[cb.id] = cb.checked;
+      try { localStorage.setItem("xm27-check", JSON.stringify(saved)); } catch (e) {}
+    });
+  });
+})();
+
+// Live Xiamen weather (Open-Meteo, no key). Shows the trip-day forecast once it's within range.
+const WX_CODES = { 0: ["☀️", "Clear"], 1: ["🌤️", "Mostly clear"], 2: ["⛅", "Partly cloudy"], 3: ["☁️", "Cloudy"],
+  45: ["🌫️", "Fog"], 48: ["🌫️", "Fog"], 51: ["🌦️", "Drizzle"], 53: ["🌦️", "Drizzle"], 55: ["🌦️", "Drizzle"],
+  61: ["🌧️", "Rain"], 63: ["🌧️", "Rain"], 65: ["🌧️", "Heavy rain"], 80: ["🌦️", "Showers"], 81: ["🌧️", "Showers"],
+  82: ["⛈️", "Heavy showers"], 95: ["⛈️", "Thunderstorm"], 96: ["⛈️", "Thunderstorm"], 99: ["⛈️", "Thunderstorm"] };
+function windLabel(k) { return k < 12 ? "Light wind" : k < 29 ? "Breezy" : k < 50 ? "Windy" : "Very windy"; }
+function clothingTip(min, wind) {
+  const tips = [];
+  if (min < 12) tips.push("a warm jacket");
+  else if (min < 18) tips.push("a light jacket");
+  if (wind >= 29) tips.push("a windbreaker for the seaside");
+  return tips.length ? "👕 Bring appropriate clothing — " + tips.join(" and ") + "." : "👕 Bring appropriate clothing.";
+}
+async function loadWeather() {
+  const el = document.getElementById("wx");
+  try {
+    const url = "https://api.open-meteo.com/v1/forecast?latitude=24.48&longitude=118.09" +
+      "&current=temperature_2m,weather_code,wind_speed_10m" +
+      "&daily=weather_code,temperature_2m_max,temperature_2m_min,wind_speed_10m_max" +
+      "&timezone=Asia%2FShanghai&forecast_days=16";
+    const r = await fetch(url);
+    if (!r.ok) throw new Error(r.status);
+    const w = await r.json();
+    const c = w.current, [ic, txt] = WX_CODES[c.weather_code] || ["🌡️", ""];
+    const trip = w.daily.time.map((d, i) => ({ d, i })).filter(x => x.d >= "2027-01-11" && x.d <= "2027-01-14");
+    const minT = trip.length ? Math.min(...trip.map(x => w.daily.temperature_2m_min[x.i])) : w.daily.temperature_2m_min[0];
+    const maxW = trip.length ? Math.max(...trip.map(x => w.daily.wind_speed_10m_max[x.i])) : c.wind_speed_10m;
+    el.innerHTML = `<div class="now"><span style="font-size:34px">${ic}</span>
+        <div><div class="temp">${Math.round(c.temperature_2m)}°C</div>
+        <div class="muted">${txt} · ${windLabel(c.wind_speed_10m)} ${Math.round(c.wind_speed_10m)} km/h</div></div></div>
+      ${trip.length ? `<p class="muted" style="margin:10px 0 0">Retreat forecast</p><div class="days">${trip.map(x =>
+        `<div>${x.d.slice(8)} Jan<b>${(WX_CODES[w.daily.weather_code[x.i]] || ["🌡️"])[0]}</b>${Math.round(w.daily.temperature_2m_min[x.i])}–${Math.round(w.daily.temperature_2m_max[x.i])}°</div>`).join("")}</div>`
+        : `<p class="muted" style="margin:8px 0 0">Live now in Xiamen · Retreat forecast appears from late Dec</p>`}
+      <p style="margin:10px 0 0">${clothingTip(minT, maxW)}</p>`;
+  } catch (e) {
+    el.innerHTML = `<p style="margin:0">Live weather unavailable right now. Xiamen in January is usually 10–18°C and breezy by the sea.</p>
+      <p style="margin:8px 0 0">👕 Bring appropriate clothing — a light jacket.</p>`;
+  }
+}
+loadWeather();
+
 /* ---------- Interactions ---------- */
 function toast(msg) {
   const el = document.getElementById("toast");
@@ -560,6 +735,8 @@ function fallbackCopy(text) {
 document.addEventListener("click", e => {
   const c = e.target.closest("[data-copy]");
   if (c) { const p = PLACES[c.dataset.copy]; copyText(p.copyName || p.zh).then(() => toast("Copied ✓")); return; }
+  const ct = e.target.closest("[data-copytext]");
+  if (ct) { copyText(ct.dataset.copytext).then(() => toast("Copied ✓")); return; }
   const d = e.target.closest("[data-driver]");
   if (d) {
     const p = PLACES[d.dataset.driver];
