@@ -106,7 +106,7 @@ def agenda_pages(d):
             parts.append(f'<p class="tag">{tags[e["kind"]]}</p>')
             parts.append(f'<p><span class="t">{esc(e["timeLabel"])}</span> &nbsp;<b>{esc(e["title"])}</b></p>')
             for k in ("sub", "extra", "note"):
-                if e.get(k):
+                if e.get(k) and not (k == "note" and e.get("noteNextOnly")):
                     parts.append(f'<p class="note">{esc(e[k])}</p>')
             if e.get("place"):
                 parts.append(place_html(d["PLACES"][e["place"]]))
@@ -127,6 +127,7 @@ def info_html():
     sec = re.sub(r'<input[^>]*>', "&#9633; ", sec)
     sec = re.sub(r'<label[^>]*>', "", sec).replace("</label>", "")
     sec = re.sub(r'(<p>&#9633;[^<]*)\s*<small>', r"\1<br><small>", sec)
+    sec = re.sub(r'\s*<small class="copyline">(.*?)<button.*?</button></small>', r'<br><small>Address: \1</small>', sec, flags=re.S)
     sec = re.sub(r'<a [^>]*href="tel:[^"]*"[^>]*>(.*?)</a>', lambda m: "<p>" + m.group(1).replace("</b><small>", "</b> &nbsp;<small>") + "</p>", sec, flags=re.S)
     sec = re.sub(r'<a [^>]*href="(http[^"]*)"[^>]*>.*?</a>', r"\1", sec, flags=re.S)
     sec = re.sub(r"<small>(.*?)</small>", r'<span class="muted">\1</span>', sec, flags=re.S)
