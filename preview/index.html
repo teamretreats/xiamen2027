@@ -293,7 +293,7 @@ const EVENTS = [
   { day: 1, kind: "otot", start: "2027-01-11T00:00", end: "2027-01-11T15:00",
     timeLabel: "Before 15:00", title: "Amoy, WE ARE COMING!", noCountdown: true },
   { day: 1, kind: "logi", start: "2027-01-11T15:00", end: "2027-01-11T18:00",
-    timeLabel: "From 15:00", title: "Hotel Check-in & Jacket Collection", zh: "酒店入住", place: "hotel",
+    timeLabel: "From 15:00", title: "Hotel Check-in & Jacket Collection", nextTitle: "Check-In & Jacket Collection", zh: "酒店入住", place: "hotel",
     note: "Next Up: Welcome Drink at 19:00",
     feature: "Our home for 3 nights", icon: "🏨" },
   { day: 1, kind: "team", start: "2027-01-11T19:00", end: "2027-01-11T21:00",
@@ -403,7 +403,7 @@ function renderHero() {
       hero.innerHTML = `${showImg ? photoHTML(ev, "heroimg") : ""}<p class="state ${state === "now" ? "now" : ""}"><span class="dot"></span>${stateText}</p>
         <div class="count" id="count"></div>
         <p class="tick" id="tick" hidden></p>
-        <h2>${esc(ev.title)}</h2>
+        <h2>${esc(ev.nextTitle || ev.title)}</h2>
         <p class="when">Day ${d.n} · ${d.label} · ${esc(ev.timeLabel)}</p>
         ${ev.sub ? `<p class="note" style="margin:0 0 12px">${esc(ev.sub)}</p>` : ""}
         ${ev.extra ? `<p class="extra">${esc(ev.extra)}</p>` : ""}
@@ -440,7 +440,7 @@ function renderAfter(current) {
   const sec = document.getElementById("afterSec");
   sec.hidden = list.length === 0;
   document.getElementById("afterList").innerHTML = list.map(e =>
-    `<div class="mini"><time>${dayOf(e).label.split(", ")[1]} · ${esc(e.timeLabel)}</time><p>${esc(e.title)}</p></div>`
+    `<div class="mini"><time>${dayOf(e).label.split(", ")[1]} · ${esc(e.timeLabel)}</time><p>${esc(e.nextTitle || e.title)}</p></div>`
   ).join("");
 }
 
