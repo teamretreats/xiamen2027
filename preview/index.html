@@ -42,9 +42,9 @@ button{font:inherit;cursor:pointer}
 .state .dot{width:8px;height:8px;border-radius:50%;background:currentColor}
 .state.now .dot{animation:pulse 1.4s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
-.hero h2{font-family:var(--serif);font-size:25px;line-height:1.25;margin:8px 0 2px}
+.hero h2{font-family:var(--serif);font-size:25px;line-height:1.25;margin:0 0 2px}
 .hero .when{color:var(--muted);margin:0 0 14px;font-size:15px}
-.count{display:flex;gap:8px;margin:0 0 16px}
+.count{display:flex;gap:8px;margin:10px 0 16px}
 .count div{flex:1;background:var(--sea);color:#fff;border-radius:12px;padding:10px 4px 8px;text-align:center}
 .count b{display:block;font-size:26px;font-variant-numeric:tabular-nums;line-height:1.1}
 .count small{font-size:11px;letter-spacing:.08em;text-transform:uppercase;opacity:.75}
@@ -177,7 +177,7 @@ nav button.on .i{transform:translateY(-1px)}
 
 <header class="cover">
   <div class="wrap">
-    <p class="eyebrow">Team Retreat 2027</p>
+    <p class="eyebrow">EXO Team Retreat 2027</p>
     <h1>Xiamen<span>厦门 · Amoy</span></h1>
     <p class="dates">Mon 11 – Thu 14 January 2027</p>
   </div>
@@ -402,14 +402,14 @@ function renderHero() {
         <p class="when">Four days, one team, lots of memories. Relive them in the Album tab.</p>`;
     } else {
       const d = dayOf(ev);
-      const stateText = state === "now" ? "Happening now" : state === "before" ? "The retreat begins in" : "Up next";
+      const stateText = state === "now" ? "Happening now" : state === "before" ? "Begins in" : "Up next";
       const pl = PLACES[ev.place];
       const showImg = state !== "before" && pl && pl.photos;
       hero.innerHTML = `${showImg ? photoHTML(ev, "heroimg") : ""}<p class="state ${state === "now" ? "now" : ""}"><span class="dot"></span>${stateText}</p>
-        <h2>${esc(ev.title)}</h2>
-        <p class="when">Day ${d.n} · ${d.label} · ${esc(ev.timeLabel)}</p>
         <div class="count" id="count"></div>
         <p class="tick" id="tick" hidden></p>
+        <h2>${esc(ev.title)}</h2>
+        <p class="when">Day ${d.n} · ${d.label} · ${esc(ev.timeLabel)}</p>
         ${ev.extra ? `<p class="extra">${esc(ev.extra)}</p>` : ""}
         ${ev.place ? placeHTML(ev.place) : ""}
         ${ev.note ? `<p class="note">${esc(ev.note)}</p>` : ""}`;
