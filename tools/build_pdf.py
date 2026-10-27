@@ -146,9 +146,27 @@ def cover_html():
     <p class="sub">厦门 · Amoy</p>
     <p>Mon 11 – Thu 14 January 2027</p>
     <p style="margin-top:8pt"><img src="hotel-pool.jpg" width="{W - 2 * M}"></p>
-    <p class="muted" style="margin-top:6pt">Offline copy of the handbook. The live version, with countdown, photos and weather:
-    teamretreats.github.io/xiamen2027</p>
+    <p style="margin-top:6pt"><img src="{cover_collage()}" width="{W - 2 * M}"></p>
     """
+
+
+# Handbook photos not used elsewhere in the PDF, as a 3 x 2 collage under the cover photo
+COLLAGE = ["hy-2.jpg", "trail-2.jpg", "dinner-3.jpg", "hotel-room.jpg", "dinner-2.jpg", "hy-3.jpg"]
+
+
+def cover_collage():
+    from PIL import Image
+    tile, gap, cols = 300, 18, 3
+    rows = (len(COLLAGE) + cols - 1) // cols
+    sheet = Image.new("RGB", (cols * tile + (cols - 1) * gap, rows * tile + (rows - 1) * gap), "white")
+    for i, name in enumerate(COLLAGE):
+        im = Image.open(ROOT / "preview" / "img" / name).convert("RGB")
+        w, h = im.size; side = min(w, h)
+        im = im.crop(((w - side) // 2, (h - side) // 2, (w - side) // 2 + side, (h - side) // 2 + side)).resize((tile, tile))
+        sheet.paste(im, ((i % cols) * (tile + gap), (i // cols) * (tile + gap)))
+    CROPS.mkdir(exist_ok=True)
+    sheet.save(CROPS / "cover-collage.jpg", quality=75)
+    return "cover-collage.jpg"
 
 
 def main():
