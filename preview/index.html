@@ -133,7 +133,7 @@ nav button.on .i{transform:translateY(-1px)}
 <header class="cover">
   <div class="wrap">
     <p class="eyebrow">Team Retreat 2027</p>
-    <h1>Xiamen<span>厦 门</span></h1>
+    <h1>Xiamen · Amoy<span>厦 门</span></h1>
     <p class="dates">Mon 11 – Thu 14 January 2027</p>
   </div>
   <svg viewBox="0 0 400 120" preserveAspectRatio="none" aria-hidden="true">
@@ -199,12 +199,12 @@ nav button.on .i{transform:translateY(-1px)}
 /* ---------- Trip data (all times are Xiamen time, UTC+8, same as Singapore) ---------- */
 const PLACES = {
   hotel: {
-    name: "Lujiang Mega Hotel", zh: "厦门鹭江·佲家酒店",
+    name: "Lujiang Mega Hotel", zh: "厦门鹭江·佲家酒店", copyLabel: "Copy Hotel Name for DiDi",
     addrEn: "No. 382 Longhushan Road, Siming District, Xiamen",
     addrZh: "福建省厦门市思明区龙虎山路382号"
   },
   hy: {
-    name: "Hy 海野部落", zh: "Hy海野部落",
+    name: "Hy 海野部落", zh: "Hy海野部落", copyLabel: "Copy Venue Name for DiDi",
     addrEn: "2689-8-1 Huandao South Road, Siming District, Xiamen",
     addrZh: "福建省厦门市思明区环岛南路2689-8-1号"
   }
@@ -222,12 +222,12 @@ const EVENTS = [
   { day: 1, kind: "otot", start: "2027-01-11T00:00", end: "2027-01-11T15:00",
     timeLabel: "Before 15:00", title: "Arrive at your own pace",
     sub: "Flights differ — pre-trip OTOT is all yours.", noCountdown: true },
-  { day: 1, kind: "logi", start: "2027-01-11T15:00", end: "2027-01-11T17:00",
+  { day: 1, kind: "logi", start: "2027-01-11T15:00", end: "2027-01-11T19:00",
     timeLabel: "From 15:00", title: "Hotel Check-in", zh: "酒店入住", place: "hotel",
     note: "Drop your bags, freshen up, then head to the Welcome Drink." },
-  { day: 1, kind: "team", start: "2027-01-11T17:00", end: "2027-01-11T19:00",
-    timeLabel: "17:00", title: "Welcome Drink · Sunset Session", place: "hy",
-    extra: "🌇 Sunset around 17:30 — be there on time to catch it!",
+  { day: 1, kind: "team", start: "2027-01-11T19:00", end: "2027-01-11T21:00",
+    timeLabel: "19:00", title: "Welcome Drink", place: "hy",
+    extra: "🌇 OTOT tip: catch the sunset around 17:30 before the Welcome Drink.",
     note: "Make your own way there — a DiDi from the hotel is easiest." },
   { day: 2, tba: true }, { day: 3, tba: true },
   { day: 4, kind: "logi", start: "2027-01-14T12:00", end: "2027-01-14T12:00",
@@ -257,7 +257,7 @@ function dayOf(e) { return DAYS.find(d => d.n === e.day); }
 /* ---------- Rendering ---------- */
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
-function placeHTML(key) {
+function placeHTML(key, withHint) {
   const p = PLACES[key];
   if (!p) return "";
   return `<div class="place">
@@ -265,11 +265,10 @@ function placeHTML(key) {
     <p class="zh">${esc(p.addrZh)}</p>
     <p class="addr">${esc(p.addrEn)}</p>
     <div class="btns">
-      <button class="btn primary" data-copy="${key}">📋 Copy 中文地址</button>
-      <button class="btn" data-wechat>Open WeChat</button>
+      <button class="btn primary" data-copy="${key}">📋 ${esc(p.copyLabel)}</button>
       <button class="btn" data-driver="${key}">🚕 Show driver</button>
     </div>
-    <p class="hint">In WeChat, open the 腾讯地图 mini program and paste the address.</p>
+    ${withHint ? `<p class="hint">In WeChat, open the 腾讯地图 mini program and paste the name.</p>` : ""}
   </div>`;
 }
 
@@ -353,7 +352,7 @@ function renderAgenda() {
           <h4>${esc(e.title)}</h4>
           ${e.sub ? `<p class="sub">${esc(e.sub)}</p>` : ""}
           ${e.extra ? `<p class="sub">${esc(e.extra)}</p>` : ""}
-          ${e.place ? `<details><summary>📍 ${esc(PLACES[e.place].name)}</summary>${placeHTML(e.place)}</details>` : ""}
+          ${e.place ? `<details><summary>📍 ${esc(PLACES[e.place].name)}</summary>${placeHTML(e.place, true)}</details>` : ""}
         </div>`;
       }).join("")}
     </div>`;
@@ -383,8 +382,7 @@ function fallbackCopy(text) {
 
 document.addEventListener("click", e => {
   const c = e.target.closest("[data-copy]");
-  if (c) { const p = PLACES[c.dataset.copy]; copyText(p.zh + " " + p.addrZh).then(() => toast("中文地址 copied ✓")); return; }
-  if (e.target.closest("[data-wechat]")) { location.href = "weixin://"; return; }
+  if (c) { const p = PLACES[c.dataset.copy]; copyText(p.zh).then(() => toast("Copied ✓ Paste it into DiDi")); return; }
   const d = e.target.closest("[data-driver]");
   if (d) {
     const p = PLACES[d.dataset.driver];
