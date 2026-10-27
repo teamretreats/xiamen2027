@@ -48,6 +48,7 @@ button{font:inherit;cursor:pointer}
 .count div{flex:1;background:var(--sea);color:#fff;border-radius:12px;padding:10px 4px 8px;text-align:center}
 .count b{display:block;font-size:26px;font-variant-numeric:tabular-nums;line-height:1.1}
 .count small{font-size:11px;letter-spacing:.08em;text-transform:uppercase;opacity:.75}
+.tick{text-align:center;color:var(--muted);font-size:14px;font-variant-numeric:tabular-nums;letter-spacing:.04em;margin:-6px 0 16px}
 .extra{background:#fff4e8;border:1px solid #f8dcc0;color:#8a4a1f;border-radius:12px;padding:8px 12px;margin:0 0 14px;font-size:15px}
 
 /* Place block */
@@ -302,6 +303,7 @@ function renderHero() {
         <h2>${esc(ev.title)}</h2>
         <p class="when">Day ${d.n} · ${d.label} · ${esc(ev.timeLabel)}</p>
         <div class="count" id="count"></div>
+        <p class="tick" id="tick" hidden></p>
         ${ev.extra ? `<p class="extra">${esc(ev.extra)}</p>` : ""}
         ${ev.place ? placeHTML(ev.place) : ""}
         ${ev.note ? `<p class="note">${esc(ev.note)}</p>` : ""}`;
@@ -316,11 +318,17 @@ function renderCount(ms, isLive) {
   if (!el) return;
   const s = Math.max(0, Math.floor(ms / 1000));
   const D = Math.floor(s / 86400), H = Math.floor(s % 86400 / 3600), M = Math.floor(s % 3600 / 60), S = s % 60;
-  const cells = D >= 1
+  const W = Math.floor(D / 7), Dw = D % 7;
+  const cells = D >= 7
+    ? [[W, W === 1 ? "week" : "weeks"], [Dw, Dw === 1 ? "day" : "days"]]
+    : D >= 1
     ? [[D, D === 1 ? "day" : "days"], [pad(H), "hrs"], [pad(M), "min"], [pad(S), "sec"]]
     : [[pad(H), "hrs"], [pad(M), "min"], [pad(S), "sec"]];
-  el.innerHTML = cells.map(([v, u]) => `<div><b>${v}</b><small>${u}</small></div>`).join("") +
-    (isLive ? "" : "");
+  el.innerHTML = cells.map(([v, u]) => `<div><b>${v}</b><small>${u}</small></div>`).join("");
+  // More than a week away: big weeks/days boxes, with a small ticking line underneath
+  const tick = document.getElementById("tick");
+  tick.hidden = D < 7;
+  if (D >= 7) tick.textContent = `${pad(H)} hrs · ${pad(M)} min · ${pad(S)} sec`;
   el.title = isLive ? "Time left" : "Time to go";
 }
 
