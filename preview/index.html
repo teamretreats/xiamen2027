@@ -262,13 +262,9 @@ const PLACES = {
     addrZh: "福建省厦门市思明区龙虎山路382号",
     photos: ["img/hotel-pool.jpg", "img/hotel-courtyard.jpg", "img/hotel-suite.jpg", "img/hotel-room.jpg", "img/hotel-gym.jpg"]
   },
-  lobby: {
-    name: "Hotel Lobby · 鹭江·佲家酒店",
-    transport: "Gather at the lobby. Transport is arranged to and from the hotel."
-  },
   trail: {
     name: "Shanhai Health Trail · 山海健康步道",
-    transport: "Two-way transport from the hotel is arranged. No DiDi needed.",
+    transport: "Two-way transport provided",
     photos: ["img/trail-1.jpg", "img/trail-2.jpg", "img/trail-3.jpg", "img/trail-4.jpg"]
   },
   hy: {
@@ -295,34 +291,32 @@ const DAYS = [
 const EVENTS = [
   { day: 1, kind: "otot", start: "2027-01-11T00:00", end: "2027-01-11T15:00",
     timeLabel: "Before 15:00", title: "Arrive at your own pace",
-    sub: "Flights differ — pre-trip OTOT is all yours.", noCountdown: true },
+    sub: "Amoy, WE ARE COMING!", noCountdown: true },
   { day: 1, kind: "logi", start: "2027-01-11T15:00", end: "2027-01-11T18:00",
     timeLabel: "From 15:00", title: "Hotel Check-in", zh: "酒店入住", place: "hotel",
-    note: "Drop your bags, freshen up, then head to the Welcome Drink.",
+    note: "See you for Welcome Drink at 19:00",
     feature: "Our home for 3 nights", icon: "🏨" },
   { day: 1, kind: "team", start: "2027-01-11T19:00", end: "2027-01-11T21:00",
     timeLabel: "19:00", title: "Welcome Drink", place: "hy",
-    extra: "🌇 OTOT tip: catch the sunset around 17:30 before the Welcome Drink.",
-    note: "Make your own way there — a DiDi from the hotel is easiest.",
+    note: "Own transport · DiDi recommended",
     feature: "Welcome Drink", icon: "🍹", tone: "warm" },
   { day: 2, kind: "logi", start: "2027-01-12T08:30", end: "2027-01-12T09:00",
-    timeLabel: "08:30", title: "Gather at Hotel Lobby", place: "lobby",
-    note: "Be on time — our transport leaves for the trail." },
+    timeLabel: "08:30", title: "Transport for Team Activity",
+    sub: "Gather at Lobby for transport.", note: "Transport departs at 08:30" },
   { day: 2, kind: "team", start: "2027-01-12T09:00", end: "2027-01-12T12:00",
     timeLabel: "09:00", title: "Team Bonding · 山海健康步道", place: "trail",
-    note: "Wear comfortable shoes and bring water.",
+    note: "Light sportswear, team jacket, sunscreen & water bottle",
     feature: "Team Bonding", icon: "🥾", tone: "alt" },
   { day: 2, kind: "otot", start: "2027-01-12T12:00", end: "2027-01-12T23:59",
-    timeLabel: "After team bonding", title: "Free & easy — plan your OTOT", noCountdown: true },
+    timeLabel: "After team bonding", title: "Free & easy · OTOT", noCountdown: true },
   { day: 3, kind: "otot", start: "2027-01-13T00:00", end: "2027-01-13T17:00",
-    timeLabel: "Before 17:00", title: "Free & easy — plan your OTOT", noCountdown: true },
+    timeLabel: "Before 17:00", title: "Free & easy · OTOT", noCountdown: true },
   { day: 3, kind: "team", start: "2027-01-13T17:00", end: "2027-01-13T21:00",
     timeLabel: "17:00", title: "Team Dinner", place: "huangdu",
-    note: "Make your own way there — a DiDi is easiest.",
+    note: "Own transport · DiDi recommended",
     feature: "Team Dinner", icon: "🍽️", tone: "warm" },
   { day: 4, kind: "logi", start: "2027-01-14T12:00", end: "2027-01-14T12:00",
-    timeLabel: "By 12:00", title: "Hotel Check-out", zh: "退房",
-    note: "Late flight? Ask the front desk to hold your luggage." }
+    timeLabel: "By 12:00", title: "Hotel Check-out", zh: "退房" }
 ];
 
 /* ---------- Time helpers ---------- */
@@ -358,7 +352,7 @@ function placeHTML(key, withHint) {
     ${p.copyLabel ? `<div class="btns" style="margin-top:10px">
       <button class="btn primary" data-copy="${key}">${esc(p.copyLabel)}</button>
     </div>
-    ${withHint ? `<p class="hint">In Alipay, open DiDi Travel and paste the name as destination.</p>` : ""}` : ""}
+    ${withHint ? `<p class="hint">Alipay → DiDi Travel → paste as destination</p>` : ""}` : ""}
   </div>`;
 }
 
@@ -399,7 +393,8 @@ function renderHero() {
     if (state === "done") {
       hero.innerHTML = `<p class="state"><span class="dot"></span>That's a wrap</p>
         <h2>Thank you for Xiamen 2027 🌅</h2>
-        <p class="when">Four days, one team, lots of memories. Relive them in the Album tab.</p>`;
+        <p class="when">Four days, one team, lots of memories.</p>
+        <div class="btns"><button class="btn primary" data-tab="album">📸 Photo Album</button></div>`;
     } else {
       const d = dayOf(ev);
       const stateText = state === "now" ? "Happening now" : state === "before" ? "Begins in" : "Up next";
@@ -410,6 +405,7 @@ function renderHero() {
         <p class="tick" id="tick" hidden></p>
         <h2>${esc(ev.title)}</h2>
         <p class="when">Day ${d.n} · ${d.label} · ${esc(ev.timeLabel)}</p>
+        ${ev.sub ? `<p class="note" style="margin:0 0 12px">${esc(ev.sub)}</p>` : ""}
         ${ev.extra ? `<p class="extra">${esc(ev.extra)}</p>` : ""}
         ${ev.place ? placeHTML(ev.place) : ""}
         ${ev.note ? `<p class="note">${esc(ev.note)}</p>` : ""}`;
@@ -563,7 +559,7 @@ function fallbackCopy(text) {
 
 document.addEventListener("click", e => {
   const c = e.target.closest("[data-copy]");
-  if (c) { const p = PLACES[c.dataset.copy]; copyText(p.copyName || p.zh).then(() => toast("Copied ✓ Paste it into DiDi")); return; }
+  if (c) { const p = PLACES[c.dataset.copy]; copyText(p.copyName || p.zh).then(() => toast("Copied ✓")); return; }
   const d = e.target.closest("[data-driver]");
   if (d) {
     const p = PLACES[d.dataset.driver];
@@ -572,7 +568,7 @@ document.addEventListener("click", e => {
     document.getElementById("driver").classList.add("open");
     return;
   }
-  const tab = e.target.closest("nav [data-tab]");
+  const tab = e.target.closest("[data-tab]");
   if (tab) { showTab(tab.dataset.tab); return; }
   const go = e.target.closest("[data-goto]");
   if (go) {
