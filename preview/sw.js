@@ -1,5 +1,5 @@
 // Offline cache for the handbook. Bump VERSION on every deploy so phones pick up new files.
-const VERSION = "xm27-v4";
+const VERSION = "xm27-v5";
 const FILES = [
   "./", "./index.html", "./manifest.json", "./Xiamen-2027-Handbook.pdf",
    "./img/apple-touch-icon.png",   "./img/dinner-1.jpg",   "./img/dinner-2.jpg",   "./img/dinner-3.jpg",   "./img/hotel-courtyard.jpg",   "./img/hotel-gym.jpg",   "./img/hotel-pool.jpg",   "./img/hotel-room.jpg",   "./img/hotel-suite.jpg",   "./img/hy-1.jpg",   "./img/hy-2.jpg",   "./img/hy-3.jpg",   "./img/icon-192.png",   "./img/icon-512.png",   "./img/trail-1.jpg",   "./img/trail-2.jpg",   "./img/trail-3.jpg",   "./img/trail-4.jpg"

@@ -71,12 +71,36 @@ def place_html(p):
     return "".join(out)
 
 
-def agenda_html(d):
+CROPS = Path(__file__).resolve().parent / ".crops"
+
+
+def day_photo(d, n):
+    """Wide 16:9 crop of the day's team-activity photo (hotel courtyard on check-out day)."""
+    from PIL import Image
+    team = [e for e in d["EVENTS"] if e["day"] == n and e.get("kind") == "team" and e.get("place")]
+    photos = d["PLACES"][team[0]["place"]].get("photos") if team else ["img/hotel-courtyard.jpg"]
+    if not photos:
+        return None
+    CROPS.mkdir(exist_ok=True)
+    im = Image.open(ROOT / "preview" / photos[0]).convert("RGB")
+    w, h = im.size
+    ch = min(h, int(w * 9 / 16)); cw = min(w, int(ch * 16 / 9))
+    top = (h - ch) // 2
+    name = f"day{n}.jpg"
+    im.crop(((w - cw) // 2, top, (w - cw) // 2 + cw, top + ch)).resize((800, 450)).save(CROPS / name, quality=72)
+    return name
+
+
+def agenda_pages(d):
+    """One HTML chunk per day, so each day starts on its own page."""
     tags = {"team": "TEAM", "logi": "LOGISTICS", "otot": "OTOT"}
-    parts = ["<h2>Agenda</h2>"]
+    pages = []
     for day in d["DAYS"]:
         theme = f' · {esc(day["theme"])}' if day.get("theme") else ""
-        parts.append(f'<p class="day">Day {day["n"]}</p><p class="muted">{esc(day["label"])}{theme}</p>')
+        parts = [f'<p class="eyebrow">AGENDA</p><h2 style="margin-top:2pt">Day {day["n"]}</h2><p class="muted">{esc(day["label"])}{theme}</p>']
+        photo = day_photo(d, day["n"])
+        if photo:
+            parts.append(f'<p style="margin:6pt 0 4pt 0"><img src="{photo}" width="{W - 2 * M}"></p>')
         for e in [e for e in d["EVENTS"] if e["day"] == day["n"] and not e.get("tba")]:
             parts.append('<div class="item">')
             parts.append(f'<p class="tag">{tags[e["kind"]]}</p>')
@@ -87,7 +111,8 @@ def agenda_html(d):
             if e.get("place"):
                 parts.append(place_html(d["PLACES"][e["place"]]))
             parts.append("</div>")
-    return "".join(parts)
+        pages.append("".join(parts))
+    return pages
 
 
 def info_html():
@@ -102,14 +127,14 @@ def info_html():
     sec = re.sub(r'<input[^>]*>', "&#9633; ", sec)
     sec = re.sub(r'<label[^>]*>', "", sec).replace("</label>", "")
     sec = re.sub(r'(<p>&#9633;[^<]*)\s*<small>', r"\1<br><small>", sec)
-    sec = re.sub(r'<a [^>]*href="tel:[^"]*"[^>]*>(.*?)</a>', r"<p>\1</p>", sec, flags=re.S)
+    sec = re.sub(r'<a [^>]*href="tel:[^"]*"[^>]*>(.*?)</a>', lambda m: "<p>" + m.group(1).replace("</b><small>", "</b> &nbsp;<small>") + "</p>", sec, flags=re.S)
     sec = re.sub(r'<a [^>]*href="(http[^"]*)"[^>]*>.*?</a>', r"\1", sec, flags=re.S)
     sec = re.sub(r"<small>(.*?)</small>", r'<span class="muted">\1</span>', sec, flags=re.S)
     sec = re.sub(r"<dt>(.*?)</dt><dd>(.*?)</dd>", r"<p><b>\1</b> &nbsp;\2</p>", sec, flags=re.S)
     sec = re.sub(r'<div class="addrbox">(.*?)</div>', r'<div class="box">\1</div>', sec, flags=re.S)
     sec = re.sub(r"<b>(.*?)</b>(?=[^<])", r"<b>\1</b><br>", sec)              # scam title on its own line
     # drop the "Save offline" card: not relevant inside the PDF
-    sec = re.sub(r'<div class="icard">\s*<h3>📲 Save offline</h3>.*?</ol>\s*</div>', "", sec, flags=re.S)
+    sec = sec[:sec.index('<div class="icard">\n      <h3>📲 Save offline</h3>')]
     sec = sec[sec.index(">") + 1:]
     return "<h2>Handy Info</h2>" + EMOJI.sub("", sec)
 
@@ -128,7 +153,8 @@ def cover_html():
 
 def main():
     d = json.loads(DATA.read_text())
-    html = f"<body>{cover_html()}{agenda_html(d)}{info_html()}</body>"
+    sections = [cover_html(), *agenda_pages(d), info_html()]   # each section starts on a new page
+    html = "".join(sections)
     # subset the fonts to just the characters used, so the PDF stays small
     import tempfile
     from fontTools import subset
@@ -142,17 +168,19 @@ def main():
     arch = fitz.Archive()
     arch.add(str(tmp))
     arch.add(str(ROOT / "preview" / "img"))
-    story = fitz.Story(html=html, user_css=CSS, archive=arch)
+    arch.add(str(CROPS))
     writer = fitz.DocumentWriter(str(OUT))
-    more = True
-    while more:
-        dev = writer.begin_page(fitz.Rect(0, 0, W, H))
-        more, _ = story.place(fitz.Rect(M, M, W - M, H - M))
-        story.draw(dev)
-        writer.end_page()
+    for sec in sections:
+        story = fitz.Story(html=f"<body>{sec}</body>", user_css=CSS, archive=arch)
+        more = True
+        while more:
+            dev = writer.begin_page(fitz.Rect(0, 0, W, H))
+            more, _ = story.place(fitz.Rect(M, M, W - M, H - M))
+            story.draw(dev)
+            writer.end_page()
     writer.close()
 
-    # page numbers + subset fonts to keep the file small
+    # page numbers
     doc = fitz.open(str(OUT))
     for i, page in enumerate(doc):
         page.insert_text((W - M - 30, H - 10), f"{i + 1} / {doc.page_count}", fontsize=7, color=(0.42, 0.48, 0.53))
