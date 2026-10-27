@@ -317,7 +317,7 @@ function renderCount(ms, isLive) {
   const s = Math.max(0, Math.floor(ms / 1000));
   const D = Math.floor(s / 86400), H = Math.floor(s % 86400 / 3600), M = Math.floor(s % 3600 / 60), S = s % 60;
   const cells = D >= 1
-    ? [[D, D === 1 ? "day" : "days"], [H, "hrs"], [pad(M), "min"]]
+    ? [[D, D === 1 ? "day" : "days"], [pad(H), "hrs"], [pad(M), "min"], [pad(S), "sec"]]
     : [[pad(H), "hrs"], [pad(M), "min"], [pad(S), "sec"]];
   el.innerHTML = cells.map(([v, u]) => `<div><b>${v}</b><small>${u}</small></div>`).join("") +
     (isLive ? "" : "");
