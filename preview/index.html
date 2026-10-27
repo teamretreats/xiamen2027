@@ -52,7 +52,8 @@ button{font:inherit;cursor:pointer}
 .extra{background:#fff4e8;border:1px solid #f8dcc0;color:#8a4a1f;border-radius:12px;padding:8px 12px;margin:0 0 14px;font-size:15px}
 
 /* Place block */
-.place{border-top:1px solid var(--line);padding-top:14px;margin-top:4px}
+.place{border-top:1px solid var(--line);padding-top:14px;margin-top:4px;text-align:center}
+.place .btns{justify-content:center}
 .place .name{font-weight:600;margin:0}
 .place .zh{font-family:var(--serif);font-size:17px;margin:2px 0 0}
 .place .addr{color:var(--muted);font-size:14px;margin:2px 0 0}
@@ -121,11 +122,22 @@ button{font:inherit;cursor:pointer}
 .strip img{height:92px;width:auto;display:block}
 .item.flash{animation:flash 1.6s ease}
 @keyframes flash{0%,60%{box-shadow:0 0 0 3px var(--sun)}100%{box-shadow:none}}
-.viewer{position:fixed;inset:0;background:rgba(10,20,30,.94);z-index:70;display:none;align-items:center;justify-content:center;padding:16px}
+.viewer{position:fixed;inset:0;background:rgba(10,20,30,.95);z-index:70;display:none;flex-direction:column;align-items:center;justify-content:center;
+  padding:60px 12px calc(20px + env(safe-area-inset-bottom));touch-action:none;user-select:none;-webkit-user-select:none}
 .viewer.open{display:flex}
-.viewer img{max-width:100%;max-height:85vh;border-radius:12px}
-.viewer button{position:absolute;top:calc(14px + env(safe-area-inset-top));right:14px;border:0;background:#fff;color:var(--sea);
+.viewer img{max-width:100%;max-height:72vh;border-radius:12px;transition:transform .2s ease,opacity .2s ease}
+.viewer .vclose{position:absolute;top:calc(14px + env(safe-area-inset-top));right:14px;border:0;background:#fff;color:var(--sea);
   width:40px;height:40px;border-radius:50%;font-size:18px;font-weight:600}
+.viewer .vnav{position:absolute;top:50%;transform:translateY(-50%);border:0;background:rgba(255,255,255,.18);color:#fff;
+  width:40px;height:40px;border-radius:50%;font-size:24px;line-height:1}
+.viewer .vprev{left:8px}.viewer .vnext{right:8px}
+.viewer .vnav:disabled{opacity:0;pointer-events:none}
+.viewer .vcount{color:#fff;font-size:14px;margin:14px 0 4px;font-variant-numeric:tabular-nums}
+.viewer .vcredit{color:rgba(255,255,255,.6);font-size:11px;margin:0;text-align:center}
+.viewer .vcredit a{color:inherit}
+.phcount{position:absolute;right:10px;bottom:10px;background:rgba(0,0,0,.55);color:#fff;font-size:12px;font-weight:600;border-radius:999px;padding:3px 9px}
+.credit{font-size:11px;color:var(--muted);margin:6px 0 0}
+.credit a{color:inherit}
 
 /* Coming soon panels */
 .soon{background:var(--card);border:1px dashed var(--line);border-radius:var(--radius);padding:28px 18px;text-align:center;margin-top:24px;color:var(--muted)}
@@ -230,7 +242,14 @@ nav button.on .i{transform:translateY(-1px)}
   <button class="close" id="drvClose">Close</button>
 </div>
 
-<div class="viewer" id="viewer" role="dialog" aria-modal="true"><img id="viewerImg" alt=""><button aria-label="Close">✕</button></div>
+<div class="viewer" id="viewer" role="dialog" aria-modal="true">
+  <button class="vclose" aria-label="Close">✕</button>
+  <button class="vnav vprev" aria-label="Previous photo">‹</button>
+  <img id="viewerImg" alt="">
+  <button class="vnav vnext" aria-label="Next photo">›</button>
+  <p class="vcount" id="viewerCount"></p>
+  <p class="vcredit" id="viewerCredit"></p>
+</div>
 
 <div class="toast" id="toast"></div>
 
@@ -249,15 +268,18 @@ const PLACES = {
   },
   trail: {
     name: "Shanhai Health Trail · 山海健康步道",
-    transport: "Two-way transport from the hotel is arranged. No DiDi needed."
+    transport: "Two-way transport from the hotel is arranged. No DiDi needed.",
+    photos: ["img/trail-1.jpg", "img/trail-2.jpg", "img/trail-3.jpg", "img/trail-4.jpg"]
   },
   hy: {
     name: "Hy 海野部落", zh: "Hy海野部落", copyName: "海野部落", copyLabel: "Copy Venue Name for DiDi",
     addrEn: "2689-8-1 Huandao South Road, Siming District, Xiamen",
-    addrZh: "福建省厦门市思明区环岛南路2689-8-1号"
+    addrZh: "福建省厦门市思明区环岛南路2689-8-1号",
+    photos: ["img/hy-1.jpg", "img/hy-2.jpg", "img/hy-3.jpg"]
   },
   huangdu: {
-    name: "黄都礼宴", zh: "黄都礼宴", copyLabel: "Copy Venue Name for DiDi"
+    name: "黄都礼宴", zh: "黄都礼宴", copyLabel: "Copy Venue Name for DiDi",
+    photos: ["img/dinner-1.jpg", "img/dinner-2.jpg"]
   }
 };
 
@@ -344,14 +366,14 @@ function placeHTML(key, withHint) {
 function photoHTML(e, cls) {
   const p = PLACES[e.place] || {};
   const src = p.photos && p.photos[0];
-  if (src) return `<div class="ph ${cls}"><img src="${src}" alt="${esc(p.name)}" loading="lazy"></div>`;
+  if (src) return `<div class="ph ${cls}" data-view="${e.place}|0" role="button" aria-label="View photos"><img src="${src}" alt="${esc(p.name)}" loading="lazy">${p.photos.length > 1 && cls !== "" ? `<span class="phcount">📷 ${p.photos.length} photos</span>` : ""}</div>`;
   return `<div class="ph empty ${e.tone || ""} ${cls}"><div style="text-align:center">${e.icon || "📍"}<span>Photo coming soon</span></div></div>`;
 }
 
 function stripHTML(key) {
   const p = PLACES[key];
   if (!p || !p.photos || p.photos.length < 2) return "";
-  return `<div class="strip">${p.photos.map(s => `<button data-view="${s}"><img src="${s}" alt="" loading="lazy"></button>`).join("")}</div>`;
+  return `<div class="strip">${p.photos.map((s, i) => `<button data-view="${key}|${i}"><img src="${s}" alt="" loading="lazy"></button>`).join("")}</div>`;
 }
 
 let heroKey = "";
@@ -445,6 +467,7 @@ function renderAgenda() {
           ${e.sub ? `<p class="sub">${esc(e.sub)}</p>` : ""}
           ${e.extra ? `<p class="sub">${esc(e.extra)}</p>` : ""}
           ${e.kind !== "team" && e.place ? stripHTML(e.place) : ""}
+          ${e.place && PLACES[e.place].credit && e.kind === "team" ? `<p class="credit">${PLACES[e.place].credit}</p>` : ""}
           ${e.place ? `<details><summary>📍 ${esc(PLACES[e.place].name)}</summary>${placeHTML(e.place, true)}</details>` : ""}
         </div>`;
       }).join("")}
@@ -468,6 +491,54 @@ function showTab(name) {
   if (name === "agenda") renderAgenda();
   window.scrollTo({ top: 0 });
 }
+
+/* ---------- Photo viewer (swipe left/right, swipe down to close) ---------- */
+const VW = { key: null, i: 0 };
+function openViewer(key, i) {
+  VW.key = key; VW.i = i;
+  document.getElementById("viewerCredit").innerHTML = PLACES[key].credit || "";
+  showViewer();
+  document.getElementById("viewer").classList.add("open");
+}
+function showViewer() {
+  const list = PLACES[VW.key].photos;
+  const img = document.getElementById("viewerImg");
+  img.style.transform = ""; img.style.opacity = "";
+  img.src = list[VW.i];
+  document.getElementById("viewerCount").textContent = list.length > 1 ? `${VW.i + 1} / ${list.length}` : "";
+  document.querySelector(".vprev").disabled = VW.i === 0;
+  document.querySelector(".vnext").disabled = VW.i === list.length - 1;
+}
+function stepViewer(d) {
+  const n = VW.i + d, list = PLACES[VW.key].photos;
+  if (n < 0 || n >= list.length) { document.getElementById("viewerImg").style.transform = ""; return; }
+  VW.i = n; showViewer();
+}
+function closeViewer() { document.getElementById("viewer").classList.remove("open"); }
+(function () {
+  const vw = document.getElementById("viewer"), img = document.getElementById("viewerImg");
+  let x0 = null, y0 = 0, dx = 0, dy = 0;
+  vw.addEventListener("touchstart", ev => { x0 = ev.touches[0].clientX; y0 = ev.touches[0].clientY; dx = dy = 0; img.style.transition = "none"; }, { passive: true });
+  vw.addEventListener("touchmove", ev => {
+    if (x0 === null) return;
+    dx = ev.touches[0].clientX - x0; dy = ev.touches[0].clientY - y0;
+    if (Math.abs(dx) > Math.abs(dy)) img.style.transform = `translateX(${dx}px)`;
+    else if (dy > 0) { img.style.transform = `translateY(${dy}px)`; img.style.opacity = String(1 - Math.min(dy / 400, .6)); }
+  }, { passive: true });
+  vw.addEventListener("touchend", () => {
+    img.style.transition = "";
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) stepViewer(dx < 0 ? 1 : -1);
+    else if (dy > 90) closeViewer();
+    else { img.style.transform = ""; img.style.opacity = ""; }
+    x0 = null;
+  });
+  document.addEventListener("keydown", ev => {
+    if (!vw.classList.contains("open")) return;
+    if (ev.key === "ArrowRight") stepViewer(1);
+    if (ev.key === "ArrowLeft") stepViewer(-1);
+    if (ev.key === "Escape") closeViewer();
+  });
+})();
 
 /* ---------- Interactions ---------- */
 function toast(msg) {
@@ -512,13 +583,12 @@ document.addEventListener("click", e => {
     if (el) { el.scrollIntoView({ behavior: "smooth", block: "start" }); el.classList.add("flash"); }
     return;
   }
-  const v = e.target.closest("[data-view]");
-  if (v) {
-    document.getElementById("viewerImg").src = v.dataset.view;
-    document.getElementById("viewer").classList.add("open");
-    return;
-  }
-  if (e.target.closest("#viewer")) { document.getElementById("viewer").classList.remove("open"); return; }
+  // carousel cards jump to the agenda, so photos inside them don't open the viewer
+  const v = !e.target.closest(".ccard") && e.target.closest("[data-view]");
+  if (v) { const [k, i] = v.dataset.view.split("|"); openViewer(k, +i); return; }
+  if (e.target.closest(".vprev")) { stepViewer(-1); return; }
+  if (e.target.closest(".vnext")) { stepViewer(1); return; }
+  if (e.target.closest(".vclose") || (e.target.id === "viewer")) { closeViewer(); return; }
   const f = e.target.closest("[data-filter]");
   if (f) {
     filter = f.dataset.filter;
