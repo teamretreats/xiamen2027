@@ -175,6 +175,12 @@ button{font:inherit;cursor:pointer}
 .wx .days{display:flex;gap:6px;margin-top:10px}
 .wx .days div{flex:1;background:rgba(255,255,255,.7);border-radius:10px;padding:6px 2px;text-align:center;font-size:12px}
 .wx .days b{display:block;font-size:14px}
+.packlist{list-style:none;padding:0;margin:0}
+.packlist li{padding:8px 0 8px 26px;border-bottom:1px solid var(--line);position:relative;font-size:15px}
+.packlist li:last-child{border-bottom:0}
+.packlist li::before{content:"✓";position:absolute;left:4px;color:var(--ok);font-weight:700}
+.packlist b{font-weight:600}
+.packlist small{display:block;color:var(--muted);font-size:13px}
 .scams{counter-reset:s;list-style:none;padding:0;margin:0}
 .scams li{counter-increment:s;position:relative;padding:10px 0 10px 34px;border-bottom:1px solid var(--line);font-size:15px}
 .scams li:last-child{border-bottom:0}
@@ -325,10 +331,24 @@ nav button.on .i{transform:translateY(-1px)}
           <small>Google, WhatsApp &amp; Instagram need it in China</small></label></li>
         <li><input type="checkbox" id="c6"><label for="c6">Alipay / WeChat Pay: Identity Verification done
           <small>Verify your real name with your passport, then link your card</small></label></li>
-        <li><input type="checkbox" id="c7"><label for="c7">China plug adaptor</label></li>
       </ul>
       <h4>🌤️ Xiamen weather</h4>
       <div class="wx" id="wx"><p class="muted" style="margin:0">Loading live weather…</p></div>
+    </div>
+
+    <div class="icard">
+      <h3>🧳 What to Pack</h3>
+      <ul class="packlist">
+        <li><b>Team jacket</b> <small>Collected at check-in · wear it for Team Bonding</small></li>
+        <li><b>Passport</b> <small>Valid 6+ months</small></li>
+        <li><b>China plug adaptor</b></li>
+        <li><b>Light sportswear &amp; comfortable shoes</b> <small>For Team Bonding</small></li>
+        <li><b>Sunscreen</b></li>
+        <li><b>Water bottle</b></li>
+        <li><b>Clothing for the weather</b> <small>See the live Xiamen weather above</small></li>
+        <li><b>Power bank</b> <small>Must have the 3C mark · 100 Wh max · carry-on only</small></li>
+        <li><b>Personal medication</b></li>
+      </ul>
     </div>
 
     <div class="icard">

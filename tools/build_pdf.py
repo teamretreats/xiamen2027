@@ -130,6 +130,7 @@ def info_html():
     sec = re.sub(r'\s*<small class="copyline">(.*?)<button.*?</button></small>', r'<br><small>Address: \1</small>', sec, flags=re.S)
     sec = re.sub(r'<a [^>]*href="tel:[^"]*"[^>]*>(.*?)</a>', lambda m: "<p>" + m.group(1).replace("</b><small>", "</b> &nbsp;<small>") + "</p>", sec, flags=re.S)
     sec = re.sub(r'<a [^>]*href="(http[^"]*)"[^>]*>.*?</a>', r"\1", sec, flags=re.S)
+    sec = re.sub(r'<ul class="packlist">(.*?)</ul>', lambda m: re.sub(r"<li>(.*?)</li>", r"<p>&#10003; \1</p>", m.group(1), flags=re.S).replace("</b> <small>", "</b><br><small>"), sec, flags=re.S)
     sec = re.sub(r"<small>(.*?)</small>", r'<span class="muted">\1</span>', sec, flags=re.S)
     sec = re.sub(r"<dt>(.*?)</dt><dd>(.*?)</dd>", r"<p><b>\1</b> &nbsp;\2</p>", sec, flags=re.S)
     sec = re.sub(r'<div class="addrbox">(.*?)</div>', r'<div class="box">\1</div>', sec, flags=re.S)
@@ -137,6 +138,7 @@ def info_html():
     # drop the "Save offline" card: not relevant inside the PDF
     sec = sec[:sec.index('<div class="icard">\n      <h3>📲 Save offline</h3>')]
     sec = sec[sec.index(">") + 1:]
+    sec = sec.replace("See the live Xiamen weather above", "See Xiamen weather above")   # no live weather in the PDF
     return "<h2>Handy Info</h2>" + EMOJI.sub("", sec)
 
 
