@@ -236,6 +236,20 @@ button{font:inherit;cursor:pointer}
 .atile img{width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .3s}
 .atile img.ld{opacity:1}
 .atile.vid::after{content:"▶";position:absolute;right:6px;bottom:6px;background:rgba(0,0,0,.55);color:#fff;font-size:11px;border-radius:999px;padding:2px 7px}
+.alb-up{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin:0 0 12px}
+.alb-up .btns{justify-content:center}
+.alb-up label.btn{display:inline-flex;align-items:center;gap:6px}
+.alb-up .consent{font-size:12px;color:var(--muted);text-align:center;margin:10px 0 0}
+.upq{margin:10px 0 0;display:grid;gap:6px}
+.upq:empty{display:none}
+.uprow{font-size:13px;display:grid;grid-template-columns:1fr auto;gap:2px 8px;align-items:center}
+.uprow .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.uprow .st{color:var(--muted);font-variant-numeric:tabular-nums}
+.uprow .bar{grid-column:1/-1;height:4px;background:#ece4d6;border-radius:4px;overflow:hidden}
+.uprow .bar i{display:block;height:100%;width:0;background:var(--sea-2);transition:width .3s}
+.uprow.ok .bar i{background:var(--ok)}
+.uprow.bad .st{color:var(--rose)}
+.uprow .linkbtn{font-size:12px}
 .alb-foot{font-size:13px;color:var(--muted);text-align:center;margin:14px 0 0;word-break:break-all}
 .linkbtn{border:0;background:none;color:var(--sea-2);font-weight:600;padding:0;text-decoration:underline;font-size:13px}
 .vact{display:flex;gap:10px;justify-content:center;margin-top:12px}
@@ -465,6 +479,16 @@ nav button.on .i{transform:translateY(-1px)}
   <!-- ALBUM -->
   <section id="tab-album" hidden>
     <div class="alb-top"><h2>Shared Album</h2><span id="albCount"></span></div>
+    <div class="alb-up" id="albUp" hidden>
+      <div class="btns">
+        <label class="btn primary" for="albCam">📷 Camera</label>
+        <label class="btn" for="albPick">🖼️ Add from Photos</label>
+      </div>
+      <input type="file" id="albCam" accept="image/*,video/*" capture="environment" hidden>
+      <input type="file" id="albPick" accept="image/*,video/*" multiple hidden>
+      <p class="consent">Uploaded photos and videos are shared with all retreat attendees until 28 Feb 2027. Save a copy if needed. You may delete your own uploads anytime.</p>
+      <div class="upq" id="albQueue"></div>
+    </div>
     <div class="alb-wall" id="albWall">
       <div class="frost" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
       <div class="alb-card"><div id="albCard"></div></div>
@@ -889,6 +913,10 @@ document.addEventListener("click", e => {
   const adl = e.target.closest("[data-adl]");
   if (adl) { albDownload(adl); return; }
   if (e.target.closest("[data-albswitch]")) { switchAccount(); return; }
+  const adel = e.target.closest("[data-adel]");
+  if (adel) { albDelete(adel); return; }
+  const rt = e.target.closest("[data-upretry]");
+  if (rt) { const job = rt.closest(".uprow")._job; job.state = "waiting"; job.retry = false; upRow(job); UP.queue.push(job); runUploads(); return; }
   const tab = e.target.closest("[data-tab]");
   if (tab) { showTab(tab.dataset.tab); return; }
   const go = e.target.closest("[data-goto]");
@@ -924,8 +952,9 @@ const ALBUM = {
 };
 const AL = { token: null, gis: null, busy: false, email: "", items: null };
 
-function albCard(html) {
+function albCard(html, keepUpload) {
   document.getElementById("albCard").innerHTML = html;
+  document.getElementById("albUp").hidden = !keepUpload;
   document.getElementById("albWall").hidden = false;
   document.getElementById("albGrid").hidden = true;
   document.getElementById("albFoot").hidden = true;
@@ -1081,13 +1110,14 @@ function renderGrid() {
   const foot = `Signed in as ${esc(AL.email)} · <button class="linkbtn" data-albswitch>Switch account</button>`;
   if (!items.length) {
     albCard(`<div class="ic">📷</div><h3>No photos yet</h3><p>Be the first to add one!</p>
-      <p class="who">Signed in as ${esc(AL.email)}</p><div class="btns"><button class="btn" data-albswitch>Switch account</button></div>`);
+      <p class="who">Signed in as ${esc(AL.email)}</p><div class="btns"><button class="btn" data-albswitch>Switch account</button></div>`, true);
     return;
   }
   const grid = document.getElementById("albGrid");
   grid.innerHTML = items.map((it, i) =>
     `<button class="atile${it.video ? " vid" : ""}" data-aview="${i}" data-id="${esc(it.id)}" aria-label="${it.video ? "Video" : "Photo"} by ${esc(it.by)}"><img alt=""></button>`).join("");
   document.getElementById("albWall").hidden = true;
+  document.getElementById("albUp").hidden = false;
   grid.hidden = false;
   const f = document.getElementById("albFoot");
   f.innerHTML = foot; f.hidden = false;
@@ -1146,9 +1176,10 @@ function showAlbumPhoto(img, it) {
   if (next) setTimeout(() => getThumbs([next.id], 1200), 600);
   document.getElementById("viewerCredit").textContent = `${it.video ? "🎬 Video · " : ""}by ${it.by} · ${fmtWhen(it.at)}`;
   const drive = `<a class="vbtn" href="${driveLink(it.id)}" target="_blank" rel="noopener" aria-label="Original in Google Drive">${DRIVE_SVG}</a>`;
-  document.getElementById("viewerAct").innerHTML = it.video
+  const del = it.mine ? `<button class="vbtn" data-adel aria-label="Delete">🗑️</button>` : "";
+  document.getElementById("viewerAct").innerHTML = (it.video
     ? `<a class="vbtn" href="${driveLink(it.id)}" target="_blank" rel="noopener">▶ Play</a>${drive}`
-    : `<button class="vbtn" data-adl>⬇️ Download</button>${drive}`;
+    : `<button class="vbtn" data-adl>⬇️ Download</button>${drive}`) + del;
 }
 
 const DL = { id: null, file: null };
@@ -1181,6 +1212,140 @@ function saveFile(file, btn) {
   document.body.appendChild(a); a.click();
   setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
 }
+
+/* Delete your own upload (goes to Trash on the album account) */
+function albDelete(btn) {
+  const it = AL.items[VW.i];
+  if (!confirm(`Delete this ${it.video ? "video" : "photo"} from the album for everyone?`)) return;
+  btn.disabled = true;
+  albumApi({ action: "delete", token: AL.token, id: it.id }).then(r => {
+    if (!r.ok) throw new Error(r.error);
+    AL.items = AL.items.filter(x => x.id !== it.id);
+    closeViewer(); renderGrid(); toast("Deleted");
+  }).catch(() => { btn.disabled = false; toast("Couldn't delete. Try again"); });
+}
+
+/* Uploads: one file at a time, 4 MB pieces through the album script, resumable */
+const UP = { queue: [], running: false, CHUNK: 4 * 1024 * 1024 };
+const UP_MAX_VIDEO = 100 * 1024 * 1024, UP_MAX_SECS = 65;
+
+function videoSeconds(file) {
+  return new Promise(ok => {
+    const v = document.createElement("video");
+    const url = URL.createObjectURL(file);
+    const done = d => { URL.revokeObjectURL(url); ok(d); };
+    v.preload = "metadata";
+    v.onloadedmetadata = () => done(v.duration);
+    v.onerror = () => done(0);
+    setTimeout(() => done(0), 8000);
+    v.src = url;
+  });
+}
+
+function upRow(job) {
+  const q = document.getElementById("albQueue");
+  if (!job.el) { job.el = document.createElement("div"); job.el.className = "uprow"; q.appendChild(job.el); }
+  const pct = Math.round(100 * job.sent / (job.file.size || 1));
+  job.el.className = "uprow" + (job.state === "done" ? " ok" : job.state === "error" ? " bad" : "");
+  const st = job.state === "done" ? "✓ Uploaded"
+    : job.state === "error" ? `${esc(job.msg)}${job.retry ? ` · <button class="linkbtn" data-upretry>Retry</button>` : ""}`
+    : job.state === "waiting" ? "Waiting…" : `${pct}%`;
+  job.el.innerHTML = `<span class="nm">${job.file.type.startsWith("video/") ? "🎬" : "📷"} ${esc(job.name)}</span>
+    <span class="st">${st}</span><span class="bar"><i style="width:${job.state === "error" ? 0 : pct}%"></i></span>`;
+  job.el._job = job;
+}
+
+function upName(file) {
+  // camera shots are all called "image.jpg", so give them a dated name
+  if (!/^(image|capturedvideo|video)\.\w+$/i.test(file.name)) return file.name;
+  const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+  const t = new Date(now()).toLocaleString("sv-SE", { timeZone: "Asia/Shanghai" }).replace(/\D/g, "").slice(0, 14);
+  return `Xiamen_${t.slice(0, 8)}_${t.slice(8)}.${ext}`;
+}
+
+async function addUploads(files) {
+  for (const file of files) {
+    const job = { file, name: upName(file), sent: 0, state: "waiting", uploadId: null };
+    const isVideo = file.type.startsWith("video/");
+    if (!file.type.startsWith("image/") && !isVideo) { job.state = "error"; job.msg = "Not a photo or video"; }
+    else if (isVideo && file.size > UP_MAX_VIDEO) { job.state = "error"; job.msg = "Over 100 MB. Please trim to 1 min"; }
+    else if (isVideo && (await videoSeconds(file)) > UP_MAX_SECS) { job.state = "error"; job.msg = "Over 1 min. Please trim it"; }
+    upRow(job);
+    if (job.state === "waiting") UP.queue.push(job);
+  }
+  runUploads();
+}
+
+function readB64(blob) {
+  return new Promise((ok, no) => {
+    const r = new FileReader();
+    r.onload = () => ok(String(r.result).split(",")[1] || "");
+    r.onerror = () => no(r.error);
+    r.readAsDataURL(blob);
+  });
+}
+
+async function upCall(body, tries = 3) {
+  for (let i = 0; ; i++) {
+    try {
+      const r = await albumApi(Object.assign({ token: AL.token }, body));
+      if (r.ok || i >= tries - 1 || r.error === "invalid_token" || r.error === "no_access") return r;
+    } catch (e) { if (i >= tries - 1) throw e; }
+    await new Promise(w => setTimeout(w, 1500 * (i + 1)));
+  }
+}
+
+async function uploadOne(job) {
+  job.state = "sending"; job.msg = ""; upRow(job);
+  if (!job.uploadId) {
+    const r = await upCall({ action: "upstart", name: job.name, mime: job.file.type, size: job.file.size });
+    if (!r.ok) throw r;
+    job.uploadId = r.uploadId; job.sent = 0;
+  } else {
+    const r = await upCall({ action: "upstatus", uploadId: job.uploadId });   // resume where Drive left off
+    if (!r.ok) throw r;
+    if (r.done) return;
+    job.sent = r.received;
+  }
+  while (job.sent < job.file.size) {
+    const piece = job.file.slice(job.sent, job.sent + UP.CHUNK);
+    const r = await upCall({ action: "upchunk", uploadId: job.uploadId, offset: job.sent, data: await readB64(piece) });
+    if (!r.ok) throw r;
+    if (r.done) { job.sent = job.file.size; break; }
+    job.sent = r.received; upRow(job);
+  }
+}
+
+async function runUploads() {
+  if (UP.running) return;
+  UP.running = true;
+  let uploaded = 0;
+  while (UP.queue.length) {
+    const job = UP.queue.shift();
+    try {
+      await uploadOne(job);
+      job.state = "done"; uploaded++;
+      setTimeout(() => job.el && job.el.remove(), 4000);
+    } catch (err) {
+      const e = (err && err.error) || "";
+      job.state = "error"; job.retry = true;
+      if (e === "invalid_token") { job.msg = "Sign-in expired"; job.retry = false; UP.queue.forEach(j => { j.state = "error"; j.msg = "Sign in again, then add it again"; upRow(j); }); UP.queue = []; upRow(job); signInAgain(); break; }
+      if (e === "too_big") { job.msg = "Too big"; job.retry = false; }
+      else if (e === "upload_expired") { job.msg = "Upload timed out"; job.uploadId = null; }
+      else job.msg = "Upload failed";
+    }
+    upRow(job);
+  }
+  UP.running = false;
+  if (uploaded) refreshGallery();
+}
+
+window.addEventListener("beforeunload", e => { if (UP.running) { e.preventDefault(); e.returnValue = ""; } });
+["albCam", "albPick"].forEach(id => document.getElementById(id).addEventListener("change", e => {
+  const files = [...e.target.files];
+  e.target.value = "";
+  if (files.length) addUploads(files);
+}));
 
 function switchAccount() {
   saveToken(null); AL.items = null;
