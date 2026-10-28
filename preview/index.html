@@ -1213,7 +1213,7 @@ function showAlbumPhoto(img, it) {
   const next = AL.items[VW.i + 1];
   if (next) setTimeout(() => getThumbs([next.id], 1200), 600);
   document.getElementById("viewerCredit").textContent = `${it.video ? "🎬 Video · " : ""}by ${it.by} · ${fmtWhen(it.at)}`;
-  const drive = `<a class="vbtn" href="${driveLink(it.id)}" target="_blank" rel="noopener" aria-label="Download HD original from Google Drive">${DRIVE_SVG}${ICON.hd}${ICON.download}</a>`;
+  const drive = `<a class="vbtn" href="${driveLink(it.id)}" target="_blank" rel="noopener" aria-label="Download HD original from Google Drive">${ICON.download}${ICON.hd}</a>`;
   const del = it.mine ? `<button class="vbtn" data-adel aria-label="Delete">${ICON.del}</button>` : "";
   document.getElementById("viewerAct").innerHTML = (it.video
     ? `<a class="vbtn" href="${driveLink(it.id)}" target="_blank" rel="noopener" aria-label="Play">${ICON.play}</a>${drive}`
