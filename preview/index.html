@@ -213,6 +213,25 @@ button{font:inherit;cursor:pointer}
 .soon .ic{font-size:34px}
 .soon h3{color:var(--ink);font-size:18px;margin:6px 0 4px;letter-spacing:0;text-transform:none}
 
+/* Album */
+.alb-top{display:flex;align-items:baseline;justify-content:space-between;margin:24px 0 10px}
+.alb-top h2{font-family:var(--serif);font-size:24px;margin:0;color:var(--sea)}
+.alb-top span{color:var(--muted);font-size:14px}
+.alb-wall{position:relative;border-radius:var(--radius);overflow:hidden}
+.frost{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;filter:blur(6px);transform:scale(1.04)}
+.frost i{aspect-ratio:1;background:linear-gradient(135deg,var(--sea-2),#6a5a8c 55%,var(--rose))}
+.frost i:nth-child(3n+2){background:linear-gradient(135deg,#2b6a6a,var(--sea-2) 60%,#88a9c2)}
+.frost i:nth-child(4n+3){background:linear-gradient(135deg,#8a4a1f,var(--sun) 60%,var(--sun-2))}
+.alb-card{position:absolute;inset:0;display:grid;place-items:center;padding:16px}
+.alb-card > div{background:rgba(255,253,249,.94);border-radius:16px;padding:18px 16px;text-align:center;max-width:320px;width:100%;
+  box-shadow:0 8px 24px rgba(20,50,74,.18)}
+.alb-card .ic{font-size:30px}
+.alb-card h3{font-size:17px;margin:4px 0;letter-spacing:0;text-transform:none;color:var(--ink)}
+.alb-card p{margin:4px 0 0;font-size:14px;color:var(--muted)}
+.alb-card .who{font-size:13px;margin-top:10px;word-break:break-all}
+.alb-card .gbtn{display:flex;justify-content:center;margin-top:12px;min-height:44px}
+.alb-card .btns{justify-content:center;margin-top:12px}
+
 /* Bottom nav */
 nav{position:fixed;left:0;right:0;bottom:0;background:rgba(255,253,249,.96);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
   border-top:1px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom));z-index:10}
@@ -432,8 +451,11 @@ nav button.on .i{transform:translateY(-1px)}
 
   <!-- ALBUM -->
   <section id="tab-album" hidden>
-    <div class="soon"><div class="ic">📸</div><h3>Shared album is coming</h3>
-      <p>Snap with your camera or upload from your gallery. Everyone's photos, all in one place.</p></div>
+    <div class="alb-top"><h2>Shared Album</h2><span id="albCount"></span></div>
+    <div class="alb-wall">
+      <div class="frost" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="alb-card"><div id="albCard"></div></div>
+    </div>
   </section>
 </main>
 
@@ -700,6 +722,7 @@ function showTab(name) {
   document.querySelectorAll("nav [data-tab]").forEach(b => b.classList.toggle("on", b.dataset.tab === name));
   ["next", "agenda", "info", "album"].forEach(k => document.getElementById("tab-" + k).hidden = k !== name);
   if (name === "agenda") renderAgenda();
+  if (name === "album") openAlbum();
   window.scrollTo({ top: 0 });
 }
 
@@ -867,6 +890,137 @@ document.addEventListener("click", e => {
   }
 });
 document.getElementById("drvClose").onclick = () => document.getElementById("driver").classList.remove("open");
+
+/* ---------- Shared album (Google sign-in; the album script checks the photo folder's sharing list) ---------- */
+const ALBUM = {
+  exec: "https://script.google.com/macros/s/AKfycbwBcpE0UCqXaOewE2eCKNARiBq-kX9Qz6XYwQT19JlbvLtbtCO94reBbkp9Q6ujrPo/exec",                                                        // album script /exec URL (set after deploy)
+  clientId: "294551766250-mgcvcckj5p9596uneaokeght448sb4pi.apps.googleusercontent.com",
+  opensAt: new Date("2027-01-11T00:00:00+08:00").getTime(),        // the live page stays locked until then
+  preview: location.pathname.includes("/preview/")                 // preview is never locked, for testing
+};
+const AL = { token: null, gis: null, busy: false };
+
+function albCard(html) { document.getElementById("albCard").innerHTML = html; }
+function albCountText(n) {
+  document.getElementById("albCount").textContent = n == null ? "" : `${n} photo${n === 1 ? "" : "s"} & video${n === 1 ? "" : "s"}`;
+}
+
+function albumApi(body) {
+  const ctl = new AbortController();
+  const t = setTimeout(() => ctl.abort(), 20000);
+  // text/plain keeps it a "simple" request, so there's no CORS preflight to Apps Script
+  return fetch(ALBUM.exec, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify(body), signal: ctl.signal })
+    .then(r => r.json()).finally(() => clearTimeout(t));
+}
+
+function tokenExp(tok) {
+  try {
+    const b = tok.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    return JSON.parse(atob(b)).exp * 1000;
+  } catch (e) { return 0; }
+}
+function savedToken() {
+  let tok = null;
+  try { tok = localStorage.getItem("xm27-idt"); } catch (e) {}
+  return tok && tokenExp(tok) - Date.now() > 120000 ? tok : null;   // need 2+ min left
+}
+function saveToken(tok) {
+  AL.token = tok;
+  try { tok ? localStorage.setItem("xm27-idt", tok) : localStorage.removeItem("xm27-idt"); } catch (e) {}
+}
+
+function openAlbum() {
+  if (!ALBUM.preview && now() < ALBUM.opensAt) {
+    albCountText(null);
+    albCard(`<div class="ic">🔒</div><h3>Opens Mon 11 Jan 2027</h3>
+      <p>Snap with your camera or upload from your gallery. Everyone's photos, all in one place.</p>`);
+    return;
+  }
+  if (!ALBUM.exec) {
+    albCard(`<div class="ic">📸</div><h3>Album is being set up</h3><p>Check back soon.</p>`);
+    return;
+  }
+  if (AL.busy) return;
+  const tok = AL.token || savedToken();
+  if (tok) checkAccess(tok);
+  else showSignIn();
+  if (!tok) albumApi({ action: "count" }).then(r => r.ok && albCountText(r.count)).catch(() => {});
+}
+
+function showSignIn(msg) {
+  albCard(`<div class="ic">📸</div><h3>Sign in to see the photos</h3>
+    <p>${msg || "Use the Google account you gave for the retreat."}</p>
+    <div class="gbtn" id="gbtn"><p>Loading Google sign-in…</p></div>`);
+  loadGis().then(() => {
+    const el = document.getElementById("gbtn");
+    if (!el) return;
+    el.innerHTML = "";
+    google.accounts.id.renderButton(el, { theme: "filled_blue", size: "large", shape: "pill", text: "signin_with", width: 240 });
+  }).catch(() => {
+    const el = document.getElementById("gbtn");
+    if (el) el.innerHTML = `<p>Couldn't load Google sign-in. In China, the album needs roaming data (not hotel Wi-Fi).</p>`;
+  });
+}
+
+function loadGis() {
+  if (AL.gis) return AL.gis;
+  AL.gis = new Promise((ok, no) => {
+    const s = document.createElement("script");
+    s.src = "https://accounts.google.com/gsi/client"; s.async = true;
+    const t = setTimeout(() => no(new Error("timeout")), 10000);
+    s.onload = () => {
+      clearTimeout(t);
+      google.accounts.id.initialize({
+        client_id: ALBUM.clientId, auto_select: true, itp_support: true, ux_mode: "popup",
+        callback: r => { saveToken(r.credential); checkAccess(r.credential); }
+      });
+      ok();
+    };
+    s.onerror = () => { clearTimeout(t); no(new Error("blocked")); };
+    document.head.appendChild(s);
+  });
+  AL.gis.catch(() => { AL.gis = null; });   // allow a retry next time
+  return AL.gis;
+}
+
+function checkAccess(tok) {
+  AL.busy = true; AL.token = tok;
+  albCard(`<div class="ic">⏳</div><h3>Checking the guest list…</h3>`);
+  albumApi({ action: "whoami", token: tok }).then(r => {
+    if (!r.ok) {
+      if (r.error === "invalid_token") { saveToken(null); return showSignIn("Your sign-in expired. Please sign in again."); }
+      throw new Error(r.error);
+    }
+    albCountText(r.count);
+    const who = `<p class="who">Signed in as ${esc(r.email)}</p>`;
+    const sw = `<div class="btns"><button class="btn" id="albSwitch">Switch account</button></div>`;
+    if (r.access === "ok") {
+      albCard(`<div class="ic">✅</div><h3>You're on the list${r.name ? ", " + esc(r.name.split(" ")[0]) : ""}!</h3>
+        <p>The gallery and camera are coming next.</p>${who}${sw}`);
+    } else if (r.access === "not_listed") {
+      albCard(`<div class="ic">🙈</div><h3>This album is for retreat attendees</h3>
+        <p>Signed in with the wrong account? Switch to the one you gave for the retreat.</p>${who}${sw}`);
+    } else if (r.access === "not_open") {
+      albCard(`<div class="ic">🔒</div><h3>Opens Mon 11 Jan 2027</h3><p>See you in Xiamen!</p>${who}${sw}`);
+    } else {
+      albCard(`<div class="ic">📦</div><h3>The Xiamen album closed on 28 Feb 2027</h3><p>Thanks for all the memories!</p>${who}${sw}`);
+    }
+    const b = document.getElementById("albSwitch");
+    if (b) b.onclick = switchAccount;
+  }).catch(() => {
+    albCard(`<div class="ic">📡</div><h3>Couldn't reach the album</h3>
+      <p>Check your connection and try again. In China, the album needs roaming data.</p>
+      <div class="btns"><button class="btn primary" id="albRetry">Try again</button></div>`);
+    document.getElementById("albRetry").onclick = () => checkAccess(tok);
+  }).finally(() => { AL.busy = false; });
+}
+
+function switchAccount() {
+  saveToken(null);
+  if (window.google && google.accounts) google.accounts.id.disableAutoSelect();
+  showSignIn("Pick the Google account you gave for the retreat.");
+}
 
 /* ---------- Offline (Add to Home Screen) ---------- */
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
