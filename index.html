@@ -166,12 +166,21 @@ button{font:inherit;cursor:pointer}
 .check label{flex:1;font-size:15px}
 .check label small{display:block;color:var(--muted);font-size:13px}
 .check a{color:var(--sea-2)}
+.check li{flex-wrap:wrap}
+.check .copyline{display:block;width:100%;padding-left:30px;color:var(--muted);font-size:13px;margin-top:2px}
+.iconcopy{border:1px solid var(--line);background:#fff;color:var(--sea-2);border-radius:6px;font-size:13px;line-height:1;padding:3px 6px;margin-left:4px;vertical-align:middle}
 .wx{background:linear-gradient(135deg,#e8f1f7,#fdf3e7);border-radius:14px;padding:12px 14px;margin:10px 0 0}
 .wx .now{display:flex;align-items:center;gap:12px}
 .wx .temp{font-size:34px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--sea)}
 .wx .days{display:flex;gap:6px;margin-top:10px}
 .wx .days div{flex:1;background:rgba(255,255,255,.7);border-radius:10px;padding:6px 2px;text-align:center;font-size:12px}
 .wx .days b{display:block;font-size:14px}
+.packlist{list-style:none;padding:0;margin:0}
+.packlist li{padding:8px 0 8px 26px;border-bottom:1px solid var(--line);position:relative;font-size:15px}
+.packlist li:last-child{border-bottom:0}
+.packlist li::before{content:"✓";position:absolute;left:4px;color:var(--ok);font-weight:700}
+.packlist b{font-weight:600}
+.packlist small{display:block;color:var(--muted);font-size:13px}
 .scams{counter-reset:s;list-style:none;padding:0;margin:0}
 .scams li{counter-increment:s;position:relative;padding:10px 0 10px 34px;border-bottom:1px solid var(--line);font-size:15px}
 .scams li:last-child{border-bottom:0}
@@ -315,16 +324,31 @@ nav button.on .i{transform:translateY(-1px)}
         <li><input type="checkbox" id="c2"><label for="c2">MFA eRegister your trip
           <small>With Singpass · <a href="https://eregister.mfa.gov.sg/eregisterportal/landing.html" target="_blank" rel="noopener">eregister.mfa.gov.sg</a></small></label></li>
         <li><input type="checkbox" id="c3"><label for="c3">China Arrival Card (Online Form)
-          <small>Fill up via this link: <a href="https://s.nia.gov.cn/ArrivalCardFillingPC/" target="_blank" rel="noopener">s.nia.gov.cn/ArrivalCardFillingPC</a></small></label></li>
+          <small>Fill up via this link: <a href="https://s.nia.gov.cn/ArrivalCardFillingPC/" target="_blank" rel="noopener">s.nia.gov.cn/ArrivalCardFillingPC</a></small></label>
+          <small class="copyline">No. 382 Longhushan Road, Siming District <button class="iconcopy" data-copytext="No. 382 Longhushan Road, Siming District" aria-label="Copy address">⧉</button></small></li>
         <li><input type="checkbox" id="c4"><label for="c4">Travel insurance</label></li>
         <li><input type="checkbox" id="c5"><label for="c5">Data roaming or eSIM
           <small>Google, WhatsApp &amp; Instagram need it in China</small></label></li>
         <li><input type="checkbox" id="c6"><label for="c6">Alipay / WeChat Pay: Identity Verification done
           <small>Verify your real name with your passport, then link your card</small></label></li>
-        <li><input type="checkbox" id="c7"><label for="c7">China plug adaptor</label></li>
       </ul>
       <h4>🌤️ Xiamen weather</h4>
       <div class="wx" id="wx"><p class="muted" style="margin:0">Loading live weather…</p></div>
+    </div>
+
+    <div class="icard">
+      <h3>🧳 What to Pack</h3>
+      <ul class="packlist">
+        <li><b>Team jacket</b> <small>For collection at villa · wear it for Team Bonding</small></li>
+        <li><b>Passport</b> <small>Valid 6+ months</small></li>
+        <li><b>China plug adaptor</b></li>
+        <li><b>Light sportswear &amp; comfortable shoes</b> <small>For Team Bonding</small></li>
+        <li><b>Sunscreen</b></li>
+        <li><b>Water bottle</b></li>
+        <li><b>Clothing for the weather</b> <small>See the live Xiamen weather above</small></li>
+        <li><b>Power bank</b> <small>Must have the 3C mark · 100 Wh max · carry-on only</small></li>
+        <li><b>Personal medication</b></li>
+      </ul>
     </div>
 
     <div class="icard">
@@ -450,8 +474,8 @@ const EVENTS = [
   { day: 1, kind: "otot", start: "2027-01-11T00:00", end: "2027-01-11T15:00",
     timeLabel: "Before 15:00", title: "Amoy, WE ARE COMING!", noCountdown: true },
   { day: 1, kind: "logi", start: "2027-01-11T15:00", end: "2027-01-11T18:00",
-    timeLabel: "From 15:00", title: "Hotel Check-in & Jacket Collection", nextTitle: "Check-In & Jacket Collection", zh: "酒店入住", place: "hotel",
-    note: "Next Up: Welcome Drink at 19:00",
+    timeLabel: "From 15:00", title: "Check-in & Jacket Collection", zh: "酒店入住", place: "hotel",
+    note: "Next Up: Welcome Drink at 19:00", noteNextOnly: true,
     feature: "4D3N Villa", icon: "🏨" },
   { day: 1, kind: "team", start: "2027-01-11T19:00", end: "2027-01-11T21:00",
     timeLabel: "19:00", title: "Welcome Drink · Haiye Tribe", place: "hy",
@@ -462,7 +486,7 @@ const EVENTS = [
     sub: "Gather at Lobby for transport.", note: "Transport departs at 08:30" },
   { day: 2, kind: "team", start: "2027-01-12T09:00", end: "2027-01-12T12:00",
     timeLabel: "09:00", title: "Team Bonding · Shanhai Health Trail", place: "trail",
-    note: "Light sportswear, team jacket, sunscreen & water bottle",
+    note: "Team jacket, light sportswear, sunscreen & water bottle",
     feature: "Team Bonding", icon: "🥾", tone: "alt" },
   { day: 2, kind: "otot", start: "2027-01-12T12:00", end: "2027-01-12T23:59",
     timeLabel: "After team bonding", title: "Free & easy · OTOT", noCountdown: true },
@@ -619,6 +643,7 @@ function renderAgenda() {
           <h4>${esc(e.title)}</h4>
           ${e.sub ? `<p class="sub">${esc(e.sub)}</p>` : ""}
           ${e.extra ? `<p class="sub">${esc(e.extra)}</p>` : ""}
+          ${e.note && !e.noteNextOnly ? `<p class="sub">${esc(e.note)}</p>` : ""}
           ${e.kind !== "team" && e.place ? stripHTML(e.place) : ""}
           ${e.place && PLACES[e.place].credit && e.kind === "team" ? `<p class="credit">${PLACES[e.place].credit}</p>` : ""}
           ${e.place ? `<details><summary>📍 ${esc(PLACES[e.place].name)}</summary>${placeHTML(e.place, true)}</details>` : ""}
