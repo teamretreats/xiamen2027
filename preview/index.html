@@ -231,6 +231,19 @@ button{font:inherit;cursor:pointer}
 .alb-card .who{font-size:13px;margin-top:10px;word-break:break-all}
 .alb-card .gbtn{display:flex;justify-content:center;margin-top:12px;min-height:44px}
 .alb-card .btns{justify-content:center;margin-top:12px}
+.agrid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;border-radius:14px;overflow:hidden}
+.atile{position:relative;aspect-ratio:1;border:0;padding:0;background:#e6ddcf;overflow:hidden}
+.atile img{width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .3s}
+.atile img.ld{opacity:1}
+.atile.vid::after{content:"▶";position:absolute;right:6px;bottom:6px;background:rgba(0,0,0,.55);color:#fff;font-size:11px;border-radius:999px;padding:2px 7px}
+.alb-foot{font-size:13px;color:var(--muted);text-align:center;margin:14px 0 0;word-break:break-all}
+.linkbtn{border:0;background:none;color:var(--sea-2);font-weight:600;padding:0;text-decoration:underline;font-size:13px}
+.vact{display:flex;gap:10px;justify-content:center;margin-top:12px}
+.vact[hidden]{display:none}
+.vbtn{background:#fff;border:0;border-radius:999px;height:42px;min-width:42px;padding:0 16px;display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  font-weight:600;font-size:14px;color:var(--sea);text-decoration:none}
+.vbtn:disabled{opacity:.7}
+.vbtn svg{width:22px;height:20px}
 
 /* Bottom nav */
 nav{position:fixed;left:0;right:0;bottom:0;background:rgba(255,253,249,.96);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
@@ -452,10 +465,12 @@ nav button.on .i{transform:translateY(-1px)}
   <!-- ALBUM -->
   <section id="tab-album" hidden>
     <div class="alb-top"><h2>Shared Album</h2><span id="albCount"></span></div>
-    <div class="alb-wall">
+    <div class="alb-wall" id="albWall">
       <div class="frost" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
       <div class="alb-card"><div id="albCard"></div></div>
     </div>
+    <div class="agrid" id="albGrid" hidden></div>
+    <p class="alb-foot" id="albFoot" hidden></p>
   </section>
 </main>
 
@@ -483,6 +498,7 @@ nav button.on .i{transform:translateY(-1px)}
   <button class="vnav vnext" aria-label="Next photo">›</button>
   <p class="vcount" id="viewerCount"></p>
   <p class="vcredit" id="viewerCredit"></p>
+  <div class="vact" id="viewerAct" hidden></div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -728,23 +744,26 @@ function showTab(name) {
 
 /* ---------- Photo viewer (swipe left/right, swipe down to close) ---------- */
 const VW = { key: null, i: 0 };
+const vlist = () => VW.key === "album" ? AL.items : PLACES[VW.key].photos;
 function openViewer(key, i) {
   VW.key = key; VW.i = i;
-  document.getElementById("viewerCredit").innerHTML = PLACES[key].credit || "";
+  document.getElementById("viewerCredit").innerHTML = key === "album" ? "" : PLACES[key].credit || "";
+  document.getElementById("viewerAct").hidden = key !== "album";
   showViewer();
   document.getElementById("viewer").classList.add("open");
 }
 function showViewer() {
-  const list = PLACES[VW.key].photos;
+  const list = vlist();
   const img = document.getElementById("viewerImg");
   img.style.transform = ""; img.style.opacity = "";
-  img.src = list[VW.i];
+  if (VW.key === "album") showAlbumPhoto(img, list[VW.i]);
+  else img.src = list[VW.i];
   document.getElementById("viewerCount").textContent = list.length > 1 ? `${VW.i + 1} / ${list.length}` : "";
   document.querySelector(".vprev").disabled = VW.i === 0;
   document.querySelector(".vnext").disabled = VW.i === list.length - 1;
 }
 function stepViewer(d) {
-  const n = VW.i + d, list = PLACES[VW.key].photos;
+  const n = VW.i + d, list = vlist();
   if (n < 0 || n >= list.length) { document.getElementById("viewerImg").style.transform = ""; return; }
   VW.i = n; showViewer();
 }
@@ -865,6 +884,11 @@ document.addEventListener("click", e => {
     document.getElementById("driver").classList.add("open");
     return;
   }
+  const at = e.target.closest("[data-aview]");
+  if (at) { openViewer("album", +at.dataset.aview); return; }
+  const adl = e.target.closest("[data-adl]");
+  if (adl) { albDownload(adl); return; }
+  if (e.target.closest("[data-albswitch]")) { switchAccount(); return; }
   const tab = e.target.closest("[data-tab]");
   if (tab) { showTab(tab.dataset.tab); return; }
   const go = e.target.closest("[data-goto]");
@@ -898,9 +922,14 @@ const ALBUM = {
   opensAt: new Date("2027-01-11T00:00:00+08:00").getTime(),        // the live page stays locked until then
   preview: location.pathname.includes("/preview/")                 // preview is never locked, for testing
 };
-const AL = { token: null, gis: null, busy: false };
+const AL = { token: null, gis: null, busy: false, email: "", items: null };
 
-function albCard(html) { document.getElementById("albCard").innerHTML = html; }
+function albCard(html) {
+  document.getElementById("albCard").innerHTML = html;
+  document.getElementById("albWall").hidden = false;
+  document.getElementById("albGrid").hidden = true;
+  document.getElementById("albFoot").hidden = true;
+}
 function albCountText(n) {
   document.getElementById("albCount").textContent = n == null ? "" : `${n} photo${n === 1 ? "" : "s"} & video${n === 1 ? "" : "s"}`;
 }
@@ -942,6 +971,7 @@ function openAlbum() {
     return;
   }
   if (AL.busy) return;
+  if (AL.items && AL.token && tokenExp(AL.token) - Date.now() > 120000) return refreshGallery();
   const tok = AL.token || savedToken();
   if (tok) checkAccess(tok);
   else showSignIn();
@@ -989,15 +1019,15 @@ function checkAccess(tok) {
   albCard(`<div class="ic">⏳</div><h3>Checking the guest list…</h3>`);
   albumApi({ action: "whoami", token: tok }).then(r => {
     if (!r.ok) {
-      if (r.error === "invalid_token") { saveToken(null); return showSignIn("Your sign-in expired. Please sign in again."); }
+      if (r.error === "invalid_token") return signInAgain();
       throw new Error(r.error);
     }
     albCountText(r.count);
     const who = `<p class="who">Signed in as ${esc(r.email)}</p>`;
-    const sw = `<div class="btns"><button class="btn" id="albSwitch">Switch account</button></div>`;
+    const sw = `<div class="btns"><button class="btn" data-albswitch>Switch account</button></div>`;
     if (r.access === "ok") {
-      albCard(`<div class="ic">✅</div><h3>You're on the list${r.name ? ", " + esc(r.name.split(" ")[0]) : ""}!</h3>
-        <p>The gallery and camera are coming next.</p>${who}${sw}`);
+      AL.email = r.email;
+      return loadGallery();
     } else if (r.access === "not_listed") {
       albCard(`<div class="ic">🙈</div><h3>This album is for retreat attendees</h3>
         <p>Signed in with the wrong account? Switch to the one you gave for the retreat.</p>${who}${sw}`);
@@ -1006,8 +1036,7 @@ function checkAccess(tok) {
     } else {
       albCard(`<div class="ic">📦</div><h3>The Xiamen album closed on 28 Feb 2027</h3><p>Thanks for all the memories!</p>${who}${sw}`);
     }
-    const b = document.getElementById("albSwitch");
-    if (b) b.onclick = switchAccount;
+
   }).catch(() => {
     albCard(`<div class="ic">📡</div><h3>Couldn't reach the album</h3>
       <p>Check your connection and try again. In China, the album needs roaming data.</p>
@@ -1016,8 +1045,142 @@ function checkAccess(tok) {
   }).finally(() => { AL.busy = false; });
 }
 
+/* Gallery: grid of small images, loaded 12 at a time as they scroll into view */
+const TH = {};                                   // "id|size" -> image data URL
+const DRIVE_SVG = `<svg viewBox="0 0 87.3 78" aria-hidden="true"><path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/><path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0-1.2 4.5h27.5z" fill="#00ac47"/><path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335"/><path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"/><path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc"/><path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/></svg>`;
+
+function signInAgain() {
+  saveToken(null); AL.items = null;
+  showSignIn("Your sign-in expired. Please sign in again.");
+}
+
+function loadGallery() {
+  albCard(`<div class="ic">⏳</div><h3>Loading photos…</h3>`);
+  return albumApi({ action: "list", token: AL.token }).then(r => {
+    if (!r.ok) { if (r.error === "invalid_token") return signInAgain(); throw new Error(r.error); }
+    AL.items = r.items;
+    renderGrid();
+  });
+}
+
+function refreshGallery() {
+  albumApi({ action: "list", token: AL.token }).then(r => {
+    if (!r.ok) { if (r.error === "invalid_token") signInAgain(); return; }
+    const same = AL.items.map(x => x.id).join() === r.items.map(x => x.id).join();
+    AL.items = r.items;
+    if (!same) renderGrid();
+  }).catch(() => {});
+}
+
+function renderGrid() {
+  const items = AL.items;
+  albCountText(items.length);
+  const foot = `Signed in as ${esc(AL.email)} · <button class="linkbtn" data-albswitch>Switch account</button>`;
+  if (!items.length) {
+    albCard(`<div class="ic">📷</div><h3>No photos yet</h3><p>Be the first to add one!</p>
+      <p class="who">Signed in as ${esc(AL.email)}</p><div class="btns"><button class="btn" data-albswitch>Switch account</button></div>`);
+    return;
+  }
+  const grid = document.getElementById("albGrid");
+  grid.innerHTML = items.map((it, i) =>
+    `<button class="atile${it.video ? " vid" : ""}" data-aview="${i}" data-id="${esc(it.id)}" aria-label="${it.video ? "Video" : "Photo"} by ${esc(it.by)}"><img alt=""></button>`).join("");
+  document.getElementById("albWall").hidden = true;
+  grid.hidden = false;
+  const f = document.getElementById("albFoot");
+  f.innerHTML = foot; f.hidden = false;
+  grid.querySelectorAll(".atile").forEach(t => {
+    const u = TH[t.dataset.id + "|400"];
+    if (u) setImg(t.querySelector("img"), u); else tileObserver().observe(t);
+  });
+}
+
+function setImg(img, url) { img.onload = () => img.classList.add("ld"); img.src = url; }
+
+let _obs = null, _queue = [], _qt = null;
+function tileObserver() {
+  if (_obs) return _obs;
+  _obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      _obs.unobserve(e.target);
+      _queue.push(e.target.dataset.id);
+    });
+    clearTimeout(_qt);
+    _qt = setTimeout(flushQueue, 80);
+  }, { rootMargin: "400px 0px" });
+  return _obs;
+}
+function flushQueue() {
+  while (_queue.length) {
+    const ids = _queue.splice(0, 12);
+    getThumbs(ids, 400).then(() => ids.forEach(id => {
+      const u = TH[id + "|400"];
+      document.querySelectorAll(`.atile[data-id="${id}"] img`).forEach(img => u && setImg(img, u));
+    }));
+  }
+}
+
+function getThumbs(ids, size) {
+  const need = ids.filter(id => !TH[id + "|" + size]);
+  if (!need.length) return Promise.resolve();
+  return albumApi({ action: "thumbs", token: AL.token, ids: need, size }).then(r => {
+    if (r.ok) Object.keys(r.thumbs).forEach(id => { TH[id + "|" + size] = r.thumbs[id]; });
+    else if (r.error === "invalid_token") { closeViewer(); signInAgain(); }
+  }).catch(() => {});
+}
+
+const fmtWhen = iso => new Date(iso).toLocaleString("en-SG",
+  { timeZone: "Asia/Shanghai", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
+const driveLink = id => `https://drive.google.com/file/d/${encodeURIComponent(id)}/view`;
+
+// Viewer: 1200px image, plus Download (2000px copy) and the original in Google Drive
+function showAlbumPhoto(img, it) {
+  img.src = TH[it.id + "|1200"] || TH[it.id + "|400"] || "";
+  if (!TH[it.id + "|1200"]) getThumbs([it.id], 1200).then(() => {
+    if (vlist()[VW.i] === it && TH[it.id + "|1200"]) img.src = TH[it.id + "|1200"];
+  });
+  const next = AL.items[VW.i + 1];
+  if (next) setTimeout(() => getThumbs([next.id], 1200), 600);
+  document.getElementById("viewerCredit").textContent = `${it.video ? "🎬 Video · " : ""}by ${it.by} · ${fmtWhen(it.at)}`;
+  const drive = `<a class="vbtn" href="${driveLink(it.id)}" target="_blank" rel="noopener" aria-label="Original in Google Drive">${DRIVE_SVG}</a>`;
+  document.getElementById("viewerAct").innerHTML = it.video
+    ? `<a class="vbtn" href="${driveLink(it.id)}" target="_blank" rel="noopener">▶ Play</a>${drive}`
+    : `<button class="vbtn" data-adl>⬇️ Download</button>${drive}`;
+}
+
+const DL = { id: null, file: null };
+function albDownload(btn) {
+  const it = AL.items[VW.i];
+  if (DL.id === it.id && DL.file) return saveFile(DL.file, btn);
+  btn.disabled = true; btn.textContent = "⏳ Preparing…";
+  albumApi({ action: "thumbs", token: AL.token, ids: [it.id], size: 2000 }).then(r => {
+    const u = r.ok && r.thumbs[it.id];
+    if (!u) throw new Error("no_image");
+    return fetch(u).then(x => x.blob());
+  }).then(blob => {
+    DL.id = it.id;
+    DL.file = new File([blob], it.name.replace(/\.[^.]+$/, "") + ".jpg", { type: blob.type || "image/jpeg" });
+    btn.disabled = false; btn.textContent = "⬇️ Download";
+    saveFile(DL.file, btn);
+  }).catch(() => { btn.disabled = false; btn.textContent = "⬇️ Download"; toast("Couldn't download. Try again"); });
+}
+// iPhone: share sheet → "Save Image" puts it in Photos. Elsewhere: a normal download.
+function saveFile(file, btn) {
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    navigator.share({ files: [file] }).catch(err => {
+      // the image took a moment to fetch, so iOS may want one more tap
+      if (err && err.name === "NotAllowedError") btn.textContent = "💾 Save";
+    });
+    return;
+  }
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(file); a.download = file.name;
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+}
+
 function switchAccount() {
-  saveToken(null);
+  saveToken(null); AL.items = null;
   if (window.google && google.accounts) google.accounts.id.disableAutoSelect();
   showSignIn("Pick the Google account you gave for the retreat.");
 }
