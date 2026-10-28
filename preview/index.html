@@ -965,9 +965,9 @@ function albCountText(c) {
   document.getElementById("albCount").textContent = c ? [part(c.photos, "photo"), part(c.videos, "video")].filter(Boolean).join(" · ") : "";
 }
 
-function albumApi(body) {
+function albumApi(body, ms = 20000) {
   const ctl = new AbortController();
-  const t = setTimeout(() => ctl.abort(), 20000);
+  const t = setTimeout(() => ctl.abort(), ms);
   // text/plain keeps it a "simple" request, so there's no CORS preflight to Apps Script
   return fetch(ALBUM.exec, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" },
     body: JSON.stringify(body), signal: ctl.signal })
@@ -1226,7 +1226,7 @@ function albDelete(btn) {
 }
 
 /* Uploads: one file at a time, 4 MB pieces through the album script, resumable */
-const UP = { queue: [], running: false, CHUNK: 4 * 1024 * 1024 };
+const UP = { queue: [], running: false, CHUNK: 2 * 1024 * 1024 };   // 2 MB pieces: kinder to roaming data
 const UP_MAX_VIDEO = 100 * 1024 * 1024, UP_MAX_SECS = 65;
 
 function videoSeconds(file) {
@@ -1288,7 +1288,7 @@ function readB64(blob) {
 async function upCall(body, tries = 3) {
   for (let i = 0; ; i++) {
     try {
-      const r = await albumApi(Object.assign({ token: AL.token }, body));
+      const r = await albumApi(Object.assign({ token: AL.token }, body), 120000);
       if (r.ok || i >= tries - 1 || r.error === "invalid_token" || r.error === "no_access") return r;
     } catch (e) { if (i >= tries - 1) throw e; }
     await new Promise(w => setTimeout(w, 1500 * (i + 1)));
@@ -1327,12 +1327,12 @@ async function runUploads() {
       job.state = "done"; uploaded++;
       setTimeout(() => job.el && job.el.remove(), 4000);
     } catch (err) {
-      const e = (err && err.error) || "";
+      const e = (err && (err.error || (err.name === "AbortError" ? "timeout" : err.message))) || "";
       job.state = "error"; job.retry = true;
       if (e === "invalid_token") { job.msg = "Sign-in expired"; job.retry = false; UP.queue.forEach(j => { j.state = "error"; j.msg = "Sign in again, then add it again"; upRow(j); }); UP.queue = []; upRow(job); signInAgain(); break; }
       if (e === "too_big") { job.msg = "Too big"; job.retry = false; }
       else if (e === "upload_expired") { job.msg = "Upload timed out"; job.uploadId = null; }
-      else job.msg = "Upload failed";
+      else job.msg = `Upload failed${e ? ` (${e})` : ""}`;
     }
     upRow(job);
   }
