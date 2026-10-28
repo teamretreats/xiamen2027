@@ -213,6 +213,55 @@ button{font:inherit;cursor:pointer}
 .soon .ic{font-size:34px}
 .soon h3{color:var(--ink);font-size:18px;margin:6px 0 4px;letter-spacing:0;text-transform:none}
 
+/* Album */
+.alb-top{display:flex;align-items:baseline;justify-content:space-between;margin:24px 0 10px}
+.alb-top h2{font-family:var(--serif);font-size:24px;margin:0;color:var(--sea)}
+.alb-top span{color:var(--muted);font-size:14px}
+.alb-wall{position:relative;border-radius:var(--radius);overflow:hidden}
+.frost{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;filter:blur(6px);transform:scale(1.04)}
+.frost i{aspect-ratio:1;background:linear-gradient(135deg,var(--sea-2),#6a5a8c 55%,var(--rose))}
+.frost i:nth-child(3n+2){background:linear-gradient(135deg,#2b6a6a,var(--sea-2) 60%,#88a9c2)}
+.frost i:nth-child(4n+3){background:linear-gradient(135deg,#8a4a1f,var(--sun) 60%,var(--sun-2))}
+.alb-card{position:absolute;inset:0;display:grid;place-items:center;padding:16px}
+.alb-card > div{background:rgba(255,253,249,.94);border-radius:16px;padding:18px 16px;text-align:center;max-width:320px;width:100%;
+  box-shadow:0 8px 24px rgba(20,50,74,.18)}
+.alb-card .ic{font-size:30px}
+.alb-card h3{font-size:17px;margin:4px 0;letter-spacing:0;text-transform:none;color:var(--ink)}
+.alb-card p{margin:4px 0 0;font-size:14px;color:var(--muted)}
+.alb-card .who{font-size:13px;margin-top:10px;word-break:break-all}
+.alb-card .gbtn{display:flex;justify-content:center;margin-top:12px;min-height:44px}
+.alb-card .btns{justify-content:center;margin-top:12px}
+.agrid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;border-radius:14px;overflow:hidden}
+.atile{position:relative;aspect-ratio:1;border:0;padding:0;background:#e6ddcf;overflow:hidden}
+.atile img{width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .3s}
+.atile img.ld{opacity:1}
+.atile.vid::after{content:"▶";position:absolute;right:6px;bottom:6px;background:rgba(0,0,0,.55);color:#fff;font-size:11px;border-radius:999px;padding:2px 7px}
+.alb-up{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin:0 0 12px}
+.alb-up .btns{justify-content:center}
+.alb-up label.btn{display:inline-flex;align-items:center;gap:6px}
+.alb-up .consent{font-size:12px;color:var(--muted);text-align:center;margin:10px 0 0}
+.upq{margin:10px 0 0;display:grid;gap:6px}
+.upq:empty{display:none}
+.uprow{font-size:13px;display:grid;grid-template-columns:1fr auto;gap:2px 8px;align-items:center}
+.uprow .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.uprow .st{color:var(--muted);font-variant-numeric:tabular-nums}
+.uprow .bar{grid-column:1/-1;height:4px;background:#ece4d6;border-radius:4px;overflow:hidden}
+.uprow .bar i{display:block;height:100%;width:0;background:var(--sea-2);transition:width .3s}
+.uprow.ok .bar i{background:var(--ok)}
+.uprow.bad .st{color:var(--rose)}
+.uprow .linkbtn{font-size:12px}
+.alb-foot{font-size:13px;color:var(--muted);text-align:center;margin:14px 0 0;word-break:break-all}
+.linkbtn{border:0;background:none;color:var(--sea-2);font-weight:600;padding:0;text-decoration:underline;font-size:13px}
+.vact{display:flex;gap:10px;justify-content:center;margin-top:12px}
+.vact[hidden]{display:none}
+.vbtn{background:#fff;border:0;border-radius:999px;height:42px;min-width:42px;padding:0 16px;display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  font-weight:600;font-size:14px;color:var(--sea);text-decoration:none}
+.vbtn:disabled{opacity:.7}
+.vbtn svg{width:22px;height:22px;fill:currentColor;flex:none}
+.vbtn svg.drv{width:22px;height:20px}
+.vbtn.busy{animation:pulse 1.2s infinite}
+.vbtn .lbl{font-size:13px}
+
 /* Bottom nav */
 nav{position:fixed;left:0;right:0;bottom:0;background:rgba(255,253,249,.96);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
   border-top:1px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom));z-index:10}
@@ -432,8 +481,23 @@ nav button.on .i{transform:translateY(-1px)}
 
   <!-- ALBUM -->
   <section id="tab-album" hidden>
-    <div class="soon"><div class="ic">📸</div><h3>Shared album is coming</h3>
-      <p>Snap with your camera or upload from your gallery. Everyone's photos, all in one place.</p></div>
+    <div class="alb-top"><h2>Shared Album</h2><span id="albCount"></span></div>
+    <div class="alb-up" id="albUp" hidden>
+      <div class="btns">
+        <label class="btn primary" for="albCam">📷 Camera</label>
+        <label class="btn" for="albPick">🖼️ Add from Photos</label>
+      </div>
+      <input type="file" id="albCam" accept="image/*,video/*" capture="environment" hidden>
+      <input type="file" id="albPick" accept="image/*,video/*" multiple hidden>
+      <p class="consent">Uploaded photos and videos are shared with all retreat attendees until 28 Feb 2027. Save a copy if needed. You may delete your own uploads anytime.</p>
+      <div class="upq" id="albQueue"></div>
+    </div>
+    <div class="alb-wall" id="albWall">
+      <div class="frost" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="alb-card"><div id="albCard"></div></div>
+    </div>
+    <div class="agrid" id="albGrid" hidden></div>
+    <p class="alb-foot" id="albFoot" hidden></p>
   </section>
 </main>
 
@@ -461,6 +525,7 @@ nav button.on .i{transform:translateY(-1px)}
   <button class="vnav vnext" aria-label="Next photo">›</button>
   <p class="vcount" id="viewerCount"></p>
   <p class="vcredit" id="viewerCredit"></p>
+  <div class="vact" id="viewerAct" hidden></div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -700,28 +765,32 @@ function showTab(name) {
   document.querySelectorAll("nav [data-tab]").forEach(b => b.classList.toggle("on", b.dataset.tab === name));
   ["next", "agenda", "info", "album"].forEach(k => document.getElementById("tab-" + k).hidden = k !== name);
   if (name === "agenda") renderAgenda();
+  if (name === "album") openAlbum();
   window.scrollTo({ top: 0 });
 }
 
 /* ---------- Photo viewer (swipe left/right, swipe down to close) ---------- */
 const VW = { key: null, i: 0 };
+const vlist = () => VW.key === "album" ? AL.items : PLACES[VW.key].photos;
 function openViewer(key, i) {
   VW.key = key; VW.i = i;
-  document.getElementById("viewerCredit").innerHTML = PLACES[key].credit || "";
+  document.getElementById("viewerCredit").innerHTML = key === "album" ? "" : PLACES[key].credit || "";
+  document.getElementById("viewerAct").hidden = key !== "album";
   showViewer();
   document.getElementById("viewer").classList.add("open");
 }
 function showViewer() {
-  const list = PLACES[VW.key].photos;
+  const list = vlist();
   const img = document.getElementById("viewerImg");
   img.style.transform = ""; img.style.opacity = "";
-  img.src = list[VW.i];
+  if (VW.key === "album") showAlbumPhoto(img, list[VW.i]);
+  else img.src = list[VW.i];
   document.getElementById("viewerCount").textContent = list.length > 1 ? `${VW.i + 1} / ${list.length}` : "";
   document.querySelector(".vprev").disabled = VW.i === 0;
   document.querySelector(".vnext").disabled = VW.i === list.length - 1;
 }
 function stepViewer(d) {
-  const n = VW.i + d, list = PLACES[VW.key].photos;
+  const n = VW.i + d, list = vlist();
   if (n < 0 || n >= list.length) { document.getElementById("viewerImg").style.transform = ""; return; }
   VW.i = n; showViewer();
 }
@@ -842,6 +911,15 @@ document.addEventListener("click", e => {
     document.getElementById("driver").classList.add("open");
     return;
   }
+  const at = e.target.closest("[data-aview]");
+  if (at) { openViewer("album", +at.dataset.aview); return; }
+  const adl = e.target.closest("[data-adl]");
+  if (adl) { albDownload(adl); return; }
+  if (e.target.closest("[data-albswitch]")) { switchAccount(); return; }
+  const adel = e.target.closest("[data-adel]");
+  if (adel) { albDelete(adel); return; }
+  const rt = e.target.closest("[data-upretry]");
+  if (rt) { const job = rt.closest(".uprow")._job; job.state = "waiting"; job.retry = false; upRow(job); UP.queue.push(job); runUploads(); return; }
   const tab = e.target.closest("[data-tab]");
   if (tab) { showTab(tab.dataset.tab); return; }
   const go = e.target.closest("[data-goto]");
@@ -867,6 +945,451 @@ document.addEventListener("click", e => {
   }
 });
 document.getElementById("drvClose").onclick = () => document.getElementById("driver").classList.remove("open");
+
+/* ---------- Shared album (Google sign-in; the album script checks the photo folder's sharing list) ---------- */
+const ALBUM = {
+  exec: "https://script.google.com/macros/s/AKfycbwBcpE0UCqXaOewE2eCKNARiBq-kX9Qz6XYwQT19JlbvLtbtCO94reBbkp9Q6ujrPo/exec",                                                        // album script /exec URL (set after deploy)
+  clientId: "294551766250-mgcvcckj5p9596uneaokeght448sb4pi.apps.googleusercontent.com",
+  opensAt: new Date("2027-01-11T00:00:00+08:00").getTime(),        // the live page stays locked until then
+  preview: location.pathname.includes("/preview/")                 // preview is never locked, for testing
+};
+const AL = { token: null, gis: null, busy: false, email: "", items: null };
+
+function albCard(html, keepUpload) {
+  document.getElementById("albCard").innerHTML = html;
+  document.getElementById("albUp").hidden = !keepUpload;
+  document.getElementById("albWall").hidden = false;
+  document.getElementById("albGrid").hidden = true;
+  document.getElementById("albFoot").hidden = true;
+}
+// "3 photos · 1 video" (zero parts left out). Takes { photos, videos } or null to clear.
+function albCountText(c) {
+  const part = (n, w) => n ? `${n} ${w}${n === 1 ? "" : "s"}` : "";
+  document.getElementById("albCount").textContent = c ? [part(c.photos, "photo"), part(c.videos, "video")].filter(Boolean).join(" · ") : "";
+}
+
+function albumApi(body, ms = 20000) {
+  const ctl = new AbortController();
+  const t = setTimeout(() => ctl.abort(), ms);
+  // text/plain keeps it a "simple" request, so there's no CORS preflight to Apps Script
+  return fetch(ALBUM.exec, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify(body), signal: ctl.signal })
+    .then(r => r.json()).finally(() => clearTimeout(t));
+}
+
+function tokenExp(tok) {
+  try {
+    const b = tok.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    return JSON.parse(atob(b)).exp * 1000;
+  } catch (e) { return 0; }
+}
+function savedToken() {
+  let tok = null;
+  try { tok = localStorage.getItem("xm27-idt"); } catch (e) {}
+  return tok && tokenExp(tok) - Date.now() > 120000 ? tok : null;   // need 2+ min left
+}
+function saveToken(tok) {
+  AL.token = tok;
+  try { tok ? localStorage.setItem("xm27-idt", tok) : localStorage.removeItem("xm27-idt"); } catch (e) {}
+}
+
+function openAlbum() {
+  if (!ALBUM.preview && now() < ALBUM.opensAt) {
+    albCountText(null);
+    albCard(`<div class="ic">🔒</div><h3>Opens Mon 11 Jan 2027</h3>
+      <p>Snap with your camera or upload from your gallery. Everyone's photos, all in one place.</p>`);
+    return;
+  }
+  if (!ALBUM.exec) {
+    albCard(`<div class="ic">📸</div><h3>Album is being set up</h3><p>Check back soon.</p>`);
+    return;
+  }
+  if (AL.busy) return;
+  if (AL.items && AL.token && tokenExp(AL.token) - Date.now() > 120000) return refreshGallery();
+  const tok = AL.token || savedToken();
+  if (tok) checkAccess(tok);
+  else showSignIn();
+  if (!tok) albumApi({ action: "count" }).then(r => r.ok && albCountText(r)).catch(() => {});
+}
+
+function showSignIn(msg) {
+  albCard(`<div class="ic">📸</div><h3>Sign in to see the photos</h3>
+    <p>${msg || "Use the Google account you gave for the retreat."}</p>
+    <div class="gbtn" id="gbtn"><p>Loading Google sign-in…</p></div>`);
+  loadGis().then(() => {
+    const el = document.getElementById("gbtn");
+    if (!el) return;
+    el.innerHTML = "";
+    google.accounts.id.renderButton(el, { theme: "filled_blue", size: "large", shape: "pill", text: "signin_with", width: 240 });
+  }).catch(() => {
+    const el = document.getElementById("gbtn");
+    if (el) el.innerHTML = `<p>Couldn't load Google sign-in. In China, the album needs roaming data (not hotel Wi-Fi).</p>`;
+  });
+}
+
+function loadGis() {
+  if (AL.gis) return AL.gis;
+  AL.gis = new Promise((ok, no) => {
+    const s = document.createElement("script");
+    s.src = "https://accounts.google.com/gsi/client"; s.async = true;
+    const t = setTimeout(() => no(new Error("timeout")), 10000);
+    s.onload = () => {
+      clearTimeout(t);
+      google.accounts.id.initialize({
+        client_id: ALBUM.clientId, auto_select: true, itp_support: true, ux_mode: "popup",
+        callback: r => { saveToken(r.credential); checkAccess(r.credential); }
+      });
+      ok();
+    };
+    s.onerror = () => { clearTimeout(t); no(new Error("blocked")); };
+    document.head.appendChild(s);
+  });
+  AL.gis.catch(() => { AL.gis = null; });   // allow a retry next time
+  return AL.gis;
+}
+
+function checkAccess(tok) {
+  AL.busy = true; AL.token = tok;
+  albCard(`<div class="ic">⏳</div><h3>Checking the guest list…</h3>`);
+  albumApi({ action: "whoami", token: tok }).then(r => {
+    if (!r.ok) {
+      if (r.error === "invalid_token") return signInAgain();
+      throw new Error(r.error);
+    }
+    albCountText(r);
+    const who = `<p class="who">Signed in as ${esc(r.email)}</p>`;
+    const sw = `<div class="btns"><button class="btn" data-albswitch>Switch account</button></div>`;
+    if (r.access === "ok") {
+      AL.email = r.email;
+      return loadGallery();
+    } else if (r.access === "not_listed") {
+      albCard(`<div class="ic">🙈</div><h3>This album is for retreat attendees</h3>
+        <p>Signed in with the wrong account? Switch to the one you gave for the retreat.</p>${who}${sw}`);
+    } else if (r.access === "not_open") {
+      albCard(`<div class="ic">🔒</div><h3>Opens Mon 11 Jan 2027</h3><p>See you in Xiamen!</p>${who}${sw}`);
+    } else {
+      albCard(`<div class="ic">📦</div><h3>The Xiamen album closed on 28 Feb 2027</h3><p>Thanks for all the memories!</p>${who}${sw}`);
+    }
+
+  }).catch(() => {
+    albCard(`<div class="ic">📡</div><h3>Couldn't reach the album</h3>
+      <p>Check your connection and try again. In China, the album needs roaming data.</p>
+      <div class="btns"><button class="btn primary" id="albRetry">Try again</button></div>`);
+    document.getElementById("albRetry").onclick = () => checkAccess(tok);
+  }).finally(() => { AL.busy = false; });
+}
+
+/* Gallery: grid of small images, loaded 12 at a time as they scroll into view */
+const TH = {};                                   // "id|size" -> image data URL
+// Material icons (the ones Google Drive / Photos use)
+const ICON = {
+  download: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z"/></svg>`,
+  hd: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-8 12H9.5v-2h-2v2H6V9h1.5v2.5h2V9H11v6zm2-6h4c.55 0 1 .45 1 1v4c0 .55-.45 1-1 1h-4V9zm1.5 4.5h2v-3h-2v3z"/></svg>`,
+  del: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>`,
+  play: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>`
+};
+const DRIVE_SVG = `<svg class="drv" viewBox="0 0 87.3 78" aria-hidden="true"><path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/><path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0-1.2 4.5h27.5z" fill="#00ac47"/><path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335"/><path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"/><path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc"/><path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/></svg>`;
+
+function signInAgain() {
+  saveToken(null); AL.items = null;
+  showSignIn("Your sign-in expired. Please sign in again.");
+}
+
+function loadGallery() {
+  albCard(`<div class="ic">⏳</div><h3>Loading photos…</h3>`);
+  return albumApi({ action: "list", token: AL.token }).then(r => {
+    if (!r.ok) { if (r.error === "invalid_token") return signInAgain(); throw new Error(r.error); }
+    AL.items = r.items;
+    renderGrid();
+  });
+}
+
+function refreshGallery() {
+  albumApi({ action: "list", token: AL.token }).then(r => {
+    if (!r.ok) { if (r.error === "invalid_token") signInAgain(); return; }
+    const same = AL.items.map(x => x.id).join() === r.items.map(x => x.id).join();
+    AL.items = r.items;
+    if (!same) renderGrid();
+  }).catch(() => {});
+}
+
+function renderGrid() {
+  const items = AL.items;
+  const videos = items.filter(x => x.video).length;
+  albCountText({ photos: items.length - videos, videos });
+  const foot = `Signed in as ${esc(AL.email)} · <button class="linkbtn" data-albswitch>Switch account</button>`;
+  if (!items.length) {
+    albCard(`<div class="ic">📷</div><h3>No photos yet</h3><p>Be the first to add one!</p>
+      <p class="who">Signed in as ${esc(AL.email)}</p><div class="btns"><button class="btn" data-albswitch>Switch account</button></div>`, true);
+    return;
+  }
+  const grid = document.getElementById("albGrid");
+  grid.innerHTML = items.map((it, i) =>
+    `<button class="atile${it.video ? " vid" : ""}" data-aview="${i}" data-id="${esc(it.id)}" aria-label="${it.video ? "Video" : "Photo"} by ${esc(it.by)}"><img alt=""></button>`).join("");
+  document.getElementById("albWall").hidden = true;
+  document.getElementById("albUp").hidden = false;
+  grid.hidden = false;
+  const f = document.getElementById("albFoot");
+  f.innerHTML = foot; f.hidden = false;
+  grid.querySelectorAll(".atile").forEach(t => {
+    const u = TH[t.dataset.id + "|400"];
+    if (u) setImg(t.querySelector("img"), u); else tileObserver().observe(t);
+  });
+}
+
+function setImg(img, url) { img.onload = () => img.classList.add("ld"); img.src = url; }
+
+let _obs = null, _queue = [], _qt = null;
+function tileObserver() {
+  if (_obs) return _obs;
+  _obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      _obs.unobserve(e.target);
+      _queue.push(e.target.dataset.id);
+    });
+    clearTimeout(_qt);
+    _qt = setTimeout(flushQueue, 80);
+  }, { rootMargin: "400px 0px" });
+  return _obs;
+}
+function flushQueue() {
+  while (_queue.length) {
+    const ids = _queue.splice(0, 12);
+    getThumbs(ids, 400).then(() => ids.forEach(id => {
+      const u = TH[id + "|400"];
+      document.querySelectorAll(`.atile[data-id="${id}"] img`).forEach(img => u && setImg(img, u));
+    }));
+  }
+}
+
+// Drive's smaller copies can lose the "turn this way" tag of phone photos and arrive sideways.
+// If the copy still has the stored (unturned) shape, turn it upright on a canvas.
+function upright(url, it) {
+  const turns = it ? (it.rot || 0) % 4 : 0;
+  if (!turns || !it.pw || !it.ph) return Promise.resolve(url);
+  return new Promise(ok => {
+    const im = new Image();
+    im.onload = () => {
+      const w = im.naturalWidth, h = im.naturalHeight;
+      const stillStored = (w >= h) === (it.pw >= it.ph);
+      if (turns % 2 === 1 && !stillStored) return ok(url);        // already upright
+      if (turns === 2 && !stillStored) return ok(url);
+      const c = document.createElement("canvas");
+      const odd = turns % 2 === 1;
+      c.width = odd ? h : w; c.height = odd ? w : h;
+      const g = c.getContext("2d");
+      g.translate(c.width / 2, c.height / 2);
+      g.rotate(turns * Math.PI / 2);
+      g.drawImage(im, -w / 2, -h / 2);
+      ok(c.toDataURL("image/jpeg", 0.92));
+    };
+    im.onerror = () => ok(url);
+    im.src = url;
+  });
+}
+const itemById = id => (AL.items || []).find(x => x.id === id);
+
+function getThumbs(ids, size) {
+  const need = ids.filter(id => !TH[id + "|" + size]);
+  if (!need.length) return Promise.resolve();
+  return albumApi({ action: "thumbs", token: AL.token, ids: need, size }).then(r => {
+    if (r.ok) return Promise.all(Object.keys(r.thumbs).map(id =>
+      upright(r.thumbs[id], itemById(id)).then(u => { TH[id + "|" + size] = u; })));
+    else if (r.error === "invalid_token") { closeViewer(); signInAgain(); }
+  }).catch(() => {});
+}
+
+const fmtWhen = iso => new Date(iso).toLocaleString("en-SG",
+  { timeZone: "Asia/Shanghai", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
+const driveLink = id => `https://drive.google.com/file/d/${encodeURIComponent(id)}/view`;
+
+// Viewer: 1200px image, plus Download (2000px copy) and the original in Google Drive
+function showAlbumPhoto(img, it) {
+  img.src = TH[it.id + "|1200"] || TH[it.id + "|400"] || "";
+  if (!TH[it.id + "|1200"]) getThumbs([it.id], 1200).then(() => {
+    if (vlist()[VW.i] === it && TH[it.id + "|1200"]) img.src = TH[it.id + "|1200"];
+  });
+  const next = AL.items[VW.i + 1];
+  if (next) setTimeout(() => getThumbs([next.id], 1200), 600);
+  document.getElementById("viewerCredit").textContent = `${it.video ? "🎬 Video · " : ""}by ${it.by} · ${fmtWhen(it.at)}`;
+  const drive = `<a class="vbtn" href="${driveLink(it.id)}" target="_blank" rel="noopener" aria-label="Download HD original from Google Drive">${ICON.download}${ICON.hd}</a>`;
+  const del = it.mine ? `<button class="vbtn" data-adel aria-label="Delete">${ICON.del}</button>` : "";
+  document.getElementById("viewerAct").innerHTML = (it.video
+    ? `<a class="vbtn" href="${driveLink(it.id)}" target="_blank" rel="noopener" aria-label="Play">${ICON.play}</a>${drive}`
+    : `<button class="vbtn" data-adl aria-label="Download">${ICON.download}</button>${drive}`) + del;
+}
+
+const DL = { id: null, file: null };
+function albDownload(btn) {
+  const it = AL.items[VW.i];
+  if (DL.id === it.id && DL.file) return saveFile(DL.file, btn);
+  btn.disabled = true; btn.classList.add("busy");
+  albumApi({ action: "thumbs", token: AL.token, ids: [it.id], size: 2000 }).then(r => {
+    const u = r.ok && r.thumbs[it.id];
+    if (!u) throw new Error("no_image");
+    return upright(u, it).then(fixed => fetch(fixed)).then(x => x.blob());
+  }).then(blob => {
+    DL.id = it.id;
+    DL.file = new File([blob], it.name.replace(/\.[^.]+$/, "") + ".jpg", { type: blob.type || "image/jpeg" });
+    btn.disabled = false; btn.classList.remove("busy");
+    saveFile(DL.file, btn);
+  }).catch(() => { btn.disabled = false; btn.classList.remove("busy"); toast("Couldn't download. Try again"); });
+}
+// iPhone: share sheet → "Save Image" puts it in Photos. Elsewhere: a normal download.
+function saveFile(file, btn) {
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    navigator.share({ files: [file] }).catch(err => {
+      // the image took a moment to fetch, so iOS may want one more tap
+      if (err && err.name === "NotAllowedError") btn.innerHTML = `${ICON.download}<span class="lbl">Tap to save</span>`;
+    });
+    return;
+  }
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(file); a.download = file.name;
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+}
+
+/* Delete your own upload (goes to Trash on the album account) */
+function albDelete(btn) {
+  const it = AL.items[VW.i];
+  if (!confirm(`Delete this ${it.video ? "video" : "photo"} from the album for everyone?`)) return;
+  btn.disabled = true;
+  albumApi({ action: "delete", token: AL.token, id: it.id }).then(r => {
+    if (!r.ok) throw new Error(r.error);
+    AL.items = AL.items.filter(x => x.id !== it.id);
+    closeViewer(); renderGrid(); toast("Deleted");
+  }).catch(() => { btn.disabled = false; toast("Couldn't delete. Try again"); });
+}
+
+/* Uploads: one file at a time, 4 MB pieces through the album script, resumable */
+const UP = { queue: [], running: false, CHUNK: 2 * 1024 * 1024 };   // 2 MB pieces: kinder to roaming data
+const UP_MAX_VIDEO = 100 * 1024 * 1024, UP_MAX_SECS = 65;
+
+function videoSeconds(file) {
+  return new Promise(ok => {
+    const v = document.createElement("video");
+    const url = URL.createObjectURL(file);
+    const done = d => { URL.revokeObjectURL(url); ok(d); };
+    v.preload = "metadata";
+    v.onloadedmetadata = () => done(v.duration);
+    v.onerror = () => done(0);
+    setTimeout(() => done(0), 8000);
+    v.src = url;
+  });
+}
+
+function upRow(job) {
+  const q = document.getElementById("albQueue");
+  if (!job.el) { job.el = document.createElement("div"); job.el.className = "uprow"; q.appendChild(job.el); }
+  const pct = Math.round(100 * job.sent / (job.file.size || 1));
+  job.el.className = "uprow" + (job.state === "done" ? " ok" : job.state === "error" ? " bad" : "");
+  const st = job.state === "done" ? "✓ Uploaded"
+    : job.state === "error" ? `${esc(job.msg)}${job.retry ? ` · <button class="linkbtn" data-upretry>Retry</button>` : ""}`
+    : job.state === "waiting" ? "Waiting…" : `${pct}%`;
+  job.el.innerHTML = `<span class="nm">${job.file.type.startsWith("video/") ? "🎬" : "📷"} ${esc(job.name)}</span>
+    <span class="st">${st}</span><span class="bar"><i style="width:${job.state === "error" ? 0 : pct}%"></i></span>`;
+  job.el._job = job;
+}
+
+function upName(file) {
+  // camera shots are all called "image.jpg", so give them a dated name
+  if (!/^(image|capturedvideo|video)\.\w+$/i.test(file.name)) return file.name;
+  const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+  const t = new Date(now()).toLocaleString("sv-SE", { timeZone: "Asia/Shanghai" }).replace(/\D/g, "").slice(0, 14);
+  return `Xiamen_${t.slice(0, 8)}_${t.slice(8)}.${ext}`;
+}
+
+async function addUploads(files) {
+  for (const file of files) {
+    const job = { file, name: upName(file), sent: 0, state: "waiting", uploadId: null };
+    const isVideo = file.type.startsWith("video/");
+    if (!file.type.startsWith("image/") && !isVideo) { job.state = "error"; job.msg = "Not a photo or video"; }
+    else if (isVideo && file.size > UP_MAX_VIDEO) { job.state = "error"; job.msg = "Over 100 MB. Please trim to 1 min"; }
+    else if (isVideo && (await videoSeconds(file)) > UP_MAX_SECS) { job.state = "error"; job.msg = "Over 1 min. Please trim it"; }
+    upRow(job);
+    if (job.state === "waiting") UP.queue.push(job);
+  }
+  runUploads();
+}
+
+function readB64(blob) {
+  return new Promise((ok, no) => {
+    const r = new FileReader();
+    r.onload = () => ok(String(r.result).split(",")[1] || "");
+    r.onerror = () => no(r.error);
+    r.readAsDataURL(blob);
+  });
+}
+
+async function upCall(body, tries = 3) {
+  for (let i = 0; ; i++) {
+    try {
+      const r = await albumApi(Object.assign({ token: AL.token }, body), 120000);
+      if (r.ok || i >= tries - 1 || r.error === "invalid_token" || r.error === "no_access") return r;
+    } catch (e) { if (i >= tries - 1) throw e; }
+    await new Promise(w => setTimeout(w, 1500 * (i + 1)));
+  }
+}
+
+async function uploadOne(job) {
+  job.state = "sending"; job.msg = ""; upRow(job);
+  if (!job.uploadId) {
+    const r = await upCall({ action: "upstart", name: job.name, mime: job.file.type, size: job.file.size });
+    if (!r.ok) throw r;
+    job.uploadId = r.uploadId; job.sent = 0;
+  } else {
+    const r = await upCall({ action: "upstatus", uploadId: job.uploadId });   // resume where Drive left off
+    if (!r.ok) throw r;
+    if (r.done) return;
+    job.sent = r.received;
+  }
+  while (job.sent < job.file.size) {
+    const piece = job.file.slice(job.sent, job.sent + UP.CHUNK);
+    const r = await upCall({ action: "upchunk", uploadId: job.uploadId, offset: job.sent, data: await readB64(piece) });
+    if (!r.ok) throw r;
+    if (r.done) { job.sent = job.file.size; break; }
+    job.sent = r.received; upRow(job);
+  }
+}
+
+async function runUploads() {
+  if (UP.running) return;
+  UP.running = true;
+  let uploaded = 0;
+  while (UP.queue.length) {
+    const job = UP.queue.shift();
+    try {
+      await uploadOne(job);
+      job.state = "done"; uploaded++;
+      setTimeout(() => job.el && job.el.remove(), 4000);
+    } catch (err) {
+      const e = (err && (err.error || (err.name === "AbortError" ? "timeout" : err.message))) || "";
+      job.state = "error"; job.retry = true;
+      if (e === "invalid_token") { job.msg = "Sign-in expired"; job.retry = false; UP.queue.forEach(j => { j.state = "error"; j.msg = "Sign in again, then add it again"; upRow(j); }); UP.queue = []; upRow(job); signInAgain(); break; }
+      if (e === "too_big") { job.msg = "Too big"; job.retry = false; }
+      else if (e === "upload_expired") { job.msg = "Upload timed out"; job.uploadId = null; }
+      else job.msg = `Upload failed${e ? ` (${e})` : ""}`;
+    }
+    upRow(job);
+  }
+  UP.running = false;
+  if (uploaded) refreshGallery();
+}
+
+window.addEventListener("beforeunload", e => { if (UP.running) { e.preventDefault(); e.returnValue = ""; } });
+["albCam", "albPick"].forEach(id => document.getElementById(id).addEventListener("change", e => {
+  const files = [...e.target.files];
+  e.target.value = "";
+  if (files.length) addUploads(files);
+}));
+
+function switchAccount() {
+  saveToken(null); AL.items = null;
+  if (window.google && google.accounts) google.accounts.id.disableAutoSelect();
+  showSignIn("Pick the Google account you gave for the retreat.");
+}
 
 /* ---------- Offline (Add to Home Screen) ---------- */
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
