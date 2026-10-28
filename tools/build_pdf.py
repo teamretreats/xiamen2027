@@ -174,7 +174,9 @@ def cover_collage():
 
 def main():
     d = json.loads(DATA.read_text())
-    sections = [cover_html(), *agenda_pages(d), info_html()]   # each section starts on a new page
+    # each section starts on a new page; Before You Fly, What to Pack and Scams also get their own pages
+    info = re.split(r'(?=<div class="icard">\s*<h3>\s*(?:Before You Fly|What to Pack|Common Tourist Scams|Emergency)\s*</h3>)', info_html())
+    sections = [cover_html(), *agenda_pages(d), *info]
     html = "".join(sections)
     # subset the fonts to just the characters used, so the PDF stays small
     import tempfile
