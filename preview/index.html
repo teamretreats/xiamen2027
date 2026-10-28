@@ -338,16 +338,20 @@ nav button.on .i{transform:translateY(-1px)}
 
     <div class="icard">
       <h3>🧳 What to Pack</h3>
-      <ul class="packlist">
-        <li><b>Team jacket</b> <small>For collection at villa · wear it for Team Bonding</small></li>
-        <li><b>Passport</b> <small>Valid 6+ months</small></li>
-        <li><b>China plug adaptor</b></li>
-        <li><b>Light sportswear &amp; comfortable shoes</b> <small>For Team Bonding</small></li>
-        <li><b>Sunscreen</b></li>
-        <li><b>Water bottle</b></li>
-        <li><b>Clothing for the weather</b> <small>See the live Xiamen weather above</small></li>
-        <li><b>Power bank</b> <small>Must have the 3C mark · 100 Wh max · carry-on only</small></li>
-        <li><b>Personal medication</b></li>
+      <ul class="check" id="packlist">
+        <li><input type="checkbox" id="p1"><label for="p1">Team jacket
+          <small>For collection at villa · wear it for Team Bonding</small></label></li>
+        <li><input type="checkbox" id="p2"><label for="p2">Passport
+          <small>Valid 6+ months</small></label></li>
+        <li><input type="checkbox" id="p3"><label for="p3">China plug adaptor</label></li>
+        <li><input type="checkbox" id="p4"><label for="p4">Light sportswear &amp; comfortable shoes
+          <small>For Team Bonding</small></label></li>
+        <li><input type="checkbox" id="p5"><label for="p5">Sunscreen</label></li>
+        <li><input type="checkbox" id="p6"><label for="p6">Clothing for the weather
+          <small>See the live Xiamen weather above</small></label></li>
+        <li><input type="checkbox" id="p7"><label for="p7">Power bank
+          <small>Must have the 3C mark · 100 Wh max · carry-on only</small></label></li>
+        <li><input type="checkbox" id="p8"><label for="p8">Personal medication</label></li>
       </ul>
     </div>
 
@@ -721,11 +725,11 @@ function closeViewer() { document.getElementById("viewer").classList.remove("ope
 /* ---------- Info tab ---------- */
 document.getElementById("infoStrip").innerHTML = stripHTML("hotel");
 
-// Before-you-fly ticks are remembered on this phone only
+// Before-you-fly and packing ticks are remembered on this phone only
 (function () {
   let saved = {};
   try { saved = JSON.parse(localStorage.getItem("xm27-check") || "{}"); } catch (e) {}
-  document.querySelectorAll("#checklist input").forEach(cb => {
+  document.querySelectorAll("#checklist input, #packlist input").forEach(cb => {
     cb.checked = !!saved[cb.id];
     cb.addEventListener("change", () => {
       saved[cb.id] = cb.checked;
