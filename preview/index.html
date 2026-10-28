@@ -257,7 +257,10 @@ button{font:inherit;cursor:pointer}
 .vbtn{background:#fff;border:0;border-radius:999px;height:42px;min-width:42px;padding:0 16px;display:inline-flex;align-items:center;justify-content:center;gap:6px;
   font-weight:600;font-size:14px;color:var(--sea);text-decoration:none}
 .vbtn:disabled{opacity:.7}
-.vbtn svg{width:22px;height:20px}
+.vbtn svg{width:22px;height:22px;fill:currentColor;flex:none}
+.vbtn svg.drv{width:22px;height:20px}
+.vbtn.busy{animation:pulse 1.2s infinite}
+.vbtn .lbl{font-size:13px}
 
 /* Bottom nav */
 nav{position:fixed;left:0;right:0;bottom:0;background:rgba(255,253,249,.96);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
@@ -1078,7 +1081,14 @@ function checkAccess(tok) {
 
 /* Gallery: grid of small images, loaded 12 at a time as they scroll into view */
 const TH = {};                                   // "id|size" -> image data URL
-const DRIVE_SVG = `<svg viewBox="0 0 87.3 78" aria-hidden="true"><path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/><path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0-1.2 4.5h27.5z" fill="#00ac47"/><path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335"/><path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"/><path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc"/><path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/></svg>`;
+// Material icons (the ones Google Drive / Photos use)
+const ICON = {
+  download: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z"/></svg>`,
+  hd: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-8 12H9.5v-2h-2v2H6V9h1.5v2.5h2V9H11v6zm2-6h4c.55 0 1 .45 1 1v4c0 .55-.45 1-1 1h-4V9zm1.5 4.5h2v-3h-2v3z"/></svg>`,
+  del: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>`,
+  play: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>`
+};
+const DRIVE_SVG = `<svg class="drv" viewBox="0 0 87.3 78" aria-hidden="true"><path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/><path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0-1.2 4.5h27.5z" fill="#00ac47"/><path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335"/><path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"/><path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc"/><path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/></svg>`;
 
 function signInAgain() {
   saveToken(null); AL.items = null;
@@ -1203,18 +1213,18 @@ function showAlbumPhoto(img, it) {
   const next = AL.items[VW.i + 1];
   if (next) setTimeout(() => getThumbs([next.id], 1200), 600);
   document.getElementById("viewerCredit").textContent = `${it.video ? "🎬 Video · " : ""}by ${it.by} · ${fmtWhen(it.at)}`;
-  const drive = `<a class="vbtn" href="${driveLink(it.id)}" target="_blank" rel="noopener" aria-label="Original in Google Drive">${DRIVE_SVG}</a>`;
-  const del = it.mine ? `<button class="vbtn" data-adel aria-label="Delete">🗑️</button>` : "";
+  const drive = `<a class="vbtn" href="${driveLink(it.id)}" target="_blank" rel="noopener" aria-label="Download HD original from Google Drive">${DRIVE_SVG}${ICON.hd}${ICON.download}</a>`;
+  const del = it.mine ? `<button class="vbtn" data-adel aria-label="Delete">${ICON.del}</button>` : "";
   document.getElementById("viewerAct").innerHTML = (it.video
-    ? `<a class="vbtn" href="${driveLink(it.id)}" target="_blank" rel="noopener">▶ Play</a>${drive}`
-    : `<button class="vbtn" data-adl>⬇️ Download</button>${drive}`) + del;
+    ? `<a class="vbtn" href="${driveLink(it.id)}" target="_blank" rel="noopener" aria-label="Play">${ICON.play}</a>${drive}`
+    : `<button class="vbtn" data-adl aria-label="Download">${ICON.download}</button>${drive}`) + del;
 }
 
 const DL = { id: null, file: null };
 function albDownload(btn) {
   const it = AL.items[VW.i];
   if (DL.id === it.id && DL.file) return saveFile(DL.file, btn);
-  btn.disabled = true; btn.textContent = "⏳ Preparing…";
+  btn.disabled = true; btn.classList.add("busy");
   albumApi({ action: "thumbs", token: AL.token, ids: [it.id], size: 2000 }).then(r => {
     const u = r.ok && r.thumbs[it.id];
     if (!u) throw new Error("no_image");
@@ -1222,16 +1232,16 @@ function albDownload(btn) {
   }).then(blob => {
     DL.id = it.id;
     DL.file = new File([blob], it.name.replace(/\.[^.]+$/, "") + ".jpg", { type: blob.type || "image/jpeg" });
-    btn.disabled = false; btn.textContent = "⬇️ Download";
+    btn.disabled = false; btn.classList.remove("busy");
     saveFile(DL.file, btn);
-  }).catch(() => { btn.disabled = false; btn.textContent = "⬇️ Download"; toast("Couldn't download. Try again"); });
+  }).catch(() => { btn.disabled = false; btn.classList.remove("busy"); toast("Couldn't download. Try again"); });
 }
 // iPhone: share sheet → "Save Image" puts it in Photos. Elsewhere: a normal download.
 function saveFile(file, btn) {
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
     navigator.share({ files: [file] }).catch(err => {
       // the image took a moment to fetch, so iOS may want one more tap
-      if (err && err.name === "NotAllowedError") btn.textContent = "💾 Save";
+      if (err && err.name === "NotAllowedError") btn.innerHTML = `${ICON.download}<span class="lbl">Tap to save</span>`;
     });
     return;
   }
