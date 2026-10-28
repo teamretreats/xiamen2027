@@ -1153,11 +1153,39 @@ function flushQueue() {
   }
 }
 
+// Drive's smaller copies can lose the "turn this way" tag of phone photos and arrive sideways.
+// If the copy still has the stored (unturned) shape, turn it upright on a canvas.
+function upright(url, it) {
+  const turns = it ? (it.rot || 0) % 4 : 0;
+  if (!turns || !it.pw || !it.ph) return Promise.resolve(url);
+  return new Promise(ok => {
+    const im = new Image();
+    im.onload = () => {
+      const w = im.naturalWidth, h = im.naturalHeight;
+      const stillStored = (w >= h) === (it.pw >= it.ph);
+      if (turns % 2 === 1 && !stillStored) return ok(url);        // already upright
+      if (turns === 2 && !stillStored) return ok(url);
+      const c = document.createElement("canvas");
+      const odd = turns % 2 === 1;
+      c.width = odd ? h : w; c.height = odd ? w : h;
+      const g = c.getContext("2d");
+      g.translate(c.width / 2, c.height / 2);
+      g.rotate(turns * Math.PI / 2);
+      g.drawImage(im, -w / 2, -h / 2);
+      ok(c.toDataURL("image/jpeg", 0.92));
+    };
+    im.onerror = () => ok(url);
+    im.src = url;
+  });
+}
+const itemById = id => (AL.items || []).find(x => x.id === id);
+
 function getThumbs(ids, size) {
   const need = ids.filter(id => !TH[id + "|" + size]);
   if (!need.length) return Promise.resolve();
   return albumApi({ action: "thumbs", token: AL.token, ids: need, size }).then(r => {
-    if (r.ok) Object.keys(r.thumbs).forEach(id => { TH[id + "|" + size] = r.thumbs[id]; });
+    if (r.ok) return Promise.all(Object.keys(r.thumbs).map(id =>
+      upright(r.thumbs[id], itemById(id)).then(u => { TH[id + "|" + size] = u; })));
     else if (r.error === "invalid_token") { closeViewer(); signInAgain(); }
   }).catch(() => {});
 }
@@ -1190,7 +1218,7 @@ function albDownload(btn) {
   albumApi({ action: "thumbs", token: AL.token, ids: [it.id], size: 2000 }).then(r => {
     const u = r.ok && r.thumbs[it.id];
     if (!u) throw new Error("no_image");
-    return fetch(u).then(x => x.blob());
+    return upright(u, it).then(fixed => fetch(fixed)).then(x => x.blob());
   }).then(blob => {
     DL.id = it.id;
     DL.file = new File([blob], it.name.replace(/\.[^.]+$/, "") + ".jpg", { type: blob.type || "image/jpeg" });
