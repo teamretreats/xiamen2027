@@ -930,8 +930,10 @@ function albCard(html) {
   document.getElementById("albGrid").hidden = true;
   document.getElementById("albFoot").hidden = true;
 }
-function albCountText(n) {
-  document.getElementById("albCount").textContent = n == null ? "" : `${n} photo${n === 1 ? "" : "s"} & video${n === 1 ? "" : "s"}`;
+// "3 photos · 1 video" (zero parts left out). Takes { photos, videos } or null to clear.
+function albCountText(c) {
+  const part = (n, w) => n ? `${n} ${w}${n === 1 ? "" : "s"}` : "";
+  document.getElementById("albCount").textContent = c ? [part(c.photos, "photo"), part(c.videos, "video")].filter(Boolean).join(" · ") : "";
 }
 
 function albumApi(body) {
@@ -975,7 +977,7 @@ function openAlbum() {
   const tok = AL.token || savedToken();
   if (tok) checkAccess(tok);
   else showSignIn();
-  if (!tok) albumApi({ action: "count" }).then(r => r.ok && albCountText(r.count)).catch(() => {});
+  if (!tok) albumApi({ action: "count" }).then(r => r.ok && albCountText(r)).catch(() => {});
 }
 
 function showSignIn(msg) {
@@ -1022,7 +1024,7 @@ function checkAccess(tok) {
       if (r.error === "invalid_token") return signInAgain();
       throw new Error(r.error);
     }
-    albCountText(r.count);
+    albCountText(r);
     const who = `<p class="who">Signed in as ${esc(r.email)}</p>`;
     const sw = `<div class="btns"><button class="btn" data-albswitch>Switch account</button></div>`;
     if (r.access === "ok") {
@@ -1074,7 +1076,8 @@ function refreshGallery() {
 
 function renderGrid() {
   const items = AL.items;
-  albCountText(items.length);
+  const videos = items.filter(x => x.video).length;
+  albCountText({ photos: items.length - videos, videos });
   const foot = `Signed in as ${esc(AL.email)} · <button class="linkbtn" data-albswitch>Switch account</button>`;
   if (!items.length) {
     albCard(`<div class="ic">📷</div><h3>No photos yet</h3><p>Be the first to add one!</p>
