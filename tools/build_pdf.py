@@ -134,7 +134,8 @@ def info_html():
     sec = re.sub(r"<small>(.*?)</small>", r'<span class="muted">\1</span>', sec, flags=re.S)
     sec = re.sub(r"<dt>(.*?)</dt><dd>(.*?)</dd>", r"<p><b>\1</b> &nbsp;\2</p>", sec, flags=re.S)
     sec = re.sub(r'<div class="addrbox">(.*?)</div>', r'<div class="box">\1</div>', sec, flags=re.S)
-    sec = re.sub(r"<b>(.*?)</b>(?=[^<])", r"<b>\1</b><br>", sec)              # scam title on its own line
+    # scams: expandable on the page, shown in full in the PDF
+    sec = re.sub(r"<details><summary>(.*?)</summary>", r"<b>\1</b>", sec, flags=re.S).replace("</details>", "")
     # drop the "Save offline" card: not relevant inside the PDF
     sec = sec[:sec.index('<div class="icard">\n      <h3>📲 Save offline</h3>')]
     sec = sec[sec.index(">") + 1:]

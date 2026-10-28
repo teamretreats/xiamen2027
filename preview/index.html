@@ -186,7 +186,13 @@ button{font:inherit;cursor:pointer}
 .scams li:last-child{border-bottom:0}
 .scams li::before{content:counter(s);position:absolute;left:0;top:10px;width:24px;height:24px;border-radius:50%;background:#fde9dc;color:#b4561f;
   font-size:13px;font-weight:600;display:grid;place-items:center}
-.scams b{display:block}
+.scams summary{font-weight:600;cursor:pointer;list-style:none;padding-right:22px;position:relative}
+.scams summary::-webkit-details-marker{display:none}
+.scams summary::after{content:"▾";position:absolute;right:0;top:0;color:var(--muted)}
+.scams details[open] summary::after{content:"▴"}
+.scams details p{margin:6px 0 0;font-size:14px}
+.scams details b{color:var(--sea-2)}
+.scams .where{color:var(--muted);font-style:italic}
 .motto{text-align:center;font-weight:600;color:var(--sea);letter-spacing:.06em;margin:14px 0 0}
 .calls{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .calls a{display:block;text-align:center;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 4px;color:var(--ink);text-decoration:none}
@@ -358,16 +364,36 @@ nav button.on .i{transform:translateY(-1px)}
     <div class="icard">
       <h3>⚠️ Common Tourist Scams</h3>
       <ol class="scams">
-        <li><b>Gulangyu ferry touts</b>Claim official tickets are sold out, then push pricey packages or unlicensed guides. Official tickets are only sold on the 厦门轮渡+ mini program.</li>
-        <li><b>Seafood rip-offs</b>"Recommended" stalls with rigged weighing, swapped seafood, hidden cooking fees, or prices per 两 instead of 斤.</li>
-        <li><b>Cheap day-tour flyers</b>"¥99, no shopping" tours that add fees on the bus and spend the day at shops.</li>
-        <li><b>Boat trip touts (Huandao Road)</b>Cheap sea trips with surprise surcharges and short, poor rides.</li>
-        <li><b>Beach photo &amp; flower traps</b>Costumed characters pose for photos or someone hands you roses, then asks for money.</li>
-        <li><b>Nanputuo "blessings"</b>Fake monks or "volunteers" offer free incense or fortune readings, then ask for big donations.</li>
-        <li><b>E-bike rental traps</b>Private rentals invent damage to keep your deposit.</li>
-        <li><b>Tea &amp; specialty shops</b>Tastings priced by weight, with the unit price only revealed at the till, plus fake dried goods.</li>
-        <li><b>Taxi detours</b>Chatty drivers take the long way or steer you to shops that pay them commission.</li>
-        <li><b>Street photographers</b>One price is quoted, then they charge per person afterwards.</li>
+        <li><details><summary>Gulangyu ferry touts</summary>
+          <p><b>What happens:</b> Near the piers, touts, sometimes taxi drivers, claim official tickets are sold out and push &quot;package tickets&quot; with attractions or a guide, at several times the price. Unlicensed guides then lead you to pearl and tea shops that pay them commission.</p>
+          <p><b>Tips:</b> Book ferry tickets yourself on the 厦门轮渡+ mini program, using your passport. Ignore anyone selling tickets or tours at the pier.</p></details></li>
+        <li><details><summary>Seafood rip-offs</summary>
+          <p><b>What happens:</b> Drivers or trishaw riders &quot;recommend&quot; seafood places that pay them. Prices are quoted per 两, making the bill 10× what you expected per 斤. Live seafood is weighed with water or swapped for dead stock, and cooking fees only appear on the bill. <span class="where">(Zengcuo'an, Gulangyu, beach stalls)</span></p>
+          <p><b>Tips:</b> Choose places with clearly marked prices, confirm the price per 斤 and the cooking fee before ordering, and watch the weighing.</p></details></li>
+        <li><details><summary>Cheap day-tour flyers</summary>
+          <p><b>What happens:</b> Flyers offer &quot;¥99 day tours, no shopping&quot;. On the bus, ferry and guide fees are added, most of the day is spent in shops, and attractions are only photo stops. You pay to a personal WeChat with no contract.</p>
+          <p><b>Tips:</b> Skip roadside tour deals. Book tours on Trip.com.</p></details></li>
+        <li><details><summary>Boat trip touts (Huandao Road)</summary>
+          <p><b>What happens:</b> Beach touts sell cheap sea trips, then add &quot;service&quot; or &quot;outer sea&quot; fees once you're on board. The ride is short and disappointing.</p>
+          <p><b>Tips:</b> Book boat trips on Trip.com in advance, and check the duration, route and all fees.</p></details></li>
+        <li><details><summary>Beach photo &amp; flower traps</summary>
+          <p><b>What happens:</b> Costumed characters, such as Monkey King or Mickey, jump into your photo, then charge per person. Aunties press roses into your hand and demand payment once you take them. <span class="where">(Baicheng, Huangcuo, Music Square)</span></p>
+          <p><b>Tips:</b> Don't accept flowers or pose with characters. Just wave and walk on.</p></details></li>
+        <li><details><summary>Nanputuo &quot;blessings&quot;</summary>
+          <p><b>What happens:</b> Fake monks or &quot;volunteers&quot; outside the temple offer free incense or fortune readings, then demand big donations or sell pricey prayer beads.</p>
+          <p><b>Tips:</b> Free incense is given inside the temple. Politely decline anyone offering it outside.</p></details></li>
+        <li><details><summary>E-bike rental traps</summary>
+          <p><b>What happens:</b> Private e-bike rentals claim scratches on return to keep your deposit. E-bikes are also banned in many areas, and police can impound them and fine you.</p>
+          <p><b>Tips:</b> Use shared bikes through Alipay or WeChat instead.</p></details></li>
+        <li><details><summary>Tea &amp; specialty shops</summary>
+          <p><b>What happens:</b> Free tastings of flower tea or pastries, then the goods are weighed without the unit price being mentioned, so a small bag costs hundreds of yuan. Fake dried goods and herbs are common. <span class="where">(Gulangyu, Shapowei)</span></p>
+          <p><b>Tips:</b> Ask the unit price before anything is weighed, and buy from established shops.</p></details></li>
+        <li><details><summary>Taxi detours</summary>
+          <p><b>What happens:</b> Chatty drivers recommend restaurants, attractions or shops that pay them commission, or take the long way round.</p>
+          <p><b>Tips:</b> Use DiDi, so the route and fare are tracked.</p></details></li>
+        <li><details><summary>Street photographers</summary>
+          <p><b>What happens:</b> Photographers along the coast quote one price, then charge per person or per photo after the shoot.</p>
+          <p><b>Tips:</b> Agree on the total price and number of photos in writing, e.g. by WeChat message, before starting.</p></details></li>
       </ol>
       <p class="motto">Stay Alert · Stay Safe</p>
     </div>
