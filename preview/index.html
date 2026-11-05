@@ -274,7 +274,7 @@ button{font:inherit;cursor:pointer}
 .tmsg .who{font-size:13px;color:var(--muted);word-break:break-all;margin-top:10px}
 .tlead{text-align:center;font-weight:600;color:var(--sea);margin:18px 0 0}
 .tcards{display:grid;gap:14px;margin:16px 0 0}
-.scratch{position:relative;min-height:190px;border-radius:var(--radius);overflow:hidden;background:var(--card);border:1px solid var(--line);
+.scratch{position:relative;min-height:210px;border-radius:var(--radius);overflow:hidden;background:var(--card);border:1px solid var(--line);
   box-shadow:0 8px 22px rgba(20,50,74,.10);display:flex;flex-direction:column}
 .scratch canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;transition:opacity .6s ease}
 .scratch canvas.gone{opacity:0}
@@ -292,7 +292,10 @@ button{font:inherit;cursor:pointer}
   background:linear-gradient(135deg,#c9677a,#f08a4b 50%,#f6b65c)}
 .scratch.teaser .foil small{color:#fff;opacity:.9}
 .scratch.teaser .foil b{font-size:18px;margin-top:6px}
-.scratch.teaser{min-height:120px}
+.scratch .tlabel{margin:14px 0 0;color:var(--muted);font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase}
+.scratch .tname{display:block;font-family:var(--serif);font-size:24px;line-height:1.2;color:var(--sea);margin-top:2px}
+.scratch .ulead{margin:12px 0 0;font-size:17px;font-weight:600;color:var(--sun)}
+.tripfoot{text-align:center;margin-top:14px}
 .reveal{display:block;margin:-6px auto 0}
 .jcard{display:flex;gap:14px;align-items:center}
 .jcard img{width:84px;aspect-ratio:500/580;object-fit:contain;border-radius:10px;background:#f6f1e8;flex:none}
@@ -521,9 +524,9 @@ nav button.on .i{transform:translateY(-1px)}
       </div>
     </div>
 
-    <div class="icard">
+    <div class="icard chartcard" id="groupsCard">
       <h3>👥 Groups &amp; ICs</h3>
-      <p>Refer to Retreat Chat</p>
+      <div id="groupsBody" style="padding:0 6px"><p>Refer to Retreat Chat</p></div>
     </div>
     <div class="icard">
       <h3>📲 Save offline</h3>
@@ -838,6 +841,7 @@ function showTab(name) {
   if (name === "album") openAlbum();
   if (name === "trip") openTrip(); else stopTripTimers();
   window.scrollTo({ top: 0 });
+  if (name === "info") renderGroups();
 }
 
 /* ---------- Photo viewer (swipe left/right, swipe down to close) ---------- */
@@ -1479,7 +1483,7 @@ function tripPass() {
 }
 function setTripPass(p, exp) {
   try { p ? localStorage.setItem("xm27-pass", JSON.stringify({ pass: p, exp: exp })) : localStorage.removeItem("xm27-pass"); } catch (e) {}
-  if (!p) TR.state = null;
+  if (!p) { TR.state = null; GR.html = null; }
 }
 function keepPref() { try { return localStorage.getItem("xm27-keep") !== "0"; } catch (e) { return true; } }
 function tripApi(body, ms = 25000) {
@@ -1523,8 +1527,8 @@ function openTrip() {
 
 function foilTeaser(label) {
   return `<div class="tcards">
-    <div class="scratch teaser"><div class="foil"><small>🎽 Your team</small><b>${label}</b></div></div>
-    <div class="scratch teaser"><div class="foil"><small>🛏️ Your roommate</small><b>${label}</b></div></div></div>`;
+    <div class="scratch teaser"><div class="foil"><small>🎽 Your team</small><b>Unlock to Scratch</b></div></div>
+    <div class="scratch teaser"><div class="foil"><small>🛏️ Your roommate</small><b>Unlock to Scratch</b></div></div></div>`;
 }
 
 function tripLocked() {
@@ -1639,10 +1643,13 @@ function setScratched(k) { try { localStorage.setItem(k, "1"); } catch (e) {} }
 const joinNames = a => a.length <= 1 ? (a[0] || "") : a.slice(0, -1).join(", ") + " & " + a[a.length - 1];
 
 function teamFace(t, me) {
-  const isLead = t.lead.indexOf(me) >= 0;
-  const chips = t.members.map(n => `<span class="${n === me ? "you" : ""}">${esc(n === me ? n + " (you)" : n)}</span>`).join("");
+  if (t.lead.indexOf(me) >= 0) {
+    const co = t.lead.filter(n => n !== me);
+    return `<small>🎽 Your team</small><b class="big">${esc(t.name)}</b>
+      <p class="ulead">⭐ You're the Team Lead!</p>${co.length ? `<p class="lead">with ${esc(joinNames(co))}</p>` : ""}`;
+  }
   return `<small>🎽 Your team</small><b class="big">${esc(t.name)}</b>
-    <p class="lead">Lead: ${esc(joinNames(t.lead))}${isLead ? " (you)" : ""}</p><div class="chips">${chips}</div>`;
+    <p class="tlabel">Team Lead</p><b class="tname">${esc(joinNames(t.lead))}</b>`;
 }
 function roomFace(r) {
   const where = (r.villa ? `<p class="villa">🏡 ${esc(r.villa)}</p>` : "") +
@@ -1668,19 +1675,22 @@ function renderTripCards(justNow) {
   const editable = st.window.status !== "closed";
   tripCard(`${head}${cards}<div id="tripAfter"></div><div id="tripJacket">${jacketCard()}</div>
     <div class="btns center-btns">${editable ? `<button class="btn" data-tripform>✏️ Edit my trip details ↗</button>` : ""}</div>
-    <p class="alb-foot">Signed in as ${esc(st.me.name)} · <button class="linkbtn" data-tripout>Sign out</button></p>`);
+    <p class="alb-foot">Signed in as ${esc(st.me.name)} · <button class="linkbtn" data-tripout>Sign out</button></p>
+    ${TRIP.preview ? `<p class="tripfoot"><button class="linkbtn" data-tripreset>↺ Reset my scratch cards (preview only)</button></p>` : ""}`);
   document.querySelectorAll("#tripBody .scratch:not(.done)").forEach(box => initScratch(box));
   updateTripAfter();
 }
 function updateTripAfter() {
   const left = document.querySelectorAll("#tripBody .scratch:not(.done)").length;
   const el = document.getElementById("tripAfter"); if (!el) return;
-  el.innerHTML = left ? "" : `<div class="btns center-btns"><button class="btn primary" data-tripall>👀 See all teams & rooms</button></div>`;
+  el.innerHTML = left ? "" : `<div class="btns center-btns"><button class="btn primary" data-tripall>👀 See all teams & rooms</button></div>
+    <p class="muted small" style="text-align:center">Also in Info → Groups & ICs</p>`;
 }
 function revealCard(box) {
   if (box.classList.contains("done")) return;
   box.classList.add("done");
   setScratched(box.dataset.sk);
+  GR.html = null;   // Groups & ICs may unlock now
   const cv = box.querySelector("canvas");
   if (cv) { cv.classList.add("gone"); setTimeout(() => cv.remove(), 600); }
   const rb = box.nextElementSibling; if (rb && rb.matches(".reveal")) rb.remove();
@@ -1703,7 +1713,7 @@ function initScratch(box) {
   ctx.font = "600 12px -apple-system,BlinkMacSystemFont,sans-serif";
   ctx.fillText(box.dataset.label.toUpperCase(), w / 2, h / 2 - 18);
   ctx.font = "600 22px -apple-system,BlinkMacSystemFont,sans-serif";
-  ctx.fillText("Scratch me! 👆", w / 2, h / 2 + 12);
+  ctx.fillText("Scratch HERE!", w / 2, h / 2 + 12);
   ctx.globalCompositeOperation = "destination-out";
   ctx.lineCap = ctx.lineJoin = "round"; ctx.lineWidth = 42;
   let last = null, moves = 0;
@@ -1748,30 +1758,55 @@ function confetti(el) {
   setTimeout(() => layer.remove(), 1500);
 }
 
-/* everyone's teams & rooms (attendees only, fetched after sign-in) */
-function renderTripAll() {
-  tripMsg("⏳", "Loading teams & rooms…");
-  tripApi({ action: "all", pass: tripPass() }).then(r => {
-    if (!r.ok) { if (r.error === "signed_out") { setTripPass(null); return tripSignIn("Your sign-in expired. Please sign in again."); } throw new Error(r.error); }
+/* everyone's teams & rooms: shown in Info → Groups & ICs once your own cards are scratched */
+const GR = { html: null, loading: false };
+function allScratched() {
+  const st = TR.state; if (!st || !st.cards) return false;
+  const c = st.cards, ks = [];
+  if (c.team) ks.push(scrKey("team", c.team));
+  if (c.room) ks.push(scrKey("room", c.room));
+  return ks.every(isScratched);
+}
+const groupsBody = html => { const el = document.getElementById("groupsBody"); if (el) el.innerHTML = html; };
+function groupsLocked() {
+  groupsBody(`<p class="muted">🔒 Your team & room are revealed in <b>My Trip</b>. Fill in your trip details and scratch your cards to unlock the full lists here.</p>
+    <div class="btns"><button class="btn primary" data-gotrip>🎫 Go to My Trip</button></div>`);
+}
+function renderGroups() {
+  if (!document.getElementById("groupsBody")) return;
+  if (GR.html) { groupsBody(GR.html); return fitCharts(); }
+  const p = tripPass();
+  if (!TRIP.exec || !p) return groupsLocked();
+  if (!TR.state) {   // signed in but My Trip not opened yet: load quietly, then decide
+    if (GR.loading) return;
+    GR.loading = true;
+    return tripApi({ action: "state", pass: p }).then(r => { if (r.ok) TR.state = r; })
+      .catch(() => {}).finally(() => { GR.loading = false; if (TR.state) renderGroups(); else groupsLocked(); });
+  }
+  if (!allScratched()) return groupsLocked();
+  groupsBody(`<p class="muted">⏳ Loading teams & rooms…</p>`);
+  tripApi({ action: "all", pass: p }).then(r => {
+    if (!r.ok) return groupsLocked();
     const me = TR.state.me.short;
     const nm = (n, lead) => `<div class="nm${lead ? " ld" : ""}${n === me ? " me" : ""}">${esc(n)}</div>`;
-    const chart = cols => {
-      return `<div class="chart" data-n="${cols.length}">${cols.map(c =>
-      `<div class="col"><h5><span>${esc(c.name)}</span>${c.extra ? `<small>(${esc(c.extra)})</small>` : ""}</h5>${c.body}</div>`).join("")}</div>`; };
+    const chart = cols => `<div class="chart" data-n="${cols.length}">${cols.map(c =>
+      `<div class="col"><h5><span>${esc(c.name)}</span>${c.extra ? `<small>(${esc(c.extra)})</small>` : ""}</h5>${c.body}</div>`).join("")}</div>`;
     const teams = chart(r.teams.map(t => ({ name: t.name, body: t.lead.map(n => nm(n, true)).join("") + t.members.map(n => nm(n)).join("") })));
     const rooms = chart(r.villas.map(v => ({ name: v.name, extra: v.extra, body: v.names.map(n => nm(n)).join("") })));
-    tripCard(`<div class="btns"><button class="btn" data-tripback>← My cards</button></div>
-      <div class="icard chartcard"><h3>🎽 Teams</h3>${teams}</div>
-      <div class="icard chartcard"><h3>🛏️ Rooms</h3>${rooms}</div>`);
-    fitCharts();
-    window.scrollTo({ top: 0 });
-  }).catch(() => tripNet(renderTripAll));
+    GR.html = `<h4>🎽 Teams</h4><p class="muted small">Team Lead in bold</p>${teams}<h4>🛏️ Rooms</h4>${rooms}<p class="muted small" style="margin-top:14px">ICs: refer to Retreat Chat</p>`;
+    if (CUR_TAB === "info") renderGroups();
+  }).catch(() => groupsLocked());
+}
+function goGroups() {
+  showTab("info");
+  const el = document.getElementById("groupsCard");
+  if (el) setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
 }
 
-// shrink the text until every name (and column title) fits on one line
 // all columns side by side; if that needs text smaller than 11px (small phones), use 2 rows instead
 function fitCharts() {
-  document.querySelectorAll("#tripBody .chart").forEach(el => {
+  document.querySelectorAll(".chart").forEach(el => {
+    if (!el.offsetWidth) return;   // tab hidden: fit when shown
     const n = Number(el.dataset.n), items = el.querySelectorAll(".nm, h5 span");
     const over = () => Array.prototype.some.call(items, x => x.scrollWidth > x.clientWidth + 0.5);
     const fit = (cols, min) => {
@@ -1797,8 +1832,12 @@ window.addEventListener("resize", () => { clearTimeout(fitT); fitT = setTimeout(
 document.addEventListener("click", e => {
   if (e.target.closest("[data-tripform]")) return openTripForm();
   if (e.target.closest("[data-tripout]")) return tripSignOut();
-  if (e.target.closest("[data-tripall]")) return renderTripAll();
-  if (e.target.closest("[data-tripback]")) { renderTripCards(); window.scrollTo({ top: 0 }); return; }
+  if (e.target.closest("[data-tripall]")) return goGroups();
+  if (e.target.closest("[data-gotrip]")) return showTab("trip");
+  if (e.target.closest("[data-tripreset]")) {
+    try { Object.keys(localStorage).filter(k => k.indexOf("xm27-scr-" + TR.state.me.short + "-") === 0).forEach(k => localStorage.removeItem(k)); } catch (x) {}
+    GR.html = null; renderTripCards(); window.scrollTo({ top: 0 }); return;
+  }
   const rv = e.target.closest("[data-reveal]");
   if (rv) { const box = rv.previousElementSibling; if (box) revealCard(box); }
 });
