@@ -1,5 +1,5 @@
 // Offline cache for the handbook. Bump VERSION on every deploy so phones pick up new files.
-const VERSION = "xm27-v26";
+const VERSION = "xm27-v41";
 const FILES = [
   "./", "./index.html", "./manifest.json", "./Xiamen-2027-Handbook.pdf",
    "./img/apple-touch-icon.png",   "./img/dinner-1.jpg",   "./img/dinner-2.jpg",   "./img/dinner-3.jpg",   "./img/hotel-courtyard.jpg",   "./img/hotel-gym.jpg",   "./img/hotel-pool.jpg",   "./img/hotel-room.jpg",   "./img/hotel-suite.jpg",   "./img/hy-1.jpg",   "./img/hy-2.jpg",   "./img/hy-3.jpg",   "./img/icon-192.png",   "./img/icon-512.png",   "./img/trail-1.jpg",   "./img/trail-2.jpg",   "./img/trail-3.jpg",   "./img/trail-4.jpg"
@@ -19,6 +19,10 @@ self.addEventListener("fetch", e => {
   const req = e.request;
   if (req.method !== "GET" || new URL(req.url).origin !== location.origin) return; // weather etc. go straight to network
   const url = new URL(req.url);
+  if (url.pathname.endsWith("/trip.html")) {   // the form: always check for the newest version (no 10-minute browser cache)
+    e.respondWith(fetch(req, { cache: "no-cache" }).catch(() => fetch(req)));
+    return;
+  }
   const isPage = req.mode === "navigate" && (url.pathname.endsWith("/") || url.pathname.endsWith("/index.html"));
   if (isPage) {
     // Page: try the network first so updates show, fall back to the saved copy offline

@@ -1,0 +1,594 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#14324a">
+<title>My Trip Details</title>
+<style>
+:root{
+  --sea:#14324a; --sea-2:#1f4a68; --sand:#f7f1e7; --card:#fffdf9;
+  --ink:#1b2a36; --muted:#6b7a86; --line:#e6ddcf;
+  --sun:#f08a4b; --sun-2:#f6b65c; --rose:#e2667a; --ok:#2f8f6b;
+  --radius:18px;
+  --serif:"Songti SC","Noto Serif SC",Georgia,"Times New Roman",serif;
+  --sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--sand);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased;
+  padding-bottom:calc(32px + env(safe-area-inset-bottom))}
+button,input,select{font:inherit}
+button{cursor:pointer}
+.wrap{max-width:560px;margin:0 auto;padding:0 16px}
+.top{background:linear-gradient(180deg,#14324a 0%,#2b4f73 55%,#c9677a 100%);color:#fff;padding:calc(22px + env(safe-area-inset-top)) 0 52px}
+.top p{margin:0;font-size:12px;letter-spacing:.18em;text-transform:uppercase;opacity:.85}
+.top h1{font-family:var(--serif);font-weight:600;font-size:30px;margin:6px 0 0;line-height:1.15}
+.panel{position:relative;margin-top:-34px;background:var(--card);border-radius:var(--radius);box-shadow:0 10px 30px rgba(20,50,74,.14);padding:20px 18px}
+.center{text-align:center}
+.ic{font-size:34px;line-height:1.2}
+h2{font-family:var(--serif);font-size:22px;color:var(--sea);margin:4px 0 6px}
+h3{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0 0 10px;font-weight:600}
+p{margin:6px 0}
+.muted{color:var(--muted);font-size:14px}
+.who{font-size:13px;color:var(--muted);word-break:break-all;margin-top:12px}
+.btns{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:14px}
+.btn{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:999px;padding:11px 18px;font-size:15px;font-weight:600;text-decoration:none;display:inline-block}
+.btn.primary{background:var(--sea);border-color:var(--sea);color:#fff}
+.btn.wide{width:100%;text-align:center}
+.btn:disabled{opacity:.6}
+.btn:active{transform:scale(.98)}
+.linkbtn{border:0;background:none;color:var(--sea-2);font-weight:600;padding:0;text-decoration:underline;font-size:13px}
+.gbtn{display:flex;justify-content:center;margin-top:14px;min-height:44px}
+.keep{display:flex;gap:8px;align-items:center;justify-content:center;font-size:14px;margin-top:12px;color:var(--ink)}
+.keep input{width:18px;height:18px;accent-color:var(--sea)}
+.count{display:flex;gap:8px;margin:14px 0 4px}
+.count div{flex:1;background:var(--sea);color:#fff;border-radius:12px;padding:10px 4px 8px;text-align:center}
+.count b{display:block;font-size:24px;font-variant-numeric:tabular-nums;line-height:1.1}
+.count small{font-size:11px;letter-spacing:.08em;text-transform:uppercase;opacity:.75}
+/* form */
+.sec{border-top:1px solid var(--line);padding-top:16px;margin-top:18px}
+.sec:first-of-type{border-top:0;padding-top:0;margin-top:4px}
+.sec > h3{font-size:15px;letter-spacing:0;text-transform:none;color:var(--sea);font-family:var(--serif);font-weight:600;font-size:19px}
+.f{margin:0 0 14px}
+.f > label,.f > .lbl{display:block;font-weight:600;font-size:15px;margin:0 0 6px}
+.f small{display:block;color:var(--muted);font-size:13px;font-weight:400;margin-top:-2px;margin-bottom:6px}
+.f input[type=text],.f input[type=tel],.f input[type=date],.f input[type=datetime-local],.f input[type=time],.f select{
+  width:100%;border:1px solid var(--line);background:#fff;border-radius:12px;padding:11px 12px;font-size:16px;color:var(--ink);
+  -webkit-appearance:none;appearance:none;min-height:46px}
+.f select{background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
+  background-position:calc(100% - 18px) 50%,calc(100% - 13px) 50%;background-size:5px 5px;background-repeat:no-repeat;padding-right:32px}
+.f.bad input,.f.bad select,.f.bad .seg{border-color:var(--rose);box-shadow:0 0 0 2px rgba(226,102,122,.18)}
+.f .err{display:none;color:var(--rose);font-size:13px;margin-top:4px}
+.f.bad .err{display:block}
+.seg{display:flex;background:#ece4d6;border-radius:999px;padding:4px;border:1px solid transparent}
+.seg button{flex:1;border:0;background:transparent;border-radius:999px;padding:9px;font-size:15px;color:var(--muted);font-weight:600}
+.seg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.sub{background:#f6f1e8;border-radius:14px;padding:14px 14px 2px;margin:0 0 14px}
+.cost{background:#fff4e8;border:1px solid #f8dcc0;color:#8a4a1f;border-radius:12px;padding:10px 12px;margin:0 0 14px;font-size:14px}
+.cost a{color:#8a4a1f}
+.choices{display:grid;gap:8px}
+.choices button{display:flex;gap:12px;align-items:center;text-align:left;border:1px solid var(--line);background:#fff;border-radius:14px;padding:12px 14px;color:var(--ink);font-size:15px}
+.choices button i{flex:0 0 20px;height:20px;border-radius:50%;border:2px solid #c9bfae}
+.choices button.on{border-color:var(--sea);box-shadow:0 0 0 2px rgba(20,50,74,.12)}
+.choices button.on i{border-color:var(--sea);background:radial-gradient(circle,var(--sea) 0 5px,#fff 6px)}
+.choices button b{font-weight:600}
+.choices button small{display:block;color:var(--muted);font-size:13px}
+.f.bad .choices button{border-color:var(--rose)}
+.jgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.jgrid button{border:1px solid var(--line);background:#fff;border-radius:12px;padding:6px 6px 8px;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:13px;font-weight:600;color:var(--ink)}
+.jgrid img{width:100%;aspect-ratio:500/580;object-fit:contain;border-radius:8px;background:#f6f1e8}
+.jgrid button.on,.sizes button.on{border-color:var(--sea);box-shadow:0 0 0 2px rgba(20,50,74,.18)}
+.sizes{display:flex;flex-wrap:wrap;gap:8px}
+.sizes button{min-width:56px;border:1px solid var(--line);background:#fff;border-radius:999px;padding:9px 14px;font-weight:600;color:var(--ink)}
+.sizes button.on{background:var(--sea);color:#fff}
+.f.bad .jgrid button,.f.bad .sizes button{border-color:var(--rose)}
+.jfix{display:flex;gap:12px;align-items:center;background:#f6f1e8;border-radius:12px;padding:10px}
+.jfix img{width:72px;aspect-ratio:500/580;object-fit:contain;border-radius:8px;background:#fff}
+.jfix small{display:block;color:var(--muted)}
+.cost p{margin:0 0 6px}.cost p:last-child{margin:0}
+.fixed{background:#f6f1e8;border-radius:12px;padding:10px 12px;font-size:15px}
+/* review */
+.rv{list-style:none;padding:0;margin:0}
+.rv li{display:grid;grid-template-columns:42% 1fr;gap:8px;padding:9px 0;border-bottom:1px solid var(--line);font-size:15px}
+.rv li:last-child{border-bottom:0}
+.rv li span{color:var(--muted);font-size:14px}
+.rv li b{font-weight:600;word-break:break-word}
+.rvh{font-family:var(--serif);color:var(--sea);font-size:17px;margin:16px 0 2px}
+.spin{display:inline-block;width:18px;height:18px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:sp 0.8s linear infinite;vertical-align:-3px;margin-right:6px}
+@keyframes sp{to{transform:rotate(360deg)}}
+.jview{display:flex;gap:14px;align-items:center;background:#f6f1e8;border-radius:12px;padding:10px}
+.jview img{width:96px;aspect-ratio:500/580;object-fit:contain;border-radius:8px;background:#fff;flex:none}
+.jview > div{display:flex;flex-direction:column;justify-content:center;gap:2px}
+.jview b{font-family:var(--serif);font-size:20px;color:var(--sea);font-weight:600}
+.jview .muted{margin:0}
+.jkeep{margin-top:-4px;margin-bottom:14px}
+.tel{display:flex;gap:8px}
+.f .tel select{flex:0 0 112px;width:112px}
+.f .tel input{flex:1;min-width:0}
+.ppbig{font-family:var(--serif);font-size:23px;line-height:1.3;color:var(--sea);text-align:center;background:#f6f1e8;border-radius:12px;padding:14px 12px;margin:6px 0 0;word-break:break-word}
+.confirm{display:flex;gap:10px;align-items:flex-start;font-size:15px;font-weight:600;margin:18px 0 0;line-height:1.4}
+.confirm input{width:20px;height:20px;flex:none;margin:1px 0 0;accent-color:var(--sea)}
+.asbar{background:#fff4e8;border:1px solid #f8dcc0;border-radius:12px;padding:10px 12px 12px;margin:0 0 14px}
+.asbar label{display:block;font-weight:600;font-size:14px;color:#8a4a1f;margin:0 0 6px}
+.asbar select{width:100%;border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 10px;font-size:16px;color:var(--ink)}
+.pv{background:#fff4e8;color:#8a4a1f;font-size:12px;text-align:center;padding:4px}
+</style>
+</head>
+<body>
+<div class="pv" id="pv" hidden>Preview — not locked, for core-team testing</div>
+<header class="top"><div class="wrap"><p>EXO Team Retreat 2027 · Xiamen</p><h1>My Trip Details</h1></div></header>
+<main class="wrap"><div class="panel" id="app"><p class="center muted">Loading…</p></div></main>
+
+<script>
+const TRIP = {
+  exec: "https://script.google.com/macros/s/AKfycbypVuTrJ1-Yjc7t_LvICbuQ0iIxEqwKb6YGzgNJJA5X3fQjTdq6RVHlNR8KqyBMxOTpfA/exec",   // trip script /exec URL
+  clientId: "294551766250-mgcvcckj5p9596uneaokeght448sb4pi.apps.googleusercontent.com",
+  opensAt: new Date("2026-11-12T14:00:00+08:00").getTime(),
+  preview: location.pathname.includes("/preview/")
+};
+const HANDBOOK = "./#trip";
+const S = { state: null, form: null, gis: null, busy: false, as: null, jEdit: false };
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const app = html => { $("app").innerHTML = html; window.scrollTo({ top: 0 }); };
+if (TRIP.preview) $("pv").hidden = false;
+
+/* ---------- storage (shared with the handbook: same site) ---------- */
+function getPass() {
+  try { const j = JSON.parse(localStorage.getItem("xm27-pass") || "null"); if (j && j.exp - Date.now() > 60000) return j.pass; } catch (e) {}
+  return null;
+}
+function setPass(p, exp) {
+  try { p ? localStorage.setItem("xm27-pass", JSON.stringify({ pass: p, exp: exp })) : localStorage.removeItem("xm27-pass"); } catch (e) {}
+}
+function keepPref() { try { return localStorage.getItem("xm27-keep") !== "0"; } catch (e) { return true; } }
+function setKeep(v) { try { localStorage.setItem("xm27-keep", v ? "1" : "0"); } catch (e) {} }
+
+function api(body, ms = 25000) {
+  const ctl = new AbortController();
+  const t = setTimeout(() => ctl.abort(), ms);
+  return fetch(TRIP.exec, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(body), signal: ctl.signal })
+    .then(r => r.json()).finally(() => clearTimeout(t));
+}
+
+/* ---------- start ---------- */
+let lockTimer = null;
+function start() {
+  clearInterval(lockTimer);
+  if (!TRIP.preview && Date.now() < TRIP.opensAt) return showLocked();
+  if (!TRIP.exec) return app(`<div class="center"><div class="ic">🛠️</div><h2>Almost ready</h2><p class="muted">The form is being set up. Check back soon.</p></div>`);
+  const pass = getPass();
+  if (pass) loadState(pass); else showSignIn();
+}
+
+function showLocked() {
+  app(`<div class="center"><div class="ic">🔒</div><h2>Opens Thu 12 Nov, 2pm</h2>
+    <p class="muted">Fill in your flights, extension plans and emergency contact here, then scratch to reveal your roommate & team!</p>
+    <div class="count" id="cd"></div><p class="btns"><a class="btn" href="${HANDBOOK}">Back to the handbook</a></p></div>`);
+  const tick = () => {
+    const ms = TRIP.opensAt - Date.now();
+    if (ms <= 0) return start();
+    const d = Math.floor(ms / 864e5), h = Math.floor(ms / 36e5) % 24, m = Math.floor(ms / 6e4) % 60, s = Math.floor(ms / 1e3) % 60;
+    $("cd").innerHTML = [[d, "days"], [h, "hrs"], [m, "min"], [s, "sec"]].map(([n, l]) => `<div><b>${n}</b><small>${l}</small></div>`).join("");
+  };
+  tick(); lockTimer = setInterval(tick, 1000);
+}
+
+/* ---------- Google sign-in ---------- */
+function loadGis() {
+  if (S.gis) return S.gis;
+  S.gis = new Promise((ok, no) => {
+    const s = document.createElement("script");
+    s.src = "https://accounts.google.com/gsi/client"; s.async = true;
+    const t = setTimeout(() => no(new Error("timeout")), 10000);
+    s.onload = () => {
+      clearTimeout(t);
+      google.accounts.id.initialize({ client_id: TRIP.clientId, auto_select: true, itp_support: true, ux_mode: "popup", callback: r => onCredential(r.credential) });
+      ok();
+    };
+    s.onerror = () => { clearTimeout(t); no(new Error("blocked")); };
+    document.head.appendChild(s);
+  });
+  S.gis.catch(() => { S.gis = null; });
+  return S.gis;
+}
+
+function showSignIn(msg) {
+  app(`<div class="center"><div class="ic">✈️</div><h2>Sign in to fill in your trip details</h2>
+    <p class="muted">${msg || "Use the Google account you gave for the retreat (the same one as the photo album)."}</p>
+    <div class="gbtn" id="gbtn"><p class="muted">Loading Google sign-in…</p></div>
+    <label class="keep"><input type="checkbox" id="keep" ${keepPref() ? "checked" : ""}> Keep me signed in</label>
+    <p class="muted" style="font-size:12px">Ticked: stay signed in for 30 days on this device. Unticked: signed out after 30 minutes.</p></div>`);
+  $("keep").onchange = e => setKeep(e.target.checked);
+  loadGis().then(() => {
+    const el = $("gbtn"); if (!el) return;
+    el.innerHTML = "";
+    google.accounts.id.renderButton(el, { theme: "filled_blue", size: "large", shape: "pill", text: "signin_with", width: 240 });
+  }).catch(() => { const el = $("gbtn"); if (el) el.innerHTML = `<p class="muted">Couldn't load Google sign-in. Check your connection and refresh.</p>`; });
+}
+
+function onCredential(cred) {
+  try { localStorage.setItem("xm27-idt", cred); } catch (e) {}       // the handbook's album can use it too
+  app(`<div class="center"><div class="ic">⏳</div><h2>Signing you in…</h2></div>`);
+  api({ action: "signin", idToken: cred, keep: keepPref() }).then(r => {
+    if (r.ok) { setPass(r.pass, r.exp); return loadState(r.pass); }
+    if (r.error === "not_listed") return wrongAccount(r.email);
+    if (r.error === "not_matched") return notMatched(r.email);
+    showSignIn("Sign-in didn't work. Please try again.");
+  }).catch(() => netError(() => onCredential(cred)));
+}
+
+function wrongAccount(email) {
+  app(`<div class="center"><div class="ic">🙈</div><h2>This form is for retreat attendees</h2>
+    <p class="muted">Signed in with the wrong account? Switch to the one you gave for the retreat.</p>
+    <p class="who">Signed in as ${esc(email)}</p><div class="btns"><button class="btn primary" id="sw">Switch account</button></div></div>`);
+  $("sw").onclick = signOut;
+}
+function notMatched(email) {
+  app(`<div class="center"><div class="ic">🧐</div><h2>Almost there!</h2>
+    <p class="muted">You're on the guest list but we couldn't match your account yet. Please message Yen Ling.</p>
+    <p class="who">Signed in as ${esc(email)}</p><div class="btns"><button class="btn" id="sw">Switch account</button></div></div>`);
+  $("sw").onclick = signOut;
+}
+function signOut() {
+  setPass(null);
+  try { localStorage.removeItem("xm27-idt"); } catch (e) {}
+  if (window.google && google.accounts) google.accounts.id.disableAutoSelect();
+  showSignIn("Pick the Google account you gave for the retreat.");
+}
+function netError(retry) {
+  app(`<div class="center"><div class="ic">📡</div><h2>Couldn't connect</h2><p class="muted">Check your connection and try again.</p>
+    <div class="btns"><button class="btn primary" id="rt">Try again</button></div></div>`);
+  $("rt").onclick = retry;
+}
+
+/* ---------- state ---------- */
+function loadState(pass) {
+  app(`<div class="center"><div class="ic">⏳</div><h2>Loading your details…</h2></div>`);
+  api({ action: "state", pass, as: S.as || undefined }).then(r => {
+    if (!r.ok) {
+      if (r.error === "signed_out") { setPass(null); return showSignIn("Your sign-in expired. Please sign in again."); }
+      if (r.error === "not_listed") return wrongAccount(r.email);
+      if (r.error === "not_matched") return notMatched(r.email);
+      if (r.error === "bad_as" || r.error === "not_allowed") { S.as = null; return loadState(pass); }
+      throw new Error(r.error);
+    }
+    S.state = r; S.jEdit = false;
+    const w = r.window;
+    if (w.status === "closed") return app(`<div class="center"><div class="ic">📦</div><h2>The form closed on 25 Dec</h2>
+      <p class="muted">Need to change something? Please message Yen Ling.</p><div class="btns"><a class="btn primary" href="${HANDBOOK}">Back to the handbook</a></div></div>`);
+    if (w.status === "before" && !r.me.core) return showLocked();
+    S.form = Object.assign(blankForm(), r.mine || {});
+    if (r.mine && r.mine.ecMobile && !r.mine.ecNum) {   // older entries saved the number as one string
+      const m = String(r.mine.ecMobile).replace(/[^\d+]/g, "").match(/^\+(65|852|886|60|86|62|63|91|61|44|1)(\d+)$/);
+      if (m) { S.form.ecCc = m[1]; S.form.ecNum = m[2]; }
+    }
+    if (r.jacket) { S.form.jColour = r.jacket.colour; S.form.jSize = r.jacket.size; }
+    renderForm();
+  }).catch(() => netError(() => loadState(pass)));
+}
+
+function blankForm() {
+  return { arrMode: "", arrFlight: "", arrOther: "", arrOtherTime: "", arrDate: "", arrTime: "", preHotel: null, preIn: "", preShare: "", lateTime: "",
+    depMode: "", depFlight: "", depOther: "", depOtherTime: "", postHotel: null, postOut: "", postShare: "", depTime: "",
+    jColour: "", jSize: "", passport: "", ecName: "", ecRel: "", ecCc: "65", ecOtherCc: "", ecNum: "" };
+}
+const slug = c => String(c).toLowerCase().replace(/\s+/g, "-");
+
+/* emergency mobile: [code, label, min digits, max digits, must start with] */
+const CC = [["65", "🇸🇬 +65", 8, 8, /^[3689]/], ["60", "🇲🇾 +60", 9, 10], ["86", "🇨🇳 +86", 11, 11], ["62", "🇮🇩 +62", 9, 12],
+  ["63", "🇵🇭 +63", 10, 10], ["852", "🇭🇰 +852", 8, 8], ["886", "🇹🇼 +886", 9, 9], ["91", "🇮🇳 +91", 10, 10],
+  ["61", "🇦🇺 +61", 9, 9], ["44", "🇬🇧 +44", 10, 10], ["1", "🇺🇸 +1", 10, 10], ["other", "🌐 Other", 7, 15]];
+const ccRule = cc => CC.find(c => c[0] === cc) || CC[0];
+function phoneMsg(cc) {
+  const r = ccRule(cc);
+  if (r[0] === "65") return "Singapore numbers have 8 digits and start with 3, 6, 8 or 9.";
+  return `Please enter ${r[2] === r[3] ? r[2] : r[2] + "–" + r[3]} digits${r[0] === "other" ? ", and the country code" : ""}.`;
+}
+function phoneDigits(F) {
+  let n = String(F.ecNum || "").replace(/\D/g, "");
+  if (F.ecCc !== "65" && F.ecCc !== "852") n = n.replace(/^0/, "");   // drop a leading 0 (e.g. MY 012…)
+  return n;
+}
+function phoneOk(F) {
+  const r = ccRule(F.ecCc), n = phoneDigits(F);
+  if (F.ecCc === "other" && !/^\d{1,4}$/.test(String(F.ecOtherCc || "").replace(/\D/g, ""))) return false;
+  return n.length >= r[2] && n.length <= r[3] && (!r[4] || r[4].test(n));
+}
+function phoneText(F) {
+  const cc = F.ecCc === "other" ? String(F.ecOtherCc).replace(/\D/g, "") : F.ecCc, n = phoneDigits(F);
+  return "+" + cc + " " + (n.length === 8 && (cc === "65" || cc === "852") ? n.slice(0, 4) + " " + n.slice(4) : n);
+}
+const ppClean = s => String(s || "").toUpperCase().replace(/[\u2018\u2019`]/g, "'").replace(/\s+/g, " ").trim();
+const ppOk = s => /^[A-Z][A-Z ,'\-\/@.]*$/.test(s) && (s.match(/[A-Z]/g) || []).length >= 2;
+
+/* ---------- the form ---------- */
+const DOW = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const isoLabel = iso => { const d = new Date(iso + "T12:00:00+08:00"); return `${DOW[d.getUTCDay()]} ${d.getUTCDate()} Jan 2027`; };
+function dateOpts(id, from, to, cur) {   // January 2027 only, as a dropdown (no calendar to misread)
+  let o = `<option value="" ${cur ? "" : "selected"} disabled>Choose a date</option>`;
+  for (let n = from; n <= to; n++) {
+    const iso = "2027-01-" + String(n).padStart(2, "0");
+    o += `<option value="${iso}" ${cur === iso ? "selected" : ""}>${isoLabel(iso)}</option>`;
+  }
+  return `<select id="${id}">${o}</select>`;
+}
+const seg = (key, val) => `<div class="seg" data-seg="${key}"><button type="button" data-v="yes" class="${val === true ? "on" : ""}">Yes</button><button type="button" data-v="no" class="${val === false ? "on" : ""}">No</button></div>`;
+const choice = (key, val, opts) => `<div class="choices" data-choice="${key}">${opts.map(([v, t, s]) =>
+  `<button type="button" data-v="${v}" class="${val === v ? "on" : ""}"><i></i><span><b>${t}</b>${s ? `<small>${s}</small>` : ""}</span></button>`).join("")}</div>`;
+const err = msg => `<div class="err">${msg}</div>`;
+
+function flightSelect(key, list, cur) {
+  const opts = list.map(f => `<option value="${esc(f.no)}" ${cur === f.no ? "selected" : ""}>${esc(f.label)}</option>`).join("");
+  return `<select id="${key}"><option value="" ${!cur ? "selected" : ""} disabled>Choose your flight</option>${opts}
+    <option value="other" ${cur === "other" ? "selected" : ""}>Other – type it in</option></select>`;
+}
+
+function renderForm(bad) {
+  const st = S.state, F = S.form, me = st.me, late = !!me.late, fl = st.flights;
+  const B = k => bad && bad.indexOf(k) >= 0 ? " bad" : "";
+  const costBox = (id, inner) => `<div id="${id}" class="sub">
+      <div class="cost"><p><b>🏨 Extra nights are at your own cost.</b></p>
+      <p>We've secured a group booking discount of CNY 100–150 per room per night off the usual rate (depending on room type).</p>
+      <p><a href="https://sg.trip.com/hotels/xiamen-hotel-detail-7123043/lujiang-mega-hotel/" target="_blank" rel="noopener">View Lujiang Mega Hotel on Trip.com</a> for reference.</p></div>
+      ${inner}</div>`;
+
+  let arrival;
+  if (late) {
+    arrival = `<p class="fixed">You're joining us on <b>${esc(me.late)}</b> 🙌</p>
+      <div class="f${B("lateTime")}"><label for="lateTime">Estimated arrival time at Lujiang Mega Hotel</label>
+        <input type="time" id="lateTime" value="${esc(F.lateTime)}">${err("Please enter your estimated time.")}</div>`;
+  } else {
+    arrival = `<div class="f${B("arrMode")}"><div class="lbl">How are you getting to Xiamen?</div>
+        ${choice("arrMode", F.arrMode, [["flight", "Flying in from Singapore on Mon 11 Jan"], ["pre", "I'm travelling before the retreat"]])}${err("Please choose one.")}</div>
+      ${F.arrMode === "flight" ? `
+        <div class="f${B("arrFlight")}"><label for="arrFlight">Your flight · Mon 11 Jan</label>
+          ${flightSelect("arrFlight", fl.arrive, F.arrFlight)}${err("Please choose your flight.")}</div>
+        <div id="arrOtherBox" ${F.arrFlight === "other" ? "" : "hidden"}>
+          <div class="f${B("arrOther")}"><label for="arrOther">Flight number</label><input type="text" id="arrOther" value="${esc(F.arrOther)}" placeholder="e.g. TR188" autocomplete="off">${err("Please type your flight number.")}</div>
+          <div class="f${B("arrOtherTime")}"><label for="arrOtherTime">Arrival time in Xiamen</label><input type="time" id="arrOtherTime" value="${esc(F.arrOtherTime)}">${err("Please enter the arrival time.")}</div>
+        </div>` : ""}
+      ${F.arrMode === "pre" ? `
+        <div class="f${B("arrDate")}"><label for="arrDate">Arrival date in Xiamen</label>${dateOpts("arrDate", 1, 11, F.arrDate)}${err("Please choose a date.")}</div>
+        <div class="f${B("arrTime")}" id="arrTimeBox" ${F.arrDate === "2027-01-11" ? "" : "hidden"}>
+          <label for="arrTime">Estimated arrival time at Lujiang Mega Hotel</label><input type="time" id="arrTime" value="${esc(F.arrTime)}">${err("Please enter your estimated time.")}</div>
+        <div class="f${B("preHotel")}"><div class="lbl">Need extra nights at Lujiang Mega Hotel before 11 Jan?</div>${seg("preHotel", F.preHotel)}${err("Please choose Yes or No.")}</div>
+        ${F.preHotel === true ? costBox("preHotelBox", `
+          <div class="f${B("preIn")}"><label for="preIn">Check-in date</label><small>You'll stay through to the retreat on 11 Jan.</small>${dateOpts("preIn", 1, 10, F.preIn)}${err("Please choose a date.")}</div>
+          <div class="f"><label for="preShare">Sharing with (optional)</label><input type="text" id="preShare" value="${esc(F.preShare)}" placeholder="e.g. Alex, or leave blank" autocomplete="off"></div>`) : ""}` : ""}`;
+  }
+
+  const departure = `<div class="f${B("depMode")}"><div class="lbl">What's your plan after the retreat ends on Thu 14 Jan?</div>
+        ${choice("depMode", F.depMode, [["flight", "Flying home to Singapore on Thu 14 Jan"], ["post", "I'm staying on to travel after the retreat"]])}${err("Please choose one.")}</div>
+      ${F.depMode === "flight" ? `
+        <div class="f${B("depFlight")}"><label for="depFlight">Your flight · Thu 14 Jan</label>
+          ${flightSelect("depFlight", fl.depart, F.depFlight)}${err("Please choose your flight.")}</div>
+        <div id="depOtherBox" ${F.depFlight === "other" ? "" : "hidden"}>
+          <div class="f${B("depOther")}"><label for="depOther">Flight number</label><input type="text" id="depOther" value="${esc(F.depOther)}" placeholder="e.g. TR189" autocomplete="off">${err("Please type your flight number.")}</div>
+          <div class="f${B("depOtherTime")}"><label for="depOtherTime">Departure time from Xiamen</label><input type="time" id="depOtherTime" value="${esc(F.depOtherTime)}">${err("Please enter the departure time.")}</div>
+        </div>` : ""}
+      ${F.depMode === "post" ? `
+        <div class="f${B("postHotel")}"><div class="lbl">Extend your stay at Lujiang Mega Hotel (group discount)?</div>${seg("postHotel", F.postHotel)}${err("Please choose Yes or No.")}</div>
+        ${F.postHotel === true ? costBox("postHotelBox", `
+          <div class="f${B("postOut")}"><label for="postOut">Check-out date</label><small>Extra nights start from 14 Jan.</small>${dateOpts("postOut", 15, 31, F.postOut)}${err("Please choose a date.")}</div>
+          <div class="f"><label for="postShare">Sharing with (optional)</label><input type="text" id="postShare" value="${esc(F.postShare)}" placeholder="e.g. Alex, or leave blank" autocomplete="off"></div>`) : ""}
+        ${F.postHotel === false ? `
+          <div class="f${B("depTime")}"><label for="depTime">Estimated time leaving Lujiang Mega Hotel · Thu 14 Jan</label>
+            <small>Check-out is by 12:00.</small><input type="time" id="depTime" value="${esc(F.depTime)}">${err("Please enter your estimated time.")}</div>` : ""}` : ""}`;
+
+  const jk = st.jacket, jo = st.jacketOptions;
+  const jacket = jk && jk.custom
+    ? `<div class="jfix"><img src="img/jacket/${slug(jk.colour)}.jpg" alt=""><div><b>${esc(jk.colour)} · custom-made</b><small>${esc(jk.size)}</small></div></div>`
+    : jk && !S.jEdit
+    ? `<div class="jview"><img src="img/jacket/${slug(jk.colour)}.jpg" alt=""><div>
+        <p class="muted">Your current order:</p><b>${esc(jk.colour)} · ${esc(jk.size)}</b>
+        <p class="muted">You can change it until 25 Dec.</p>
+        <p style="margin:4px 0 0"><button type="button" class="linkbtn" id="jChange">Change my jacket order</button></p></div></div>`
+    : `${jk ? `<p class="jkeep"><button type="button" class="linkbtn" id="jKeep">Keep my current order (${esc(jk.colour)} · ${esc(jk.size)})</button></p>` : `<p class="muted" style="margin-top:0">Pick your colour & size.</p>`}
+      <div class="f${B("jColour")}"><div class="lbl">Colour</div><div class="jgrid" data-pick="jColour">${jo.colours.map(c =>
+        `<button type="button" data-v="${esc(c)}" class="${F.jColour === c ? "on" : ""}"><img src="img/jacket/${slug(c)}.jpg" alt=""><span>${esc(c)}</span></button>`).join("")}</div>${err("Please choose a colour.")}</div>
+      <div class="f${B("jSize")}"><div class="lbl">Size</div><div class="sizes" data-pick="jSize">${jo.sizes.map(z =>
+        `<button type="button" data-v="${esc(z)}" class="${F.jSize === z ? "on" : ""}">${esc(z)}</button>`).join("")}</div>${err("Please choose a size.")}</div>`;
+
+  const contact = `<div class="f${B("ecName")}"><label for="ecName">Name</label><input type="text" id="ecName" value="${esc(F.ecName)}" autocomplete="off">${err("Please enter a name.")}</div>
+      <div class="f${B("ecRel")}"><label for="ecRel">Relationship to you</label><input type="text" id="ecRel" value="${esc(F.ecRel)}" placeholder="e.g. Spouse, Parent, Sibling" autocomplete="off">${err("Please enter the relationship.")}</div>
+      <div class="f${B("ecMobile")}"><label for="ecNum">Mobile number</label>
+        <div class="tel"><select id="ecCc" aria-label="Country code">${CC.map(c => `<option value="${c[0]}" ${F.ecCc === c[0] ? "selected" : ""}>${c[1]}</option>`).join("")}</select>
+        <input type="tel" id="ecNum" inputmode="numeric" value="${esc(F.ecNum)}" placeholder="${F.ecCc === "65" ? "9123 4567" : "Mobile number"}" autocomplete="off"></div>
+        <div id="ecOtherBox" style="margin-top:8px" ${F.ecCc === "other" ? "" : "hidden"}><input type="tel" id="ecOtherCc" inputmode="numeric" value="${esc(F.ecOtherCc)}" placeholder="Country code, e.g. 81" autocomplete="off"></div>
+        <div class="err" id="ecErr">${phoneMsg(F.ecCc)}</div></div>`;
+
+  const about = `<div class="f${B("passport")}"><label for="passport">Full name as in passport</label>
+      <input type="text" id="passport" value="${esc(F.passport)}" placeholder="e.g. ALEX TAN WEI MING" autocomplete="off" autocapitalize="characters" spellcheck="false">
+      ${err("Please use letters only (spaces, commas, hyphens and apostrophes are OK).")}</div>`;
+
+  const ad = st.admin;
+  const asBar = ad ? (() => {
+    const opt = p => `<option value="${esc(p.full)}" ${S.as === p.full ? "selected" : ""}>${esc(p.full)}${p.done ? " ✓" : ""}</option>`;
+    const core = ad.people.filter(p => p.core), rest = ad.people.filter(p => !p.core);
+    return `<div class="asbar"><label for="asSel">Filling in for</label><select id="asSel">
+      <option value="" ${S.as ? "" : "selected"}>Myself (${esc(ad.me.short)})</option>
+      ${core.length ? `<optgroup label="Core team">${core.map(opt).join("")}</optgroup>` : ""}
+      <optgroup label="Everyone else">${rest.map(opt).join("")}</optgroup></select></div>`;
+  })() : "";
+
+  const hi = S.as ? `You're filling in for <b>${esc(me.name)}</b>. ${st.mine ? "Here's what's been sent so far." : "Nothing sent yet."}`
+    : `Hi <b>${esc(me.short)}</b>! ${st.mine ? "Here's what you sent. Change anything, then review & submit again." : "Takes about 2 minutes."}`;
+  app(`${asBar}<p class="muted" style="margin-top:0">${hi}</p>
+    <div class="sec"><h3>🛂 About you</h3>${about}</div>
+    <div class="sec"><h3>✈️ Getting to Xiamen</h3>${arrival}</div>
+    <div class="sec"><h3>🧳 After the retreat</h3>${departure}</div>
+    <div class="sec"><h3>🧥 Team jacket</h3>${jacket}</div>
+    <div class="sec"><h3>🆘 Emergency contact</h3>${contact}</div>
+    <div class="btns"><button class="btn primary wide" id="rvBtn">Review</button></div>
+    <p class="who center">Signed in as ${esc(ad && S.as ? ad.me.name : me.name)} · <button class="linkbtn" id="so">Not you? Switch account</button></p>`);
+
+  const rerender = (key, el) => {
+    readForm(); renderForm();
+    const again = document.querySelector(`[data-${el}="${key}"]`);
+    if (again) again.scrollIntoView({ block: "center" });
+  };
+  document.querySelectorAll("[data-seg]").forEach(sg => sg.addEventListener("click", e => {
+    const b = e.target.closest("button"); if (!b) return;
+    readForm(); S.form[sg.dataset.seg] = b.dataset.v === "yes"; rerender(sg.dataset.seg, "seg");
+  }));
+  document.querySelectorAll("[data-choice]").forEach(ch => ch.addEventListener("click", e => {
+    const b = e.target.closest("button"); if (!b) return;
+    readForm(); S.form[ch.dataset.choice] = b.dataset.v; rerender(ch.dataset.choice, "choice");
+  }));
+  document.querySelectorAll("[data-pick]").forEach(pk => pk.addEventListener("click", e => {
+    const b = e.target.closest("button"); if (!b) return;
+    S.form[pk.dataset.pick] = b.dataset.v;
+    pk.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
+  }));
+  [["arrFlight", "arrOtherBox"], ["depFlight", "depOtherBox"]].forEach(([k, box]) => { const el = $(k); if (el) el.onchange = () => { $(box).hidden = el.value !== "other"; }; });
+  if ($("arrDate")) $("arrDate").onchange = e => { $("arrTimeBox").hidden = e.target.value !== "2027-01-11"; };
+  $("passport").oninput = e => { const el = e.target, p = el.selectionStart; el.value = el.value.toUpperCase(); try { el.setSelectionRange(p, p); } catch (x) {} };
+  $("ecCc").onchange = e => {
+    const v = e.target.value;
+    $("ecOtherBox").hidden = v !== "other"; $("ecErr").textContent = phoneMsg(v);
+    $("ecNum").placeholder = v === "65" ? "9123 4567" : "Mobile number";
+  };
+  if ($("jChange")) $("jChange").onclick = () => { readForm(); S.jEdit = true; rerender("jColour", "pick"); };
+  if ($("jKeep")) $("jKeep").onclick = () => { readForm(); S.jEdit = false; S.form.jColour = S.state.jacket.colour; S.form.jSize = S.state.jacket.size; renderForm(); document.querySelector(".jview").scrollIntoView({ block: "center" }); };
+  if ($("asSel")) $("asSel").onchange = e => { S.as = e.target.value || null; loadState(getPass()); };
+  $("rvBtn").onclick = review;
+  $("so").onclick = signOut;
+  if (bad && bad.length) { const first = document.querySelector(".f.bad"); if (first) first.scrollIntoView({ block: "center" }); }
+}
+
+const FIELDS = ["arrFlight", "arrOther", "arrOtherTime", "arrDate", "arrTime", "preIn", "preShare", "lateTime",
+  "depFlight", "depOther", "depOtherTime", "postOut", "postShare", "depTime", "passport", "ecName", "ecRel", "ecCc", "ecOtherCc", "ecNum"];
+function readForm() {
+  FIELDS.forEach(k => { if ($(k)) S.form[k] = $(k).value.trim(); });
+  S.form.passport = ppClean(S.form.passport);
+}
+
+function validate() {
+  const F = S.form, late = !!S.state.me.late, bad = [];
+  if (!ppOk(F.passport)) bad.push("passport");
+  if (late) { if (!F.lateTime) bad.push("lateTime"); }
+  else if (!F.arrMode) bad.push("arrMode");
+  else if (F.arrMode === "flight") {
+    if (!F.arrFlight) bad.push("arrFlight");
+    if (F.arrFlight === "other") { if (!F.arrOther) bad.push("arrOther"); if (!F.arrOtherTime) bad.push("arrOtherTime"); }
+  } else {
+    if (!F.arrDate) bad.push("arrDate");
+    if (F.arrDate === "2027-01-11" && !F.arrTime) bad.push("arrTime");
+    if (F.preHotel === null) bad.push("preHotel");
+    if (F.preHotel === true && !F.preIn) bad.push("preIn");
+  }
+  if (!F.depMode) bad.push("depMode");
+  else if (F.depMode === "flight") {
+    if (!F.depFlight) bad.push("depFlight");
+    if (F.depFlight === "other") { if (!F.depOther) bad.push("depOther"); if (!F.depOtherTime) bad.push("depOtherTime"); }
+  } else {
+    if (F.postHotel === null) bad.push("postHotel");
+    if (F.postHotel === true && !F.postOut) bad.push("postOut");
+    if (F.postHotel === false && !F.depTime) bad.push("depTime");
+  }
+  if (!(S.state.jacket && S.state.jacket.custom)) { if (!F.jColour) bad.push("jColour"); if (!F.jSize) bad.push("jSize"); }
+  if (!F.ecName) bad.push("ecName");
+  if (!F.ecRel) bad.push("ecRel");
+  if (!phoneOk(F)) bad.push("ecMobile");
+  return bad;
+}
+
+/* ---------- review & submit ---------- */
+const nights = (a, b) => Math.round((new Date(b + "T00:00:00+08:00") - new Date(a + "T00:00:00+08:00")) / 864e5);
+const plural = n => n + " night" + (n === 1 ? "" : "s");
+const flightOf = (list, no) => list.find(x => x.no === no);
+
+function review() {
+  readForm();
+  const bad = validate();
+  if (bad.length) return renderForm(bad);
+  const F = S.form, st = S.state, late = !!st.me.late;
+  const li = (k, v) => `<li><span>${k}</span><b>${esc(v)}</b></li>`;
+  let a = "";
+  if (late) a = li("Arriving at the hotel", st.me.late + ", " + F.lateTime);
+  else if (F.arrMode === "flight") {
+    const f = flightOf(st.flights.arrive, F.arrFlight);
+    a = F.arrFlight === "other" ? li("Flight · Mon 11 Jan", F.arrOther.toUpperCase()) + li("Arrives in Xiamen", F.arrOtherTime)
+      : li("Flight · Mon 11 Jan", `${f.no} · ${f.airline}`) + li("Arrives in Xiamen", f.arr);
+  } else {
+    a = li("Plan", "Travelling before the retreat") + li("Arriving in Xiamen", isoLabel(F.arrDate)) +
+      (F.arrDate === "2027-01-11" ? li("Arriving at the hotel", F.arrTime) : "") +
+      li("Extra hotel nights", F.preHotel ? `Check in ${isoLabel(F.preIn)} (${plural(nights(F.preIn, "2027-01-11"))})` : "No") +
+      (F.preHotel ? li("Sharing with", F.preShare || "—") : "");
+  }
+  let d = "";
+  if (F.depMode === "flight") {
+    const f = flightOf(st.flights.depart, F.depFlight);
+    d = F.depFlight === "other" ? li("Flight · Thu 14 Jan", F.depOther.toUpperCase()) + li("Departs Xiamen", F.depOtherTime)
+      : li("Flight · Thu 14 Jan", `${f.no} · ${f.airline}`) + li("Departs Xiamen", f.dep);
+  } else {
+    d = li("Plan", "Staying on after the retreat") +
+      li("Hotel extension", F.postHotel ? `Check out ${isoLabel(F.postOut)} (${plural(nights("2027-01-14", F.postOut))})` : "No") +
+      (F.postHotel ? li("Sharing with", F.postShare || "—") : li("Leaving the hotel", "Thu 14 Jan, " + F.depTime));
+  }
+  const jk = st.jacket;
+  const pick = `${F.jColour} · ${F.jSize}`;
+  const j = jk && jk.custom ? li("Jacket", `${jk.colour} · custom-made`)
+    : !jk ? li("Jacket", pick)
+    : jk.colour === F.jColour && jk.size === F.jSize ? li("Jacket", pick + " (no change)")
+    : li("Jacket", `Changed: ${jk.colour} · ${jk.size} → ${pick}`);
+  const c = li("Name", F.ecName) + li("Relationship", F.ecRel) + li("Mobile", phoneText(F));
+  app(`<h2 style="margin-top:0">Check your details</h2>${S.as ? `<p class="muted">Filling in for <b>${esc(st.me.name)}</b></p>` : ""}
+    <p class="rvh">🛂 Full name as in passport</p><div class="ppbig">${esc(F.passport)}</div>
+    <p class="rvh">✈️ Getting to Xiamen</p><ul class="rv">${a}</ul>
+    <p class="rvh">🧳 After the retreat</p><ul class="rv">${d}</ul>
+    <p class="rvh">🧥 Team jacket</p><ul class="rv">${j}</ul>
+    <p class="rvh">🆘 Emergency contact</p><ul class="rv">${c}</ul>
+    <label class="confirm"><input type="checkbox" id="ppTick"> I confirm my name above matches my passport exactly.</label>
+    <div class="btns"><button class="btn" id="edit">Edit</button><button class="btn primary" id="go" disabled>Submit</button></div>`);
+  $("ppTick").onchange = e => { $("go").disabled = !e.target.checked; };
+  $("edit").onclick = () => renderForm();
+  $("go").onclick = submit;
+}
+
+function submit() {
+  if (S.busy) return;
+  S.busy = true;
+  const b = $("go"); b.disabled = true; b.innerHTML = `<span class="spin"></span>Submitting…`;
+  api({ action: "submit", pass: getPass(), as: S.as || undefined, data: Object.assign({}, S.form, { jacket: { colour: S.form.jColour, size: S.form.jSize } }) }).then(r => {
+    if (r.ok) {
+      if (S.as) return doneFor();
+      try { localStorage.setItem("xm27-trip-done", String(Date.now())); } catch (e) {}
+      return done();
+    }
+    if (r.error === "signed_out") { setPass(null); return showSignIn("Your sign-in expired. Please sign in again; your answers will need re-entering."); }
+    if (r.error === "invalid") return renderForm(r.fields || []);
+    if (r.error === "closed") return loadState(getPass());
+    if (r.error === "not_open") return showLocked();
+    if (r.error === "not_listed") return wrongAccount(r.email);
+    if (r.error === "not_matched") return notMatched(r.email);
+    throw new Error(r.error);
+  }).catch(() => netError(review))
+    .finally(() => { S.busy = false; });
+}
+
+function doneFor() {   // admin filled in for someone else
+  app(`<div class="center"><div class="ic">✅</div><h2>Saved for ${esc(S.state.me.short)}</h2>
+    <p class="muted">${esc(S.state.me.name)}'s trip details are in. Their cards unlock when they sign in.</p>
+    <div class="btns"><button class="btn primary" id="next">Fill in for someone else</button><a class="btn" href="${HANDBOOK}">Back to the handbook</a></div></div>`);
+  $("next").onclick = () => { S.as = null; loadState(getPass()); };
+}
+
+function done() {
+  app(`<div class="center"><div class="ic">🎉</div><h2>All set, ${esc(S.state.me.short)}!</h2>
+    <p>Your trip details are in. Now head back to the handbook and <b>scratch to reveal your roommate & team</b>!</p>
+    <div class="btns"><button class="btn primary" id="back">Back to the handbook</button></div>
+    <p class="muted" style="margin-top:12px;font-size:13px">Using the handbook from your Home Screen? Just switch back to it. Your cards will be ready.</p></div>`);
+  $("back").onclick = () => {
+    window.close();
+    setTimeout(() => { location.href = HANDBOOK; }, 300);   // if the tab can't close itself
+  };
+}
+
+start();
+</script>
+</body>
+</html>
