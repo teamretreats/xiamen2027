@@ -525,7 +525,7 @@ nav button.on .i{transform:translateY(-1px)}
     </div>
 
     <div class="icard chartcard" id="groupsCard">
-      <h3>👥 Groups &amp; ICs</h3>
+      <h3>👥 Teams &amp; Rooms</h3>
       <div id="groupsBody" style="padding:0 6px"></div>
     </div>
     <div class="icard">
@@ -1527,8 +1527,8 @@ function openTrip() {
 
 function foilTeaser(label) {
   return `<div class="tcards">
-    <div class="scratch teaser"><div class="foil"><small>🎽 Your team</small><b>Unlock to Scratch</b></div></div>
-    <div class="scratch teaser"><div class="foil"><small>🛏️ Your roommate</small><b>Unlock to Scratch</b></div></div></div>`;
+    <div class="scratch teaser"><div class="foil"><small>🛏️ Your roommate</small><b>Unlock to Scratch</b></div></div>
+    <div class="scratch teaser"><div class="foil"><small>🎽 Your team</small><b>Unlock to Scratch</b></div></div></div>`;
 }
 
 function tripLocked() {
@@ -1663,8 +1663,8 @@ function roomFace(r) {
 function renderTripCards(justNow) {
   const st = TR.state, c = st.cards, me = st.me.short;
   const items = [];
-  if (c.team) items.push({ kind: "team", face: teamFace(c.team, me), label: "🎽 Your team", data: c.team });
   if (c.room) items.push({ kind: "room", face: roomFace(c.room), label: c.room.mates.length > 1 ? "🛏️ Your roommates" : "🛏️ Your roommate", data: c.room });
+  if (c.team) items.push({ kind: "team", face: teamFace(c.team, me), label: "🎽 Your team", data: c.team });
   const head = justNow ? `<div class="icard center tmsg"><div class="ic">🎉</div><h3>Got your details, thanks!</h3><p class="muted">Now scratch to reveal…</p></div>`
     : `<p class="tlead">${items.length ? "Scratch to reveal 👇" : ""}</p>`;
   const cards = items.length ? `<div class="tcards">${items.map((it, i) => {
@@ -1684,7 +1684,7 @@ function updateTripAfter() {
   const left = document.querySelectorAll("#tripBody .scratch:not(.done)").length;
   const el = document.getElementById("tripAfter"); if (!el) return;
   el.innerHTML = left ? "" : `<div class="btns center-btns"><button class="btn primary" data-tripall>👀 See all teams & rooms</button></div>
-    <p class="muted small" style="text-align:center">Also in Info → Groups & ICs</p>`;
+    <p class="muted small" style="text-align:center">Also in Info → Teams & Rooms</p>`;
 }
 function revealCard(box) {
   if (box.classList.contains("done")) return;
@@ -1793,7 +1793,7 @@ function renderGroups() {
       `<div class="col"><h5><span>${esc(c.name)}</span>${c.extra ? `<small>(${esc(c.extra)})</small>` : ""}</h5>${c.body}</div>`).join("")}</div>`;
     const teams = chart(r.teams.map(t => ({ name: t.name, body: t.lead.map(n => nm(n, true)).join("") + t.members.map(n => nm(n)).join("") })));
     const rooms = chart(r.villas.map(v => ({ name: v.name, extra: v.extra, body: v.names.map(n => nm(n)).join("") })));
-    GR.html = `<h4>🎽 Teams</h4><p class="muted small">Team Lead in bold</p>${teams}<h4>🛏️ Rooms</h4>${rooms}`;
+    GR.html = `<h4>🛏️ Rooms</h4>${rooms}<h4>🎽 Teams</h4><p class="muted small">Team Lead in bold</p>${teams}`;
     if (CUR_TAB === "info") renderGroups();
   }).catch(() => groupsLocked());
 }
