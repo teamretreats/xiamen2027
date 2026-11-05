@@ -292,6 +292,7 @@ button{font:inherit;cursor:pointer}
   background:linear-gradient(135deg,#c9677a,#f08a4b 50%,#f6b65c)}
 .scratch.teaser .foil small{color:#fff;opacity:.9}
 .scratch.teaser .foil b{font-size:18px;margin-top:6px}
+.scratch.teaser .foil .hint{display:block;font-size:12px;font-weight:500;opacity:.9;margin:4px 16px 0;line-height:1.35}
 .scratch .tlabel{margin:14px 0 0;color:var(--muted);font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase}
 .scratch .tname{display:block;font-family:var(--serif);font-size:24px;line-height:1.2;color:var(--sea);margin-top:2px}
 .scratch .ulead{margin:12px 0 0;font-size:17px;font-weight:600;color:var(--sun)}
@@ -1525,16 +1526,17 @@ function openTrip() {
   if (p) tripLoad(p); else tripSignIn();
 }
 
-function foilTeaser(label) {
+function foilTeaser(hint) {   // hint: small line under "Unlock to Scratch"
+  const h = hint ? `<span class="hint">${hint}</span>` : "";
   return `<div class="tcards">
-    <div class="scratch teaser"><div class="foil"><small>🛏️ Your roommate</small><b>Unlock to Scratch</b></div></div>
-    <div class="scratch teaser"><div class="foil"><small>🎽 Your team</small><b>Unlock to Scratch</b></div></div></div>`;
+    <div class="scratch teaser"><div class="foil"><small>🛏️ Your roommate</small><b>Unlock to Scratch</b>${h}</div></div>
+    <div class="scratch teaser"><div class="foil"><small>🎽 Your team</small><b>Unlock to Scratch</b>${h}</div></div></div>`;
 }
 
 function tripLocked() {
   tripCard(`<div class="icard center tmsg"><div class="ic">🔒</div><h3>Opens Thu 12 Nov, 2pm</h3>
     <p class="muted">Fill in your flights, extension plans & emergency contact, then scratch to reveal your roommate & team!</p>
-    <div class="count" id="tripCd"></div></div>${foilTeaser("🔒")}`);
+    <div class="count" id="tripCd"></div></div>${foilTeaser("")}`);
   const tick = () => {
     const ms = TRIP.opensAt - now();
     if (ms <= 0) return openTrip();
@@ -1550,7 +1552,7 @@ function tripSignIn(msg) {
     <p class="muted">${msg || "Use the Google account you gave for the retreat (the same one as the photo album)."}</p>
     <div class="gbtn" id="tgbtn"><p class="muted">Loading Google sign-in…</p></div>
     <label class="keep"><input type="checkbox" id="tkeep" ${keepPref() ? "checked" : ""}> Keep me signed in</label>
-    <p class="muted small">Ticked: stay signed in for 30 days on this device. Unticked: signed out after 30 minutes.</p></div>${foilTeaser("?")}`);
+    <p class="muted small">Ticked: stay signed in for 30 days on this device. Unticked: signed out after 30 minutes.</p></div>${foilTeaser("Login and fill in your trip details to unlock")}`);
   document.getElementById("tkeep").onchange = e => { try { localStorage.setItem("xm27-keep", e.target.checked ? "1" : "0"); } catch (x) {} };
   loadGis().then(() => {
     const el = document.getElementById("tgbtn"); if (!el) return;
@@ -1609,7 +1611,7 @@ function renderFillIn() {
     <p class="muted">Flights, extension plans & emergency contact. Takes about 2 minutes, then your cards unlock right here.</p>
     <div class="btns"><button class="btn primary" data-tripform>✈️ Fill in my trip details ↗</button></div>
     <p class="muted small">Opens in a new tab. Come back here when you're done.</p></div>
-    ${foilTeaser("Unlocks after you submit")}
+    ${foilTeaser("Fill in your trip details to unlock")}
     <div id="tripJacket">${jacketCard()}</div>
     <p class="alb-foot">Signed in as ${esc(st.me.name)} · <button class="linkbtn" data-tripout>Not you? Switch account</button></p>`);
   TR.poll = setInterval(() => tripCheck(), 8000);
@@ -1789,10 +1791,12 @@ function renderGroups() {
     if (!r.ok) return groupsLocked();
     const me = TR.state.me.short;
     const nm = (n, lead) => `<div class="nm${lead ? " ld" : ""}${n === me ? " me" : ""}">${esc(n)}</div>`;
-    const chart = cols => `<div class="chart" data-n="${cols.length}">${cols.map(c =>
+    const chart = (cols, fixed) => `<div class="chart" data-n="${cols.length}"${fixed ? ` data-cols="${fixed}"` : ""}>${cols.map(c =>
       `<div class="col"><h5><span>${esc(c.name)}</span>${c.extra ? `<small>(${esc(c.extra)})</small>` : ""}</h5>${c.body}</div>`).join("")}</div>`;
     const teams = chart(r.teams.map(t => ({ name: t.name, body: t.lead.map(n => nm(n, true)).join("") + t.members.map(n => nm(n)).join("") })));
-    const rooms = chart(r.villas.map(v => ({ name: v.name, extra: v.extra, body: v.names.map(n => nm(n)).join("") })));
+    const vno = v => Number((v.name.match(/\d+/) || [0])[0]);
+    const vs = r.villas.filter(v => vno(v) >= 20).concat(r.villas.filter(v => vno(v) < 20));   // Villa 20s on top, then 8 & 9
+    const rooms = chart(vs.map(v => ({ name: v.name, extra: v.extra, body: v.names.map(n => nm(n)).join("") })), 3);
     GR.html = `<h4>🛏️ Rooms</h4>${rooms}<h4>🎽 Teams</h4><p class="muted small">Team Lead in bold</p>${teams}`;
     if (CUR_TAB === "info") renderGroups();
   }).catch(() => groupsLocked());
@@ -1803,20 +1807,27 @@ function goGroups() {
   if (el) setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
 }
 
-// all columns side by side; if that needs text smaller than 11px (small phones), use 2 rows instead
+// Teams: all columns side by side, or 2 rows if that needs text under 10px. Rooms: always 3 columns
+// (Villa 20 · 21 · 22, then 8 · 9 underneath). Both charts then use the same text size: the smaller of the two.
 function fitCharts() {
-  document.querySelectorAll(".chart").forEach(el => {
-    if (!el.offsetWidth) return;   // tab hidden: fit when shown
-    const n = Number(el.dataset.n), items = el.querySelectorAll(".nm, h5 span");
-    const over = () => Array.prototype.some.call(items, x => x.scrollWidth > x.clientWidth + 0.5);
-    const fit = (cols, min) => {
-      el.style.gridTemplateColumns = `repeat(${cols},minmax(0,1fr))`;
-      el.classList.toggle("two", cols < n);
-      let fs = 15; el.style.fontSize = fs + "px";
-      while (fs > min && over()) { fs -= 0.5; el.style.fontSize = fs + "px"; }
-      return !over();
-    };
-    if (!fit(n, 10) && n > 3) fit(Math.ceil(n / 2), 8);
+  const charts = Array.prototype.filter.call(document.querySelectorAll(".chart"), el => el.offsetWidth);   // hidden tab: fit when shown
+  if (!charts.length) return;
+  const over = el => Array.prototype.some.call(el.querySelectorAll(".nm, h5 span"), x => x.scrollWidth > x.clientWidth + 0.5);
+  const fit = (el, cols, min) => {
+    el.style.gridTemplateColumns = `repeat(${cols},minmax(0,1fr))`;
+    el.classList.toggle("two", cols < Number(el.dataset.n));
+    let fs = 15; el.style.fontSize = fs + "px";
+    while (fs > min && over(el)) { fs -= 0.5; el.style.fontSize = fs + "px"; }
+    return over(el) ? 0 : fs;
+  };
+  const sizes = charts.map(el => {
+    const n = Number(el.dataset.n), fixed = Number(el.dataset.cols);
+    if (fixed) return fit(el, fixed, 8) || 8;
+    return fit(el, n, 10) || (n > 3 ? fit(el, Math.ceil(n / 2), 8) || 8 : 8);
+  });
+  const fs = Math.min.apply(null, sizes);
+  charts.forEach(el => {
+    el.style.fontSize = fs + "px";
     // same title height across each row, so the first names line up
     const hs = el.querySelectorAll("h5"); hs.forEach(h => { h.style.minHeight = ""; });
     const cols = getComputedStyle(el).gridTemplateColumns.split(" ").length;
