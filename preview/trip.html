@@ -54,7 +54,7 @@ p{margin:6px 0}
 .f{margin:0 0 14px}
 .f > label,.f > .lbl{display:block;font-weight:600;font-size:15px;margin:0 0 6px}
 .f small{display:block;color:var(--muted);font-size:13px;font-weight:400;margin-top:-2px;margin-bottom:6px}
-.f input[type=text],.f input[type=tel],.f input[type=date],.f input[type=datetime-local],.f select{
+.f input[type=text],.f input[type=tel],.f input[type=date],.f input[type=datetime-local],.f input[type=time],.f select{
   width:100%;border:1px solid var(--line);background:#fff;border-radius:12px;padding:11px 12px;font-size:16px;color:var(--ink);
   -webkit-appearance:none;appearance:none;min-height:46px}
 .f select{background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
@@ -223,8 +223,8 @@ function loadState(pass) {
 }
 
 function blankForm() {
-  return { preExt: null, preFrom: "", preHotel: null, preIn: "", preShare: "", arrFlight: "", arrOther: "", arrEta: "",
-    postExt: null, postTo: "", postHotel: null, postOut: "", postShare: "", depFlight: "", depOther: "", depEtd: "",
+  return { preExt: null, preFrom: "", arrDate: "", arrTime: "", preHotel: null, preIn: "", preShare: "", arrFlight: "", arrOther: "", arrEta: "",
+    postExt: null, postTo: "", postHotel: null, postOut: "", postShare: "", depTime: "", depFlight: "", depOther: "",
     ecName: "", ecRel: "", ecMobile: "" };
 }
 
@@ -262,10 +262,13 @@ function renderForm(bad) {
       <div id="preYes" ${F.preExt === true ? "" : "hidden"}>
         <div class="f${B("preFrom")}" data-f="preFrom"><label for="preFrom">Pre-trip starts on</label>
           <input type="date" id="preFrom" value="${esc(F.preFrom)}" min="2026-12-01" max="2027-01-10">${err("Please pick a date before 11 Jan.")}</div>
-        <div class="f${B("arrEta")}" data-f="arrEta"><label for="arrEta">Estimated arrival at Lujiang Mega Hotel</label>
-          <small>No flight needed, just when you expect to reach the hotel.</small>
-          <input type="datetime-local" id="arrEta" value="${esc(F.arrEta)}" min="2026-12-01T00:00" max="2027-01-11T23:59">${err("Please enter your estimated date & time.")}</div>
-        <div class="f" data-f="preHotel"><div class="lbl">Need extra nights at Lujiang Mega Hotel before 11 Jan?</div>${seg("preHotel", F.preHotel)}</div>
+        <div class="f${B("arrDate")}" data-f="arrDate"><label for="arrDate">Arrival date in Xiamen</label>
+          <small>No flight details needed.</small>
+          <input type="date" id="arrDate" value="${esc(F.arrDate)}" min="2026-12-01" max="2027-01-11">${err("Please pick a date on or before 11 Jan (and not before your pre-trip starts).")}</div>
+        <div class="f${B("arrTime")}" data-f="arrTime" id="arrTimeBox" ${F.arrDate === "2027-01-11" ? "" : "hidden"}>
+          <label for="arrTime">Estimated arrival time at Lujiang Mega Hotel · 11 Jan</label>
+          <input type="time" id="arrTime" value="${esc(F.arrTime)}">${err("Please enter your estimated time.")}</div>
+        <div class="f${B("preHotel")}" data-f="preHotel"><div class="lbl">Need extra nights at Lujiang Mega Hotel before 11 Jan?</div>${seg("preHotel", F.preHotel)}${err("Please choose Yes or No.")}</div>
         <div id="preHotelBox" ${F.preHotel === true ? "" : "hidden"} class="sub">
           <div class="cost">${COST_NOTE}</div>
           <div class="f${B("preIn")}" data-f="preIn"><label for="preIn">Check-in date</label><small>You'll stay through to the retreat on 11 Jan.</small>
@@ -283,10 +286,11 @@ function renderForm(bad) {
       <div id="postYes" ${F.postExt === true ? "" : "hidden"}>
         <div class="f${B("postTo")}" data-f="postTo"><label for="postTo">Post-trip ends on</label>
           <input type="date" id="postTo" value="${esc(F.postTo)}" min="2027-01-15" max="2027-03-31">${err("Please pick a date after 14 Jan.")}</div>
-        <div class="f${B("depEtd")}" data-f="depEtd"><label for="depEtd">Estimated time leaving Lujiang Mega Hotel</label>
-          <small>No flight needed, just when you expect to check out.</small>
-          <input type="datetime-local" id="depEtd" value="${esc(F.depEtd)}" min="2027-01-14T00:00" max="2027-03-31T23:59">${err("Please enter your estimated date & time.")}</div>
-        <div class="f" data-f="postHotel"><div class="lbl">Need extra nights at Lujiang Mega Hotel after 14 Jan?</div>${seg("postHotel", F.postHotel)}</div>
+        <div class="f${B("postHotel")}" data-f="postHotel"><div class="lbl">Extending your stay at Lujiang Mega Hotel (group discount)?</div>${seg("postHotel", F.postHotel)}${err("Please choose Yes or No.")}</div>
+        <div class="f${B("depTime")}" data-f="depTime" ${F.postHotel === false ? "" : "hidden"}>
+          <label for="depTime">Estimated time leaving Lujiang Mega Hotel · Thu 14 Jan</label>
+          <small>Check-out is by 12:00. No flight details needed.</small>
+          <input type="time" id="depTime" value="${esc(F.depTime)}">${err("Please enter your estimated time.")}</div>
         <div id="postHotelBox" ${F.postHotel === true ? "" : "hidden"} class="sub">
           <div class="cost">${COST_NOTE}</div>
           <div class="f${B("postOut")}" data-f="postOut"><label for="postOut">Check-out date</label><small>Extra nights start from 14 Jan.</small>
@@ -314,6 +318,10 @@ function renderForm(bad) {
     if (again) again.scrollIntoView({ block: "center" });
   }));
   ["arrFlight", "depFlight"].forEach(k => { const el = $(k); if (el) el.onchange = () => { $(k + "OtherBox").hidden = el.value !== "other"; }; });
+  if ($("arrDate")) $("arrDate").addEventListener("change", e => {
+    $("arrTimeBox").hidden = e.target.value !== "2027-01-11";
+    if ($("preIn") && !$("preIn").value && e.target.value && e.target.value < "2027-01-11") $("preIn").value = e.target.value;   // hotel check-in defaults to arrival date
+  });
   $("rvBtn").onclick = review;
   $("so").onclick = signOut;
   if (bad && bad.length) { const first = document.querySelector(".f.bad"); if (first) first.scrollIntoView({ block: "center" }); }
@@ -321,7 +329,7 @@ function renderForm(bad) {
 
 function readForm() {
   const F = S.form, v = id => ($(id) ? $(id).value.trim() : F[id]);
-  ["preFrom", "preIn", "preShare", "arrFlight", "arrOther", "arrEta", "postTo", "postOut", "postShare", "depFlight", "depOther", "depEtd", "ecName", "ecRel", "ecMobile"]
+  ["preFrom", "arrDate", "arrTime", "preIn", "preShare", "arrFlight", "arrOther", "arrEta", "postTo", "postOut", "postShare", "depTime", "depFlight", "depOther", "ecName", "ecRel", "ecMobile"]
     .forEach(k => { if ($(k)) F[k] = v(k); });
 }
 
@@ -331,7 +339,9 @@ function validate() {
   else if (F.preExt === null) bad.push("preExt");
   else if (F.preExt) {
     if (!F.preFrom || F.preFrom > "2027-01-10") bad.push("preFrom");
-    if (!F.arrEta) bad.push("arrEta");
+    if (!F.arrDate || F.arrDate > "2027-01-11" || (F.preFrom && F.arrDate < F.preFrom)) bad.push("arrDate");
+    if (F.arrDate === "2027-01-11" && !F.arrTime) bad.push("arrTime");
+    if (F.preHotel === null) bad.push("preHotel");
     if (F.preHotel && (!F.preIn || F.preIn > "2027-01-10")) bad.push("preIn");
   } else {
     if (!F.arrFlight) bad.push("arrFlight");
@@ -340,8 +350,9 @@ function validate() {
   if (F.postExt === null) bad.push("postExt");
   else if (F.postExt) {
     if (!F.postTo || F.postTo < "2027-01-15") bad.push("postTo");
-    if (!F.depEtd) bad.push("depEtd");
-    if (F.postHotel && (!F.postOut || F.postOut < "2027-01-15")) bad.push("postOut");
+    if (F.postHotel === null) bad.push("postHotel");
+    if (F.postHotel === true && (!F.postOut || F.postOut < "2027-01-15")) bad.push("postOut");
+    if (F.postHotel === false && !F.depTime) bad.push("depTime");
   } else {
     if (!F.depFlight) bad.push("depFlight");
     if (F.depFlight === "other" && !F.depOther) bad.push("depOther");
@@ -372,15 +383,16 @@ function review() {
   let a = "";
   if (late) a = li("Arriving at the hotel", fmtDT(F.arrEta));
   else if (F.preExt) {
-    a = li("Pre-trip extension", "From " + fmtD(F.preFrom)) + li("Arriving at the hotel", fmtDT(F.arrEta)) +
+    a = li("Pre-trip extension", "From " + fmtD(F.preFrom)) + li("Arriving in Xiamen", fmtD(F.arrDate)) +
+      (F.arrDate === "2027-01-11" ? li("Arriving at the hotel", F.arrTime) : "") +
       li("Extra hotel nights", F.preHotel ? `Check in ${fmtD(F.preIn)} (${plural(nights(F.preIn, "2027-01-11"))})` : "No") +
       (F.preHotel ? li("Sharing with", F.preShare || "—") : "");
   } else a = li("Pre-trip extension", "No") + li("Flight to Xiamen", flightText(st.flights.arrive, F.arrFlight, F.arrOther));
   let d = "";
   if (F.postExt) {
-    d = li("Post-trip extension", "Until " + fmtD(F.postTo)) + li("Leaving the hotel", fmtDT(F.depEtd)) +
-      li("Extra hotel nights", F.postHotel ? `Check out ${fmtD(F.postOut)} (${plural(nights("2027-01-14", F.postOut))})` : "No") +
-      (F.postHotel ? li("Sharing with", F.postShare || "—") : "");
+    d = li("Post-trip extension", "Until " + fmtD(F.postTo)) +
+      li("Hotel extension", F.postHotel ? `Check out ${fmtD(F.postOut)} (${plural(nights("2027-01-14", F.postOut))})` : "No") +
+      (F.postHotel ? li("Sharing with", F.postShare || "—") : li("Leaving the hotel", "Thu 14 Jan, " + F.depTime));
   } else d = li("Post-trip extension", "No") + li("Flight home", flightText(st.flights.depart, F.depFlight, F.depOther));
   const c = li("Name", F.ecName) + li("Relationship", F.ecRel) + li("Mobile", F.ecMobile);
   app(`<h2 style="margin-top:0">Check your details</h2>
