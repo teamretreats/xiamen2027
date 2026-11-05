@@ -262,6 +262,47 @@ button{font:inherit;cursor:pointer}
 .vbtn.busy{animation:pulse 1.2s infinite}
 .vbtn .lbl{font-size:13px}
 
+/* My Trip */
+.tmsg .ic{font-size:30px}
+.tmsg h3{font-family:var(--serif);font-size:20px;color:var(--sea);margin:4px 0 6px;letter-spacing:0;text-transform:none}
+.tmsg .state{justify-content:center}
+.tmsg .btns,.center-btns{justify-content:center;margin-top:12px}
+.muted.small,.tmsg .small{font-size:12px}
+.keep{display:flex;gap:8px;align-items:center;justify-content:center;font-size:14px;margin-top:12px}
+.keep input{width:18px;height:18px;accent-color:var(--sea)}
+.tmsg .gbtn{display:flex;justify-content:center;margin-top:12px;min-height:44px}
+.tmsg .who{font-size:13px;color:var(--muted);word-break:break-all;margin-top:10px}
+.tlead{text-align:center;font-weight:600;color:var(--sea);margin:18px 0 0}
+.tcards{display:grid;gap:14px;margin:16px 0 0}
+.scratch{position:relative;min-height:190px;border-radius:var(--radius);overflow:hidden;background:var(--card);border:1px solid var(--line);
+  box-shadow:0 8px 22px rgba(20,50,74,.10)}
+.scratch canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;transition:opacity .6s ease}
+.scratch canvas.gone{opacity:0}
+.scratch .face{padding:18px 16px;text-align:center}
+.scratch small{display:block;color:var(--sun);font-weight:600;font-size:12px;letter-spacing:.1em;text-transform:uppercase}
+.scratch .big{display:block;font-family:var(--serif);font-size:28px;line-height:1.2;color:var(--sea);margin:6px 0 2px}
+.scratch .lead{margin:2px 0;color:var(--muted);font-size:14px}
+.scratch .chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:10px}
+.scratch .chips span{background:#f3ede2;border-radius:999px;padding:4px 10px;font-size:14px}
+.scratch .chips span.you{background:var(--sea);color:#fff}
+.scratch.teaser .foil{position:absolute;inset:0;display:grid;place-content:center;text-align:center;color:#fff;
+  background:linear-gradient(135deg,#c9677a,#f08a4b 50%,#f6b65c)}
+.scratch.teaser .foil small{color:#fff;opacity:.9}
+.scratch.teaser .foil b{font-size:18px;margin-top:6px}
+.scratch.teaser{min-height:120px}
+.reveal{display:block;margin:-6px auto 0}
+.tlist{border-bottom:1px solid var(--line);padding:10px 0}
+.tlist:last-child{border-bottom:0}
+.tlist h4{margin:0;font-size:16px;color:var(--sea-2)}
+.tlist p{margin:2px 0;font-size:15px}
+.rlist{margin:0;padding-left:26px}
+.rlist li{padding:6px 0;border-bottom:1px solid var(--line);font-size:15px}
+.rlist li:last-child{border-bottom:0}
+.rlist small{color:var(--muted)}
+.confetti{position:fixed;z-index:80;pointer-events:none;width:0;height:0}
+.confetti i{position:absolute;width:8px;height:12px;border-radius:2px;animation:conf 1.3s cubic-bezier(.2,.7,.4,1) forwards}
+@keyframes conf{40%{transform:translate(calc(var(--dx) * .6),var(--dy)) rotate(calc(var(--r) * .5))}
+  100%{transform:translate(var(--dx),calc(var(--dy) + 260px)) rotate(var(--r));opacity:0}}
 /* Bottom nav */
 nav{position:fixed;left:0;right:0;bottom:0;background:rgba(255,253,249,.96);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
   border-top:1px solid var(--line);padding:6px 8px calc(6px + env(safe-area-inset-bottom));z-index:10}
@@ -479,6 +520,12 @@ nav button.on .i{transform:translateY(-1px)}
     </div>
   </section>
 
+  <!-- MY TRIP (trip details form + team/room scratch cards) -->
+  <section id="tab-trip" hidden>
+    <div class="alb-top"><h2>My Trip</h2><span id="tripHi"></span></div>
+    <div id="tripBody"></div>
+  </section>
+
   <!-- ALBUM -->
   <section id="tab-album" hidden>
     <div class="alb-top"><h2>Shared Album</h2><span id="albCount"></span></div>
@@ -506,6 +553,7 @@ nav button.on .i{transform:translateY(-1px)}
     <button class="on" data-tab="next"><span class="i">🧭</span>Next up</button>
     <button data-tab="agenda"><span class="i">📅</span>Agenda</button>
     <button data-tab="info"><span class="i">ℹ️</span>Info</button>
+    <button data-tab="trip"><span class="i">🎫</span>My Trip</button>
     <button data-tab="album"><span class="i">📸</span>Album</button>
   </div>
 </nav>
@@ -761,11 +809,14 @@ function renderCarousel() {
   }).join("");
 }
 
+let CUR_TAB = "next";
 function showTab(name) {
+  CUR_TAB = name;
   document.querySelectorAll("nav [data-tab]").forEach(b => b.classList.toggle("on", b.dataset.tab === name));
-  ["next", "agenda", "info", "album"].forEach(k => document.getElementById("tab-" + k).hidden = k !== name);
+  ["next", "agenda", "info", "trip", "album"].forEach(k => document.getElementById("tab-" + k).hidden = k !== name);
   if (name === "agenda") renderAgenda();
   if (name === "album") openAlbum();
+  if (name === "trip") openTrip(); else stopTripTimers();
   window.scrollTo({ top: 0 });
 }
 
@@ -1037,7 +1088,7 @@ function loadGis() {
       clearTimeout(t);
       google.accounts.id.initialize({
         client_id: ALBUM.clientId, auto_select: true, itp_support: true, ux_mode: "popup",
-        callback: r => { saveToken(r.credential); checkAccess(r.credential); }
+        callback: r => onGoogleCredential(r.credential)
       });
       ok();
     };
@@ -1386,10 +1437,297 @@ window.addEventListener("beforeunload", e => { if (UP.running) { e.preventDefaul
 }));
 
 function switchAccount() {
-  saveToken(null); AL.items = null;
+  saveToken(null); AL.items = null; setTripPass(null);
   if (window.google && google.accounts) google.accounts.id.disableAutoSelect();
   showSignIn("Pick the Google account you gave for the retreat.");
 }
+
+/* ---------- My Trip: trip details form (opens trip.html in a new tab) + team/room scratch cards ---------- */
+// One Google sign-in serves both tabs: the album keeps Google's 1-hour token (xm27-idt);
+// My Trip swaps it for its own pass (xm27-pass), 30 days or 30 minutes ("Keep me signed in").
+const TRIP = {
+  exec: "",                                                         // trip script /exec URL (set after deploy)
+  opensAt: new Date("2026-11-12T14:00:00+08:00").getTime(),         // the live page stays locked until then
+  preview: ALBUM.preview,
+  form: "trip.html"
+};
+const TR = { state: null, poll: null, cd: null, checking: false };
+
+function tripPass() {
+  try { const j = JSON.parse(localStorage.getItem("xm27-pass") || "null"); if (j && j.exp - Date.now() > 60000) return j.pass; } catch (e) {}
+  return null;
+}
+function setTripPass(p, exp) {
+  try { p ? localStorage.setItem("xm27-pass", JSON.stringify({ pass: p, exp: exp })) : localStorage.removeItem("xm27-pass"); } catch (e) {}
+  if (!p) TR.state = null;
+}
+function keepPref() { try { return localStorage.getItem("xm27-keep") !== "0"; } catch (e) { return true; } }
+function tripApi(body, ms = 25000) {
+  const ctl = new AbortController();
+  const tm = setTimeout(() => ctl.abort(), ms);
+  return fetch(TRIP.exec, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(body), signal: ctl.signal })
+    .then(r => r.json()).finally(() => clearTimeout(tm));
+}
+const tripCard = html => { document.getElementById("tripBody").innerHTML = html; };
+const tripMsg = (ic, h, p, extra) => tripCard(`<div class="icard center tmsg"><div class="ic">${ic}</div><h3>${h}</h3>${p ? `<p class="muted">${p}</p>` : ""}${extra || ""}</div>`);
+function stopTripTimers() { clearInterval(TR.poll); clearInterval(TR.cd); TR.poll = TR.cd = null; }
+
+// Google sign-in from either tab
+function onGoogleCredential(cred) {
+  saveToken(cred);
+  if (CUR_TAB === "trip") return tripExchange(cred, true);
+  checkAccess(cred);
+  if (!tripPass()) tripExchange(cred, false);             // quietly unlock My Trip too
+}
+function tripExchange(cred, show) {
+  if (!TRIP.exec) return;
+  if (show) tripMsg("⏳", "Signing you in…");
+  tripApi({ action: "signin", idToken: cred, keep: keepPref() }).then(r => {
+    if (r.ok) { setTripPass(r.pass, r.exp); if (show) tripLoad(r.pass); return; }
+    if (!show) return;
+    if (r.error === "not_listed") return tripWrong(r.email);
+    tripSignIn("Sign-in didn't work. Please try again.");
+  }).catch(() => { if (show) tripNet(() => tripExchange(cred, true)); });
+}
+
+function openTrip() {
+  stopTripTimers();
+  document.getElementById("tripHi").textContent = "";
+  if (!TRIP.preview && now() < TRIP.opensAt) return tripLocked();
+  if (!TRIP.exec) return tripMsg("🛠️", "Almost ready", "Check back soon.");
+  if (TR.state && TR.state.cards) return renderTripCards();
+  const p = tripPass();
+  if (p) tripLoad(p); else tripSignIn();
+}
+
+function foilTeaser(label) {
+  return `<div class="tcards">
+    <div class="scratch teaser"><div class="foil"><small>🎽 Your team</small><b>${label}</b></div></div>
+    <div class="scratch teaser"><div class="foil"><small>🛏️ Your roommate</small><b>${label}</b></div></div></div>`;
+}
+
+function tripLocked() {
+  tripCard(`<div class="icard center tmsg"><div class="ic">🔒</div><h3>Opens Thu 12 Nov, 2pm</h3>
+    <p class="muted">Fill in your flights, extension plans & emergency contact, then scratch to reveal your team & roommate!</p>
+    <div class="count" id="tripCd"></div></div>${foilTeaser("🔒")}`);
+  const tick = () => {
+    const ms = TRIP.opensAt - now();
+    if (ms <= 0) return openTrip();
+    const d = Math.floor(ms / 864e5), h = Math.floor(ms / 36e5) % 24, m = Math.floor(ms / 6e4) % 60, s = Math.floor(ms / 1e3) % 60;
+    const el = document.getElementById("tripCd");
+    if (el) el.innerHTML = [[d, "days"], [h, "hrs"], [m, "min"], [s, "sec"]].map(([n, l]) => `<div><b>${n}</b><small>${l}</small></div>`).join("");
+  };
+  tick(); TR.cd = setInterval(tick, 1000);
+}
+
+function tripSignIn(msg) {
+  tripCard(`<div class="icard center tmsg"><div class="ic">🎫</div><h3>Sign in to get started</h3>
+    <p class="muted">${msg || "Use the Google account you gave for the retreat (the same one as the photo album)."}</p>
+    <div class="gbtn" id="tgbtn"><p class="muted">Loading Google sign-in…</p></div>
+    <label class="keep"><input type="checkbox" id="tkeep" ${keepPref() ? "checked" : ""}> Keep me signed in</label>
+    <p class="muted small">Ticked: stay signed in for 30 days on this device. Unticked: signed out after 30 minutes.</p></div>${foilTeaser("?")}`);
+  document.getElementById("tkeep").onchange = e => { try { localStorage.setItem("xm27-keep", e.target.checked ? "1" : "0"); } catch (x) {} };
+  loadGis().then(() => {
+    const el = document.getElementById("tgbtn"); if (!el) return;
+    el.innerHTML = "";
+    google.accounts.id.renderButton(el, { theme: "filled_blue", size: "large", shape: "pill", text: "signin_with", width: 240 });
+  }).catch(() => { const el = document.getElementById("tgbtn"); if (el) el.innerHTML = `<p class="muted">Couldn't load Google sign-in. In China, sign-in needs roaming data (not hotel Wi-Fi).</p>`; });
+}
+function tripWrong(email) {
+  tripMsg("🙈", "This is for retreat attendees", "Signed in with the wrong account? Switch to the one you gave for the retreat.",
+    `<p class="who">Signed in as ${esc(email)}</p><div class="btns"><button class="btn primary" data-tripout>Switch account</button></div>`);
+}
+function tripNet(retry) {
+  tripMsg("📡", "Couldn't connect", "Check your connection and try again.", `<div class="btns"><button class="btn primary" id="tripRetry">Try again</button></div>`);
+  document.getElementById("tripRetry").onclick = retry;
+}
+function tripSignOut() {
+  setTripPass(null); saveToken(null); AL.items = null;
+  if (window.google && google.accounts) google.accounts.id.disableAutoSelect();
+  tripSignIn("Pick the Google account you gave for the retreat.");
+}
+
+function tripLoad(pass) {
+  tripMsg("⏳", "Loading…");
+  tripApi({ action: "state", pass }).then(r => {
+    if (!r.ok) {
+      if (r.error === "signed_out") { setTripPass(null); return tripSignIn("Your sign-in expired. Please sign in again."); }
+      if (r.error === "not_listed") return tripWrong(r.email);
+      throw new Error(r.error);
+    }
+    TR.state = r;
+    document.getElementById("tripHi").textContent = "Hi " + r.me.short + "!";
+    r.cards ? renderTripCards() : renderFillIn();
+  }).catch(() => tripNet(() => tripLoad(pass)));
+}
+
+function openTripForm() { window.open(TRIP.form, "_blank"); }
+
+function renderFillIn() {
+  const st = TR.state;
+  if (st.window.status === "before" && !st.me.core) return tripLocked();
+  tripCard(`<div class="icard center tmsg"><p class="state"><span class="dot"></span>Step 1 of 2</p>
+    <h3>Fill in your trip details</h3>
+    <p class="muted">Flights, extension plans & emergency contact. Takes about 2 minutes, then your cards unlock right here.</p>
+    <div class="btns"><button class="btn primary" data-tripform>✈️ Fill in my trip details ↗</button></div>
+    <p class="muted small">Opens in a new tab. Come back here when you're done.</p></div>
+    ${foilTeaser("Unlocks after you submit")}
+    <p class="alb-foot">Signed in as ${esc(st.me.name)} · <button class="linkbtn" data-tripout>Not you? Switch account</button></p>`);
+  TR.poll = setInterval(() => tripCheck(), 8000);
+}
+
+// Did they submit in the other tab? (also runs when they come back to this tab)
+function tripCheck() {
+  if (CUR_TAB !== "trip" || document.hidden || TR.checking || !TR.state || TR.state.cards) return;
+  const p = tripPass(); if (!p) return;
+  TR.checking = true;
+  tripApi({ action: "state", pass: p }).then(r => {
+    if (r.ok && r.cards) { TR.state = r; stopTripTimers(); renderTripCards(true); }
+  }).catch(() => {}).finally(() => { TR.checking = false; });
+}
+window.addEventListener("storage", e => { if (e.key === "xm27-trip-done") tripCheck(); });
+document.addEventListener("visibilitychange", () => { if (!document.hidden) tripCheck(); });
+window.addEventListener("focus", () => tripCheck());
+
+/* scratch cards */
+function hashStr(s) { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return (h >>> 0).toString(36); }
+function scrKey(kind, data) { return "xm27-scr-" + TR.state.me.short + "-" + kind + "-" + hashStr(JSON.stringify(data)); }
+function isScratched(k) { try { return localStorage.getItem(k) === "1"; } catch (e) { return false; } }
+function setScratched(k) { try { localStorage.setItem(k, "1"); } catch (e) {} }
+const joinNames = a => a.length <= 1 ? (a[0] || "") : a.slice(0, -1).join(", ") + " & " + a[a.length - 1];
+
+function teamFace(t, me) {
+  const isLead = t.lead.indexOf(me) >= 0;
+  const chips = t.members.map(n => `<span class="${n === me ? "you" : ""}">${esc(n === me ? n + " (you)" : n)}</span>`).join("");
+  return `<small>🎽 Your team</small><b class="big">${esc(t.name)}</b>
+    <p class="lead">Lead: ${esc(joinNames(t.lead))}${isLead ? " (you)" : ""}</p><div class="chips">${chips}</div>`;
+}
+function roomFace(r) {
+  if (!r.mates.length) return `<small>🛏️ Your room</small><b class="big">All yours! 😎</b><p class="lead">A room to yourself</p>`;
+  const notes = r.mates.filter(m => m.note).map(m => `<p class="lead">${esc(m.name)} · ${esc(m.note)}</p>`).join("");
+  return `<small>🛏️ Your roommate${r.mates.length > 1 ? "s" : ""}</small><b class="big">${esc(joinNames(r.mates.map(m => m.name)))}</b>
+    ${r.self ? `<p class="lead">You · ${esc(r.self)}</p>` : ""}${notes}`;
+}
+
+function renderTripCards(justNow) {
+  const st = TR.state, c = st.cards, me = st.me.short;
+  const items = [];
+  if (c.team) items.push({ kind: "team", face: teamFace(c.team, me), label: "🎽 Your team", data: c.team });
+  if (c.room) items.push({ kind: "room", face: roomFace(c.room), label: c.room.mates.length > 1 ? "🛏️ Your roommates" : "🛏️ Your roommate", data: c.room });
+  const head = justNow ? `<div class="icard center tmsg"><div class="ic">🎉</div><h3>Got your details, thanks!</h3><p class="muted">Now scratch to reveal…</p></div>`
+    : `<p class="tlead">${items.length ? "Scratch to reveal 👇" : ""}</p>`;
+  const cards = items.length ? `<div class="tcards">${items.map((it, i) => {
+    const k = scrKey(it.kind, it.data), done = isScratched(k);
+    return `<div class="scratch${done ? " done" : ""}" data-sk="${k}" data-label="${esc(it.label)}"><div class="face">${it.face}</div>${done ? "" : `<canvas></canvas>`}</div>
+      ${done ? "" : `<button class="linkbtn reveal" data-reveal="${i}">Reveal without scratching</button>`}`;
+  }).join("")}</div>` : `<div class="icard center tmsg"><div class="ic">💬</div><h3>Your team & room are on the way</h3><p class="muted">They'll be shared in the Retreat Chat.</p></div>`;
+  const editable = st.window.status !== "closed";
+  tripCard(`${head}${cards}<div id="tripAfter"></div>
+    <div class="btns center-btns">${editable ? `<button class="btn" data-tripform>✏️ Edit my trip details ↗</button>` : ""}</div>
+    <p class="alb-foot">Signed in as ${esc(st.me.name)} · <button class="linkbtn" data-tripout>Sign out</button></p>`);
+  document.querySelectorAll("#tripBody .scratch:not(.done)").forEach(box => initScratch(box));
+  updateTripAfter();
+}
+function updateTripAfter() {
+  const left = document.querySelectorAll("#tripBody .scratch:not(.done)").length;
+  const el = document.getElementById("tripAfter"); if (!el) return;
+  el.innerHTML = left ? "" : `<div class="btns center-btns"><button class="btn primary" data-tripall>👀 See all teams & rooms</button></div>`;
+}
+function revealCard(box) {
+  if (box.classList.contains("done")) return;
+  box.classList.add("done");
+  setScratched(box.dataset.sk);
+  const cv = box.querySelector("canvas");
+  if (cv) { cv.classList.add("gone"); setTimeout(() => cv.remove(), 600); }
+  const rb = box.nextElementSibling; if (rb && rb.matches(".reveal")) rb.remove();
+  confetti(box);
+  updateTripAfter();
+}
+
+function initScratch(box) {
+  const cv = box.querySelector("canvas"); if (!cv) return;
+  const w = box.clientWidth, h = box.clientHeight, dpr = Math.min(window.devicePixelRatio || 1, 2);
+  cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+  const ctx = cv.getContext("2d");
+  ctx.scale(dpr, dpr);
+  const g = ctx.createLinearGradient(0, 0, w, h);
+  g.addColorStop(0, "#c9677a"); g.addColorStop(.5, "#f08a4b"); g.addColorStop(1, "#f6b65c");
+  ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = "rgba(255,255,255,.22)";
+  for (let i = 0; i < 90; i++) { ctx.beginPath(); ctx.arc(Math.random() * w, Math.random() * h, Math.random() * 1.8 + .4, 0, 7); ctx.fill(); }
+  ctx.fillStyle = "#fff"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.font = "600 12px -apple-system,BlinkMacSystemFont,sans-serif";
+  ctx.fillText(box.dataset.label.toUpperCase(), w / 2, h / 2 - 18);
+  ctx.font = "600 22px -apple-system,BlinkMacSystemFont,sans-serif";
+  ctx.fillText("Scratch me! 👆", w / 2, h / 2 + 12);
+  ctx.globalCompositeOperation = "destination-out";
+  ctx.lineCap = ctx.lineJoin = "round"; ctx.lineWidth = 42;
+  let last = null, moves = 0;
+  const pos = e => { const b = cv.getBoundingClientRect(); return [e.clientX - b.left, e.clientY - b.top]; };
+  const check = () => {
+    if (box.classList.contains("done")) return;
+    const d = ctx.getImageData(0, 0, cv.width, cv.height).data;
+    let clear = 0, n = 0;
+    for (let i = 3; i < d.length; i += 4 * 16) { n++; if (d[i] < 128) clear++; }
+    if (clear / n > 0.5) revealCard(box);
+  };
+  cv.addEventListener("pointerdown", e => {
+    cv.setPointerCapture(e.pointerId); last = pos(e);
+    ctx.beginPath(); ctx.arc(last[0], last[1], 21, 0, 7); ctx.fill();
+  });
+  cv.addEventListener("pointermove", e => {
+    if (!last) return;
+    const p = pos(e);
+    ctx.beginPath(); ctx.moveTo(last[0], last[1]); ctx.lineTo(p[0], p[1]); ctx.stroke();
+    last = p;
+    if (++moves % 10 === 0) check();
+  });
+  const up = () => { last = null; check(); };
+  cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
+}
+
+function confetti(el) {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const b = el.getBoundingClientRect(), layer = document.createElement("div");
+  layer.className = "confetti";
+  layer.style.left = (b.left + b.width / 2) + "px"; layer.style.top = (b.top + b.height / 2) + "px";
+  const cols = ["#f08a4b", "#f6b65c", "#e2667a", "#2f8f6b", "#1f4a68"];
+  for (let i = 0; i < 40; i++) {
+    const s = document.createElement("i");
+    s.style.background = cols[i % cols.length];
+    s.style.setProperty("--dx", ((Math.random() * 2 - 1) * 170).toFixed(0) + "px");
+    s.style.setProperty("--dy", (-(Math.random() * 170 + 50)).toFixed(0) + "px");
+    s.style.setProperty("--r", (Math.random() * 900 - 450).toFixed(0) + "deg");
+    layer.appendChild(s);
+  }
+  document.body.appendChild(layer);
+  setTimeout(() => layer.remove(), 1500);
+}
+
+/* everyone's teams & rooms (attendees only, fetched after sign-in) */
+function renderTripAll() {
+  tripMsg("⏳", "Loading teams & rooms…");
+  tripApi({ action: "all", pass: tripPass() }).then(r => {
+    if (!r.ok) { if (r.error === "signed_out") { setTripPass(null); return tripSignIn("Your sign-in expired. Please sign in again."); } throw new Error(r.error); }
+    const me = TR.state.me.short, mark = n => n === me ? `<b>${esc(n)}</b>` : esc(n);
+    const teams = r.teams.map(t => `<div class="tlist"><h4>${esc(t.name)}</h4>
+      <p class="muted">Lead: ${t.lead.map(mark).join(", ")}</p><p>${t.members.map(mark).join(" · ")}</p></div>`).join("");
+    const rooms = r.rooms.map(ppl => `<li>${ppl.map(p => mark(p.name) + (p.note ? ` <small>(${esc(p.note)})</small>` : "")).join(" & ")}</li>`).join("");
+    tripCard(`<div class="btns"><button class="btn" data-tripback>← My cards</button></div>
+      <div class="icard"><h3>🎽 Teams</h3>${teams}</div>
+      <div class="icard"><h3>🛏️ Rooms</h3><ol class="rlist">${rooms}</ol></div>`);
+    window.scrollTo({ top: 0 });
+  }).catch(() => tripNet(renderTripAll));
+}
+
+document.addEventListener("click", e => {
+  if (e.target.closest("[data-tripform]")) return openTripForm();
+  if (e.target.closest("[data-tripout]")) return tripSignOut();
+  if (e.target.closest("[data-tripall]")) return renderTripAll();
+  if (e.target.closest("[data-tripback]")) { renderTripCards(); window.scrollTo({ top: 0 }); return; }
+  const rv = e.target.closest("[data-reveal]");
+  if (rv) { const box = rv.previousElementSibling; if (box) revealCard(box); }
+});
 
 /* ---------- Offline (Add to Home Screen) ---------- */
 if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
@@ -1408,6 +1746,7 @@ if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catc
 renderCarousel();
 renderHero();
 setInterval(renderHero, 1000);
+if (location.hash === "#trip") showTab("trip");
 </script>
 </body>
 </html>

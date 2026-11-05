@@ -1,0 +1,426 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#14324a">
+<title>My Trip Details</title>
+<style>
+:root{
+  --sea:#14324a; --sea-2:#1f4a68; --sand:#f7f1e7; --card:#fffdf9;
+  --ink:#1b2a36; --muted:#6b7a86; --line:#e6ddcf;
+  --sun:#f08a4b; --sun-2:#f6b65c; --rose:#e2667a; --ok:#2f8f6b;
+  --radius:18px;
+  --serif:"Songti SC","Noto Serif SC",Georgia,"Times New Roman",serif;
+  --sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--sand);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased;
+  padding-bottom:calc(32px + env(safe-area-inset-bottom))}
+button,input,select{font:inherit}
+button{cursor:pointer}
+.wrap{max-width:560px;margin:0 auto;padding:0 16px}
+.top{background:linear-gradient(180deg,#14324a 0%,#2b4f73 55%,#c9677a 100%);color:#fff;padding:calc(22px + env(safe-area-inset-top)) 0 52px}
+.top p{margin:0;font-size:12px;letter-spacing:.18em;text-transform:uppercase;opacity:.85}
+.top h1{font-family:var(--serif);font-weight:600;font-size:30px;margin:6px 0 0;line-height:1.15}
+.panel{position:relative;margin-top:-34px;background:var(--card);border-radius:var(--radius);box-shadow:0 10px 30px rgba(20,50,74,.14);padding:20px 18px}
+.center{text-align:center}
+.ic{font-size:34px;line-height:1.2}
+h2{font-family:var(--serif);font-size:22px;color:var(--sea);margin:4px 0 6px}
+h3{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0 0 10px;font-weight:600}
+p{margin:6px 0}
+.muted{color:var(--muted);font-size:14px}
+.who{font-size:13px;color:var(--muted);word-break:break-all;margin-top:12px}
+.btns{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:14px}
+.btn{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:999px;padding:11px 18px;font-size:15px;font-weight:600;text-decoration:none;display:inline-block}
+.btn.primary{background:var(--sea);border-color:var(--sea);color:#fff}
+.btn.wide{width:100%;text-align:center}
+.btn:disabled{opacity:.6}
+.btn:active{transform:scale(.98)}
+.linkbtn{border:0;background:none;color:var(--sea-2);font-weight:600;padding:0;text-decoration:underline;font-size:13px}
+.gbtn{display:flex;justify-content:center;margin-top:14px;min-height:44px}
+.keep{display:flex;gap:8px;align-items:center;justify-content:center;font-size:14px;margin-top:12px;color:var(--ink)}
+.keep input{width:18px;height:18px;accent-color:var(--sea)}
+.count{display:flex;gap:8px;margin:14px 0 4px}
+.count div{flex:1;background:var(--sea);color:#fff;border-radius:12px;padding:10px 4px 8px;text-align:center}
+.count b{display:block;font-size:24px;font-variant-numeric:tabular-nums;line-height:1.1}
+.count small{font-size:11px;letter-spacing:.08em;text-transform:uppercase;opacity:.75}
+/* form */
+.sec{border-top:1px solid var(--line);padding-top:16px;margin-top:18px}
+.sec:first-of-type{border-top:0;padding-top:0;margin-top:4px}
+.sec > h3{font-size:15px;letter-spacing:0;text-transform:none;color:var(--sea);font-family:var(--serif);font-weight:600;font-size:19px}
+.f{margin:0 0 14px}
+.f > label,.f > .lbl{display:block;font-weight:600;font-size:15px;margin:0 0 6px}
+.f small{display:block;color:var(--muted);font-size:13px;font-weight:400;margin-top:-2px;margin-bottom:6px}
+.f input[type=text],.f input[type=tel],.f input[type=date],.f input[type=datetime-local],.f select{
+  width:100%;border:1px solid var(--line);background:#fff;border-radius:12px;padding:11px 12px;font-size:16px;color:var(--ink);
+  -webkit-appearance:none;appearance:none;min-height:46px}
+.f select{background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);
+  background-position:calc(100% - 18px) 50%,calc(100% - 13px) 50%;background-size:5px 5px;background-repeat:no-repeat;padding-right:32px}
+.f.bad input,.f.bad select,.f.bad .seg{border-color:var(--rose);box-shadow:0 0 0 2px rgba(226,102,122,.18)}
+.f .err{display:none;color:var(--rose);font-size:13px;margin-top:4px}
+.f.bad .err{display:block}
+.seg{display:flex;background:#ece4d6;border-radius:999px;padding:4px;border:1px solid transparent}
+.seg button{flex:1;border:0;background:transparent;border-radius:999px;padding:9px;font-size:15px;color:var(--muted);font-weight:600}
+.seg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.sub{background:#f6f1e8;border-radius:14px;padding:14px 14px 2px;margin:0 0 14px}
+.cost{background:#fff4e8;border:1px solid #f8dcc0;color:#8a4a1f;border-radius:12px;padding:10px 12px;margin:0 0 14px;font-size:14px}
+.cost a{color:#8a4a1f}
+.fixed{background:#f6f1e8;border-radius:12px;padding:10px 12px;font-size:15px}
+/* review */
+.rv{list-style:none;padding:0;margin:0}
+.rv li{display:grid;grid-template-columns:42% 1fr;gap:8px;padding:9px 0;border-bottom:1px solid var(--line);font-size:15px}
+.rv li:last-child{border-bottom:0}
+.rv li span{color:var(--muted);font-size:14px}
+.rv li b{font-weight:600;word-break:break-word}
+.rvh{font-family:var(--serif);color:var(--sea);font-size:17px;margin:16px 0 2px}
+.spin{display:inline-block;width:18px;height:18px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:sp 0.8s linear infinite;vertical-align:-3px;margin-right:6px}
+@keyframes sp{to{transform:rotate(360deg)}}
+.pv{background:#fff4e8;color:#8a4a1f;font-size:12px;text-align:center;padding:4px}
+</style>
+</head>
+<body>
+<div class="pv" id="pv" hidden>Preview — not locked, for core-team testing</div>
+<header class="top"><div class="wrap"><p>EXO Team Retreat 2027 · Xiamen</p><h1>My Trip Details</h1></div></header>
+<main class="wrap"><div class="panel" id="app"><p class="center muted">Loading…</p></div></main>
+
+<script>
+const TRIP = {
+  exec: "",                                                         // trip script /exec URL (set after deploy)
+  clientId: "294551766250-mgcvcckj5p9596uneaokeght448sb4pi.apps.googleusercontent.com",
+  opensAt: new Date("2026-11-12T14:00:00+08:00").getTime(),
+  preview: location.pathname.includes("/preview/")
+};
+const COST_NOTE = `🏨 <b>Extra nights are at your own cost.</b> We've secured a group booking discount of CNY 100–150 per room per night off the usual rate (depending on room type). <a href="https://sg.trip.com/hotels/xiamen-hotel-detail-7123043/lujiang-mega-hotel/" target="_blank" rel="noopener">View Lujiang Mega Hotel on Trip.com</a> for reference.`;
+const HANDBOOK = "./#trip";
+const S = { state: null, form: null, gis: null, busy: false };
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const app = html => { $("app").innerHTML = html; window.scrollTo({ top: 0 }); };
+if (TRIP.preview) $("pv").hidden = false;
+
+/* ---------- storage (shared with the handbook: same site) ---------- */
+function getPass() {
+  try { const j = JSON.parse(localStorage.getItem("xm27-pass") || "null"); if (j && j.exp - Date.now() > 60000) return j.pass; } catch (e) {}
+  return null;
+}
+function setPass(p, exp) {
+  try { p ? localStorage.setItem("xm27-pass", JSON.stringify({ pass: p, exp: exp })) : localStorage.removeItem("xm27-pass"); } catch (e) {}
+}
+function keepPref() { try { return localStorage.getItem("xm27-keep") !== "0"; } catch (e) { return true; } }
+function setKeep(v) { try { localStorage.setItem("xm27-keep", v ? "1" : "0"); } catch (e) {} }
+
+function api(body, ms = 25000) {
+  const ctl = new AbortController();
+  const t = setTimeout(() => ctl.abort(), ms);
+  return fetch(TRIP.exec, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(body), signal: ctl.signal })
+    .then(r => r.json()).finally(() => clearTimeout(t));
+}
+
+/* ---------- start ---------- */
+let lockTimer = null;
+function start() {
+  clearInterval(lockTimer);
+  if (!TRIP.preview && Date.now() < TRIP.opensAt) return showLocked();
+  if (!TRIP.exec) return app(`<div class="center"><div class="ic">🛠️</div><h2>Almost ready</h2><p class="muted">The form is being set up. Check back soon.</p></div>`);
+  const pass = getPass();
+  if (pass) loadState(pass); else showSignIn();
+}
+
+function showLocked() {
+  app(`<div class="center"><div class="ic">🔒</div><h2>Opens Thu 12 Nov, 2pm</h2>
+    <p class="muted">Fill in your flights, extension plans and emergency contact here, then scratch to reveal your team & roommate!</p>
+    <div class="count" id="cd"></div><p class="btns"><a class="btn" href="${HANDBOOK}">Back to the handbook</a></p></div>`);
+  const tick = () => {
+    const ms = TRIP.opensAt - Date.now();
+    if (ms <= 0) return start();
+    const d = Math.floor(ms / 864e5), h = Math.floor(ms / 36e5) % 24, m = Math.floor(ms / 6e4) % 60, s = Math.floor(ms / 1e3) % 60;
+    $("cd").innerHTML = [[d, "days"], [h, "hrs"], [m, "min"], [s, "sec"]].map(([n, l]) => `<div><b>${n}</b><small>${l}</small></div>`).join("");
+  };
+  tick(); lockTimer = setInterval(tick, 1000);
+}
+
+/* ---------- Google sign-in ---------- */
+function loadGis() {
+  if (S.gis) return S.gis;
+  S.gis = new Promise((ok, no) => {
+    const s = document.createElement("script");
+    s.src = "https://accounts.google.com/gsi/client"; s.async = true;
+    const t = setTimeout(() => no(new Error("timeout")), 10000);
+    s.onload = () => {
+      clearTimeout(t);
+      google.accounts.id.initialize({ client_id: TRIP.clientId, auto_select: true, itp_support: true, ux_mode: "popup", callback: r => onCredential(r.credential) });
+      ok();
+    };
+    s.onerror = () => { clearTimeout(t); no(new Error("blocked")); };
+    document.head.appendChild(s);
+  });
+  S.gis.catch(() => { S.gis = null; });
+  return S.gis;
+}
+
+function showSignIn(msg) {
+  app(`<div class="center"><div class="ic">✈️</div><h2>Sign in to fill in your trip details</h2>
+    <p class="muted">${msg || "Use the Google account you gave for the retreat (the same one as the photo album)."}</p>
+    <div class="gbtn" id="gbtn"><p class="muted">Loading Google sign-in…</p></div>
+    <label class="keep"><input type="checkbox" id="keep" ${keepPref() ? "checked" : ""}> Keep me signed in</label>
+    <p class="muted" style="font-size:12px">Ticked: stay signed in for 30 days on this device. Unticked: signed out after 30 minutes.</p></div>`);
+  $("keep").onchange = e => setKeep(e.target.checked);
+  loadGis().then(() => {
+    const el = $("gbtn"); if (!el) return;
+    el.innerHTML = "";
+    google.accounts.id.renderButton(el, { theme: "filled_blue", size: "large", shape: "pill", text: "signin_with", width: 240 });
+  }).catch(() => { const el = $("gbtn"); if (el) el.innerHTML = `<p class="muted">Couldn't load Google sign-in. Check your connection and refresh.</p>`; });
+}
+
+function onCredential(cred) {
+  try { localStorage.setItem("xm27-idt", cred); } catch (e) {}       // the handbook's album can use it too
+  app(`<div class="center"><div class="ic">⏳</div><h2>Signing you in…</h2></div>`);
+  api({ action: "signin", idToken: cred, keep: keepPref() }).then(r => {
+    if (r.ok) { setPass(r.pass, r.exp); return loadState(r.pass); }
+    if (r.error === "not_listed") return wrongAccount(r.email);
+    showSignIn("Sign-in didn't work. Please try again.");
+  }).catch(() => netError(() => onCredential(cred)));
+}
+
+function wrongAccount(email) {
+  app(`<div class="center"><div class="ic">🙈</div><h2>This form is for retreat attendees</h2>
+    <p class="muted">Signed in with the wrong account? Switch to the one you gave for the retreat.</p>
+    <p class="who">Signed in as ${esc(email)}</p><div class="btns"><button class="btn primary" id="sw">Switch account</button></div></div>`);
+  $("sw").onclick = signOut;
+}
+function signOut() {
+  setPass(null);
+  try { localStorage.removeItem("xm27-idt"); } catch (e) {}
+  if (window.google && google.accounts) google.accounts.id.disableAutoSelect();
+  showSignIn("Pick the Google account you gave for the retreat.");
+}
+function netError(retry) {
+  app(`<div class="center"><div class="ic">📡</div><h2>Couldn't connect</h2><p class="muted">Check your connection and try again.</p>
+    <div class="btns"><button class="btn primary" id="rt">Try again</button></div></div>`);
+  $("rt").onclick = retry;
+}
+
+/* ---------- state ---------- */
+function loadState(pass) {
+  app(`<div class="center"><div class="ic">⏳</div><h2>Loading your details…</h2></div>`);
+  api({ action: "state", pass }).then(r => {
+    if (!r.ok) {
+      if (r.error === "signed_out") { setPass(null); return showSignIn("Your sign-in expired. Please sign in again."); }
+      if (r.error === "not_listed") return wrongAccount(r.email);
+      throw new Error(r.error);
+    }
+    S.state = r;
+    const w = r.window;
+    if (w.status === "closed") return app(`<div class="center"><div class="ic">📦</div><h2>The form closed on 25 Dec</h2>
+      <p class="muted">Need to change something? Message the core team in the Retreat Chat.</p><div class="btns"><a class="btn primary" href="${HANDBOOK}">Back to the handbook</a></div></div>`);
+    if (w.status === "before" && !r.me.core) return showLocked();
+    S.form = Object.assign(blankForm(), r.mine || {});
+    renderForm();
+  }).catch(() => netError(() => loadState(pass)));
+}
+
+function blankForm() {
+  return { preExt: null, preFrom: "", preHotel: null, preIn: "", preShare: "", arrFlight: "", arrOther: "", arrEta: "",
+    postExt: null, postTo: "", postHotel: null, postOut: "", postShare: "", depFlight: "", depOther: "", depEtd: "",
+    ecName: "", ecRel: "", ecMobile: "" };
+}
+
+/* ---------- the form ---------- */
+const seg = (key, val) => `<div class="seg" data-seg="${key}"><button type="button" data-v="yes" class="${val === true ? "on" : ""}">Yes</button><button type="button" data-v="no" class="${val === false ? "on" : ""}">No</button></div>`;
+const err = msg => `<div class="err">${msg}</div>`;
+
+function flightSelect(key, list, cur, other) {
+  const groups = {};
+  list.forEach(f => (groups[f.airline] = groups[f.airline] || []).push(f));
+  const opts = Object.keys(groups).map(a => `<optgroup label="${esc(a)}">` +
+    groups[a].map(f => `<option value="${esc(f.no)}" ${cur === f.no ? "selected" : ""}>${esc(f.no)} · ${esc(f.dep)} → ${esc(f.arr)}</option>`).join("") + `</optgroup>`).join("");
+  return `<select id="${key}"><option value="" ${!cur ? "selected" : ""} disabled>Choose your flight</option>${opts}
+      <option value="other" ${cur === "other" ? "selected" : ""}>Other – type it in</option></select>
+    <div id="${key}OtherBox" ${cur === "other" ? "" : "hidden"} style="margin-top:8px">
+      <input type="text" id="${key.replace("Flight", "Other")}" value="${esc(other)}" placeholder="e.g. TR188 · dep 08:00 → arr 12:30" autocomplete="off"></div>`;
+}
+
+function renderForm(bad) {
+  const st = S.state, F = S.form, me = st.me, late = !!me.late;
+  const fl = st.flights;
+  const B = k => bad && bad.indexOf(k) >= 0 ? " bad" : "";
+  let arrival;
+  if (late) {
+    arrival = `<p class="muted">You're joining us on <b>${esc(me.late)}</b> 🙌</p>
+      <div class="f${B("arrEta")}" data-f="arrEta"><label for="arrEta">Estimated arrival at Lujiang Mega Hotel</label>
+        <input type="datetime-local" id="arrEta" value="${esc(F.arrEta)}" min="2027-01-11T00:00" max="2027-01-14T12:00">${err("Please enter your estimated date & time.")}</div>`;
+  } else {
+    arrival = `<div class="f${B("preExt")}" data-f="preExt"><div class="lbl">Travelling before the retreat? (pre-trip extension)</div>${seg("preExt", F.preExt)}${err("Please choose Yes or No.")}</div>
+      <div id="preNo" ${F.preExt === false ? "" : "hidden"}>
+        <div class="f${B("arrFlight")}${B("arrOther")}" data-f="arrFlight"><label for="arrFlight">Your flight to Xiamen · Mon 11 Jan</label>
+          <small>Flights from Singapore. Flying in from elsewhere? Choose "Other".</small>
+          ${flightSelect("arrFlight", fl.arrive, F.arrFlight, F.arrOther)}${err("Please choose or type your flight.")}</div>
+      </div>
+      <div id="preYes" ${F.preExt === true ? "" : "hidden"}>
+        <div class="f${B("preFrom")}" data-f="preFrom"><label for="preFrom">Pre-trip starts on</label>
+          <input type="date" id="preFrom" value="${esc(F.preFrom)}" min="2026-12-01" max="2027-01-10">${err("Please pick a date before 11 Jan.")}</div>
+        <div class="f${B("arrEta")}" data-f="arrEta"><label for="arrEta">Estimated arrival at Lujiang Mega Hotel</label>
+          <small>No flight needed, just when you expect to reach the hotel.</small>
+          <input type="datetime-local" id="arrEta" value="${esc(F.arrEta)}" min="2026-12-01T00:00" max="2027-01-11T23:59">${err("Please enter your estimated date & time.")}</div>
+        <div class="f" data-f="preHotel"><div class="lbl">Need extra nights at Lujiang Mega Hotel before 11 Jan?</div>${seg("preHotel", F.preHotel)}</div>
+        <div id="preHotelBox" ${F.preHotel === true ? "" : "hidden"} class="sub">
+          <div class="cost">${COST_NOTE}</div>
+          <div class="f${B("preIn")}" data-f="preIn"><label for="preIn">Check-in date</label><small>You'll stay through to the retreat on 11 Jan.</small>
+            <input type="date" id="preIn" value="${esc(F.preIn)}" min="2026-12-01" max="2027-01-10">${err("Please pick a date before 11 Jan.")}</div>
+          <div class="f"><label for="preShare">Sharing with (optional)</label><input type="text" id="preShare" value="${esc(F.preShare)}" placeholder="e.g. Joan, or leave blank" autocomplete="off"></div>
+        </div>
+      </div>`;
+  }
+  const departure = `<div class="f${B("postExt")}" data-f="postExt"><div class="lbl">Staying on after the retreat? (post-trip extension)</div>${seg("postExt", F.postExt)}${err("Please choose Yes or No.")}</div>
+      <div id="postNo" ${F.postExt === false ? "" : "hidden"}>
+        <div class="f${B("depFlight")}${B("depOther")}" data-f="depFlight"><label for="depFlight">Your flight home · Thu 14 Jan</label>
+          <small>Flights to Singapore. Flying elsewhere? Choose "Other".</small>
+          ${flightSelect("depFlight", fl.depart, F.depFlight, F.depOther)}${err("Please choose or type your flight.")}</div>
+      </div>
+      <div id="postYes" ${F.postExt === true ? "" : "hidden"}>
+        <div class="f${B("postTo")}" data-f="postTo"><label for="postTo">Post-trip ends on</label>
+          <input type="date" id="postTo" value="${esc(F.postTo)}" min="2027-01-15" max="2027-03-31">${err("Please pick a date after 14 Jan.")}</div>
+        <div class="f${B("depEtd")}" data-f="depEtd"><label for="depEtd">Estimated time leaving Lujiang Mega Hotel</label>
+          <small>No flight needed, just when you expect to check out.</small>
+          <input type="datetime-local" id="depEtd" value="${esc(F.depEtd)}" min="2027-01-14T00:00" max="2027-03-31T23:59">${err("Please enter your estimated date & time.")}</div>
+        <div class="f" data-f="postHotel"><div class="lbl">Need extra nights at Lujiang Mega Hotel after 14 Jan?</div>${seg("postHotel", F.postHotel)}</div>
+        <div id="postHotelBox" ${F.postHotel === true ? "" : "hidden"} class="sub">
+          <div class="cost">${COST_NOTE}</div>
+          <div class="f${B("postOut")}" data-f="postOut"><label for="postOut">Check-out date</label><small>Extra nights start from 14 Jan.</small>
+            <input type="date" id="postOut" value="${esc(F.postOut)}" min="2027-01-15" max="2027-03-31">${err("Please pick a date after 14 Jan.")}</div>
+          <div class="f"><label for="postShare">Sharing with (optional)</label><input type="text" id="postShare" value="${esc(F.postShare)}" placeholder="e.g. Joan, or leave blank" autocomplete="off"></div>
+        </div>
+      </div>`;
+  const contact = `<div class="f${B("ecName")}" data-f="ecName"><label for="ecName">Name</label><input type="text" id="ecName" value="${esc(F.ecName)}" autocomplete="off">${err("Please enter a name.")}</div>
+      <div class="f${B("ecRel")}" data-f="ecRel"><label for="ecRel">Relationship to you</label><input type="text" id="ecRel" value="${esc(F.ecRel)}" placeholder="e.g. Spouse, Parent, Sibling" autocomplete="off">${err("Please enter the relationship.")}</div>
+      <div class="f${B("ecMobile")}" data-f="ecMobile"><label for="ecMobile">Mobile number (with country code)</label><input type="tel" id="ecMobile" value="${esc(F.ecMobile)}" placeholder="+65 9123 4567" autocomplete="off">${err("Please enter a valid number, e.g. +65 9123 4567.")}</div>`;
+
+  app(`<p class="muted" style="margin-top:0">Hi <b>${esc(me.short)}</b>! ${st.mine ? "Here's what you sent. Change anything, then review & submit again." : "Takes about 2 minutes."}</p>
+    <div class="sec"><h3>✈️ Getting to Xiamen</h3>${arrival}</div>
+    <div class="sec"><h3>🏠 Going home</h3>${departure}</div>
+    <div class="sec"><h3>🆘 Emergency contact</h3>${contact}</div>
+    <div class="btns"><button class="btn primary wide" id="rvBtn">Review</button></div>
+    <p class="who center">Signed in as ${esc(me.name)} · <button class="linkbtn" id="so">Not you? Switch account</button></p>`);
+
+  document.querySelectorAll("[data-seg]").forEach(sg => sg.addEventListener("click", e => {
+    const b = e.target.closest("button"); if (!b) return;
+    readForm();
+    S.form[sg.dataset.seg] = b.dataset.v === "yes";
+    renderForm();
+    const again = document.querySelector(`[data-seg="${sg.dataset.seg}"]`);
+    if (again) again.scrollIntoView({ block: "center" });
+  }));
+  ["arrFlight", "depFlight"].forEach(k => { const el = $(k); if (el) el.onchange = () => { $(k + "OtherBox").hidden = el.value !== "other"; }; });
+  $("rvBtn").onclick = review;
+  $("so").onclick = signOut;
+  if (bad && bad.length) { const first = document.querySelector(".f.bad"); if (first) first.scrollIntoView({ block: "center" }); }
+}
+
+function readForm() {
+  const F = S.form, v = id => ($(id) ? $(id).value.trim() : F[id]);
+  ["preFrom", "preIn", "preShare", "arrFlight", "arrOther", "arrEta", "postTo", "postOut", "postShare", "depFlight", "depOther", "depEtd", "ecName", "ecRel", "ecMobile"]
+    .forEach(k => { if ($(k)) F[k] = v(k); });
+}
+
+function validate() {
+  const F = S.form, late = !!S.state.me.late, bad = [];
+  if (late) { if (!F.arrEta) bad.push("arrEta"); }
+  else if (F.preExt === null) bad.push("preExt");
+  else if (F.preExt) {
+    if (!F.preFrom || F.preFrom > "2027-01-10") bad.push("preFrom");
+    if (!F.arrEta) bad.push("arrEta");
+    if (F.preHotel && (!F.preIn || F.preIn > "2027-01-10")) bad.push("preIn");
+  } else {
+    if (!F.arrFlight) bad.push("arrFlight");
+    if (F.arrFlight === "other" && !F.arrOther) bad.push("arrOther");
+  }
+  if (F.postExt === null) bad.push("postExt");
+  else if (F.postExt) {
+    if (!F.postTo || F.postTo < "2027-01-15") bad.push("postTo");
+    if (!F.depEtd) bad.push("depEtd");
+    if (F.postHotel && (!F.postOut || F.postOut < "2027-01-15")) bad.push("postOut");
+  } else {
+    if (!F.depFlight) bad.push("depFlight");
+    if (F.depFlight === "other" && !F.depOther) bad.push("depOther");
+  }
+  if (!F.ecName) bad.push("ecName");
+  if (!F.ecRel) bad.push("ecRel");
+  if (!/^\+?[\d\s()-]{8,20}$/.test(F.ecMobile)) bad.push("ecMobile");
+  return bad;
+}
+
+/* ---------- review & submit ---------- */
+const fmtD = s => s ? new Date(s.length <= 10 ? s + "T00:00:00+08:00" : s + ":00+08:00").toLocaleDateString("en-SG", { weekday: "short", day: "numeric", month: "short", timeZone: "Asia/Singapore" }) : "";
+const fmtDT = s => s ? fmtD(s) + ", " + s.slice(11, 16) : "";
+const nights = (a, b) => Math.round((new Date(b + "T00:00:00+08:00") - new Date(a + "T00:00:00+08:00")) / 864e5);
+const plural = n => n + " night" + (n === 1 ? "" : "s");
+function flightText(list, no, other) {
+  if (no === "other") return other;
+  const f = list.find(x => x.no === no);
+  return f ? `${f.no} · ${f.airline} · ${f.dep} → ${f.arr}` : no;
+}
+
+function review() {
+  readForm();
+  const bad = validate();
+  if (bad.length) return renderForm(bad);
+  const F = S.form, st = S.state, late = !!st.me.late;
+  const li = (k, v) => `<li><span>${k}</span><b>${esc(v)}</b></li>`;
+  let a = "";
+  if (late) a = li("Arriving at the hotel", fmtDT(F.arrEta));
+  else if (F.preExt) {
+    a = li("Pre-trip extension", "From " + fmtD(F.preFrom)) + li("Arriving at the hotel", fmtDT(F.arrEta)) +
+      li("Extra hotel nights", F.preHotel ? `Check in ${fmtD(F.preIn)} (${plural(nights(F.preIn, "2027-01-11"))})` : "No") +
+      (F.preHotel ? li("Sharing with", F.preShare || "—") : "");
+  } else a = li("Pre-trip extension", "No") + li("Flight to Xiamen", flightText(st.flights.arrive, F.arrFlight, F.arrOther));
+  let d = "";
+  if (F.postExt) {
+    d = li("Post-trip extension", "Until " + fmtD(F.postTo)) + li("Leaving the hotel", fmtDT(F.depEtd)) +
+      li("Extra hotel nights", F.postHotel ? `Check out ${fmtD(F.postOut)} (${plural(nights("2027-01-14", F.postOut))})` : "No") +
+      (F.postHotel ? li("Sharing with", F.postShare || "—") : "");
+  } else d = li("Post-trip extension", "No") + li("Flight home", flightText(st.flights.depart, F.depFlight, F.depOther));
+  const c = li("Name", F.ecName) + li("Relationship", F.ecRel) + li("Mobile", F.ecMobile);
+  app(`<h2 style="margin-top:0">Check your details</h2>
+    <p class="rvh">✈️ Getting to Xiamen</p><ul class="rv">${a}</ul>
+    <p class="rvh">🏠 Going home</p><ul class="rv">${d}</ul>
+    <p class="rvh">🆘 Emergency contact</p><ul class="rv">${c}</ul>
+    <div class="btns"><button class="btn" id="edit">Edit</button><button class="btn primary" id="go">Submit</button></div>`);
+  $("edit").onclick = () => renderForm();
+  $("go").onclick = submit;
+}
+
+function submit() {
+  if (S.busy) return;
+  S.busy = true;
+  const b = $("go"); b.disabled = true; b.innerHTML = `<span class="spin"></span>Submitting…`;
+  const F = S.form, late = !!S.state.me.late;
+  const data = Object.assign({}, F, { preExt: late ? false : F.preExt === true, postExt: F.postExt === true, preHotel: F.preHotel === true, postHotel: F.postHotel === true });
+  api({ action: "submit", pass: getPass(), data }).then(r => {
+    if (r.ok) { try { localStorage.setItem("xm27-trip-done", String(Date.now())); } catch (e) {} return done(); }
+    if (r.error === "signed_out") { setPass(null); return showSignIn("Your sign-in expired. Please sign in again; your answers will need re-entering."); }
+    if (r.error === "invalid") return renderForm(r.fields || []);
+    if (r.error === "closed") return loadState(getPass());
+    if (r.error === "not_open") return showLocked();
+    throw new Error(r.error);
+  }).catch(() => { b.disabled = false; b.textContent = "Submit"; alert("Couldn't submit. Check your connection and try again."); })
+    .finally(() => { S.busy = false; });
+}
+
+function done() {
+  app(`<div class="center"><div class="ic">🎉</div><h2>All set, ${esc(S.state.me.short)}!</h2>
+    <p>Your trip details are in. Now head back to the handbook and <b>scratch to reveal your team & roommate</b>!</p>
+    <div class="btns"><button class="btn primary" id="back">Back to the handbook</button></div>
+    <p class="muted" style="margin-top:12px;font-size:13px">Using the handbook from your Home Screen? Just switch back to it. Your cards will be ready.</p></div>`);
+  $("back").onclick = () => {
+    window.close();
+    setTimeout(() => { location.href = HANDBOOK; }, 300);   // if the tab can't close itself
+  };
+}
+
+start();
+</script>
+</body>
+</html>
