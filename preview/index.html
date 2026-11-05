@@ -275,10 +275,13 @@ button{font:inherit;cursor:pointer}
 .tlead{text-align:center;font-weight:600;color:var(--sea);margin:18px 0 0}
 .tcards{display:grid;gap:14px;margin:16px 0 0}
 .scratch{position:relative;min-height:190px;border-radius:var(--radius);overflow:hidden;background:var(--card);border:1px solid var(--line);
-  box-shadow:0 8px 22px rgba(20,50,74,.10)}
+  box-shadow:0 8px 22px rgba(20,50,74,.10);display:flex;flex-direction:column}
 .scratch canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;transition:opacity .6s ease}
 .scratch canvas.gone{opacity:0}
-.scratch .face{padding:18px 16px;text-align:center}
+.scratch .face{flex:1;padding:18px 16px;text-align:center;display:flex;flex-direction:column;justify-content:center;align-items:center}
+.scratch .villa{margin:12px 0 0;font-weight:600;color:var(--sea-2);font-size:16px}
+.scratch .rtype{margin:2px 0 0;font-size:15px}
+.scratch .rcn{margin:1px 0 0;font-size:12px;color:var(--muted)}
 .scratch small{display:block;color:var(--sun);font-weight:600;font-size:12px;letter-spacing:.1em;text-transform:uppercase}
 .scratch .big{display:block;font-family:var(--serif);font-size:28px;line-height:1.2;color:var(--sea);margin:6px 0 2px}
 .scratch .lead{margin:2px 0;color:var(--muted);font-size:14px}
@@ -296,6 +299,18 @@ button{font:inherit;cursor:pointer}
 .jcard small{display:block;color:var(--sun);font-weight:600;font-size:12px;letter-spacing:.1em;text-transform:uppercase}
 .jcard b{display:block;font-family:var(--serif);font-size:22px;color:var(--sea);margin-top:2px}
 .jcard p{margin:0 0 4px}
+.icard.chartcard{padding:16px 10px}
+.icard.chartcard h3{padding:0 6px}
+.chart{display:grid;gap:0 6px;margin-top:10px;font-size:15px}
+.chart.two{row-gap:14px}
+.chart h5{display:flex;flex-direction:column}
+.chart .col{min-width:0}
+.chart h5{margin:0 0 6px;font-size:1em;color:var(--sea-2);font-weight:700;line-height:1.25}
+.chart h5 span{display:block;white-space:nowrap;overflow:hidden}
+.chart h5 small{display:block;font-weight:500;color:var(--muted);font-size:.75em;line-height:1.2;margin-top:1px}
+.chart .nm{white-space:nowrap;overflow:hidden;line-height:1.6}
+.chart .nm.ld{font-weight:700}
+.chart .nm.me{color:var(--sun);font-weight:700}
 .tlist{border-bottom:1px solid var(--line);padding:10px 0}
 .tlist:last-child{border-bottom:0}
 .tlist h4{margin:0;font-size:16px;color:var(--sea-2)}
@@ -1630,10 +1645,12 @@ function teamFace(t, me) {
     <p class="lead">Lead: ${esc(joinNames(t.lead))}${isLead ? " (you)" : ""}</p><div class="chips">${chips}</div>`;
 }
 function roomFace(r) {
-  if (!r.mates.length) return `<small>🛏️ Your room</small><b class="big">All yours! 😎</b><p class="lead">A room to yourself</p>`;
+  const where = (r.villa ? `<p class="villa">🏡 ${esc(r.villa)}</p>` : "") +
+    (r.typeEn ? `<p class="rtype">${esc(r.typeEn)}</p>` : "") + (r.typeCn ? `<p class="rcn">${esc(r.typeCn)}</p>` : "");
+  if (!r.mates.length) return `<small>🛏️ Your room</small><b class="big">All yours! 😎</b><p class="lead">A room to yourself</p>${where}`;
   const notes = r.mates.filter(m => m.note).map(m => `<p class="lead">${esc(m.name)} · ${esc(m.note)}</p>`).join("");
   return `<small>🛏️ Your roommate${r.mates.length > 1 ? "s" : ""}</small><b class="big">${esc(joinNames(r.mates.map(m => m.name)))}</b>
-    ${r.self ? `<p class="lead">You · ${esc(r.self)}</p>` : ""}${notes}`;
+    ${r.self ? `<p class="lead">You · ${esc(r.self)}</p>` : ""}${notes}${where}`;
 }
 
 function renderTripCards(justNow) {
@@ -1736,16 +1753,46 @@ function renderTripAll() {
   tripMsg("⏳", "Loading teams & rooms…");
   tripApi({ action: "all", pass: tripPass() }).then(r => {
     if (!r.ok) { if (r.error === "signed_out") { setTripPass(null); return tripSignIn("Your sign-in expired. Please sign in again."); } throw new Error(r.error); }
-    const me = TR.state.me.short, mark = n => n === me ? `<b>${esc(n)}</b>` : esc(n);
-    const teams = r.teams.map(t => `<div class="tlist"><h4>${esc(t.name)}</h4>
-      <p class="muted">Lead: ${t.lead.map(mark).join(", ")}</p><p>${t.members.map(mark).join(" · ")}</p></div>`).join("");
-    const rooms = r.rooms.map(ppl => `<li>${ppl.map(p => mark(p.name) + (p.note ? ` <small>(${esc(p.note)})</small>` : "")).join(" & ")}</li>`).join("");
+    const me = TR.state.me.short;
+    const nm = (n, lead) => `<div class="nm${lead ? " ld" : ""}${n === me ? " me" : ""}">${esc(n)}</div>`;
+    const chart = cols => {
+      return `<div class="chart" data-n="${cols.length}">${cols.map(c =>
+      `<div class="col"><h5><span>${esc(c.name)}</span>${c.extra ? `<small>(${esc(c.extra)})</small>` : ""}</h5>${c.body}</div>`).join("")}</div>`; };
+    const teams = chart(r.teams.map(t => ({ name: t.name, body: t.lead.map(n => nm(n, true)).join("") + t.members.map(n => nm(n)).join("") })));
+    const rooms = chart(r.villas.map(v => ({ name: v.name, extra: v.extra, body: v.names.map(n => nm(n)).join("") })));
     tripCard(`<div class="btns"><button class="btn" data-tripback>← My cards</button></div>
-      <div class="icard"><h3>🎽 Teams</h3>${teams}</div>
-      <div class="icard"><h3>🛏️ Rooms</h3><ol class="rlist">${rooms}</ol></div>`);
+      <div class="icard chartcard"><h3>🎽 Teams</h3>${teams}</div>
+      <div class="icard chartcard"><h3>🛏️ Rooms</h3>${rooms}</div>`);
+    fitCharts();
     window.scrollTo({ top: 0 });
   }).catch(() => tripNet(renderTripAll));
 }
+
+// shrink the text until every name (and column title) fits on one line
+// all columns side by side; if that needs text smaller than 11px (small phones), use 2 rows instead
+function fitCharts() {
+  document.querySelectorAll("#tripBody .chart").forEach(el => {
+    const n = Number(el.dataset.n), items = el.querySelectorAll(".nm, h5 span");
+    const over = () => Array.prototype.some.call(items, x => x.scrollWidth > x.clientWidth + 0.5);
+    const fit = (cols, min) => {
+      el.style.gridTemplateColumns = `repeat(${cols},minmax(0,1fr))`;
+      el.classList.toggle("two", cols < n);
+      let fs = 15; el.style.fontSize = fs + "px";
+      while (fs > min && over()) { fs -= 0.5; el.style.fontSize = fs + "px"; }
+      return !over();
+    };
+    if (!fit(n, 10) && n > 3) fit(Math.ceil(n / 2), 8);
+    // same title height across each row, so the first names line up
+    const hs = el.querySelectorAll("h5"); hs.forEach(h => { h.style.minHeight = ""; });
+    const cols = getComputedStyle(el).gridTemplateColumns.split(" ").length;
+    for (let i = 0; i < hs.length; i += cols) {
+      const row = Array.prototype.slice.call(hs, i, i + cols), mx = Math.max.apply(null, row.map(h => h.offsetHeight));
+      row.forEach(h => { h.style.minHeight = mx + "px"; });
+    }
+  });
+}
+let fitT = null;
+window.addEventListener("resize", () => { clearTimeout(fitT); fitT = setTimeout(fitCharts, 150); });
 
 document.addEventListener("click", e => {
   if (e.target.closest("[data-tripform]")) return openTripForm();

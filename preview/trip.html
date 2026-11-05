@@ -98,6 +98,21 @@ p{margin:6px 0}
 .rvh{font-family:var(--serif);color:var(--sea);font-size:17px;margin:16px 0 2px}
 .spin{display:inline-block;width:18px;height:18px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:sp 0.8s linear infinite;vertical-align:-3px;margin-right:6px}
 @keyframes sp{to{transform:rotate(360deg)}}
+.jview{display:flex;gap:14px;align-items:center;background:#f6f1e8;border-radius:12px;padding:10px}
+.jview img{width:96px;aspect-ratio:500/580;object-fit:contain;border-radius:8px;background:#fff;flex:none}
+.jview > div{display:flex;flex-direction:column;justify-content:center;gap:2px}
+.jview b{font-family:var(--serif);font-size:20px;color:var(--sea);font-weight:600}
+.jview .muted{margin:0}
+.jkeep{margin-top:-4px;margin-bottom:14px}
+.tel{display:flex;gap:8px}
+.f .tel select{flex:0 0 138px;width:138px}
+.f .tel input{flex:1;min-width:0}
+.ppbig{font-family:var(--serif);font-size:23px;line-height:1.3;color:var(--sea);text-align:center;background:#f6f1e8;border-radius:12px;padding:14px 12px;margin:6px 0 0;word-break:break-word}
+.confirm{display:flex;gap:10px;align-items:flex-start;font-size:15px;font-weight:600;margin:18px 0 0;line-height:1.4}
+.confirm input{width:20px;height:20px;flex:none;margin:1px 0 0;accent-color:var(--sea)}
+.asbar{background:#fff4e8;border:1px solid #f8dcc0;border-radius:12px;padding:10px 12px 12px;margin:0 0 14px}
+.asbar label{display:block;font-weight:600;font-size:14px;color:#8a4a1f;margin:0 0 6px}
+.asbar select{width:100%;border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 10px;font-size:16px;color:var(--ink)}
 .pv{background:#fff4e8;color:#8a4a1f;font-size:12px;text-align:center;padding:4px}
 </style>
 </head>
@@ -114,7 +129,7 @@ const TRIP = {
   preview: location.pathname.includes("/preview/")
 };
 const HANDBOOK = "./#trip";
-const S = { state: null, form: null, gis: null, busy: false };
+const S = { state: null, form: null, gis: null, busy: false, as: null, jEdit: false };
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const app = html => { $("app").innerHTML = html; window.scrollTo({ top: 0 }); };
@@ -232,19 +247,24 @@ function netError(retry) {
 /* ---------- state ---------- */
 function loadState(pass) {
   app(`<div class="center"><div class="ic">⏳</div><h2>Loading your details…</h2></div>`);
-  api({ action: "state", pass }).then(r => {
+  api({ action: "state", pass, as: S.as || undefined }).then(r => {
     if (!r.ok) {
       if (r.error === "signed_out") { setPass(null); return showSignIn("Your sign-in expired. Please sign in again."); }
       if (r.error === "not_listed") return wrongAccount(r.email);
       if (r.error === "not_matched") return notMatched(r.email);
+      if (r.error === "bad_as" || r.error === "not_allowed") { S.as = null; return loadState(pass); }
       throw new Error(r.error);
     }
-    S.state = r;
+    S.state = r; S.jEdit = false;
     const w = r.window;
     if (w.status === "closed") return app(`<div class="center"><div class="ic">📦</div><h2>The form closed on 25 Dec</h2>
       <p class="muted">Need to change something? Please message Yen Ling.</p><div class="btns"><a class="btn primary" href="${HANDBOOK}">Back to the handbook</a></div></div>`);
     if (w.status === "before" && !r.me.core) return showLocked();
     S.form = Object.assign(blankForm(), r.mine || {});
+    if (r.mine && r.mine.ecMobile && !r.mine.ecNum) {   // older entries saved the number as one string
+      const m = String(r.mine.ecMobile).replace(/[^\d+]/g, "").match(/^\+(65|852|886|60|86|62|63|91|61|44|1)(\d+)$/);
+      if (m) { S.form.ecCc = m[1]; S.form.ecNum = m[2]; }
+    }
     if (r.jacket) { S.form.jColour = r.jacket.colour; S.form.jSize = r.jacket.size; }
     renderForm();
   }).catch(() => netError(() => loadState(pass)));
@@ -253,9 +273,36 @@ function loadState(pass) {
 function blankForm() {
   return { arrMode: "", arrFlight: "", arrOther: "", arrOtherTime: "", arrDate: "", arrTime: "", preHotel: null, preIn: "", preShare: "", lateTime: "",
     depMode: "", depFlight: "", depOther: "", depOtherTime: "", postHotel: null, postOut: "", postShare: "", depTime: "",
-    jColour: "", jSize: "", ecName: "", ecRel: "", ecMobile: "" };
+    jColour: "", jSize: "", passport: "", ecName: "", ecRel: "", ecCc: "65", ecOtherCc: "", ecNum: "" };
 }
 const slug = c => String(c).toLowerCase().replace(/\s+/g, "-");
+
+/* emergency mobile: [code, label, min digits, max digits, must start with] */
+const CC = [["65", "🇸🇬 +65 SG", 8, 8, /^[3689]/], ["60", "🇲🇾 +60 MY", 9, 10], ["86", "🇨🇳 +86 CN", 11, 11], ["62", "🇮🇩 +62 ID", 9, 12],
+  ["63", "🇵🇭 +63 PH", 10, 10], ["852", "🇭🇰 +852 HK", 8, 8], ["886", "🇹🇼 +886 TW", 9, 9], ["91", "🇮🇳 +91 IN", 10, 10],
+  ["61", "🇦🇺 +61 AU", 9, 9], ["44", "🇬🇧 +44 UK", 10, 10], ["1", "🇺🇸 +1 US/CA", 10, 10], ["other", "🌐 Other", 7, 15]];
+const ccRule = cc => CC.find(c => c[0] === cc) || CC[0];
+function phoneMsg(cc) {
+  const r = ccRule(cc);
+  if (r[0] === "65") return "Singapore numbers have 8 digits and start with 3, 6, 8 or 9.";
+  return `Please enter ${r[2] === r[3] ? r[2] : r[2] + "–" + r[3]} digits${r[0] === "other" ? ", and the country code" : ""}.`;
+}
+function phoneDigits(F) {
+  let n = String(F.ecNum || "").replace(/\D/g, "");
+  if (F.ecCc !== "65" && F.ecCc !== "852") n = n.replace(/^0/, "");   // drop a leading 0 (e.g. MY 012…)
+  return n;
+}
+function phoneOk(F) {
+  const r = ccRule(F.ecCc), n = phoneDigits(F);
+  if (F.ecCc === "other" && !/^\d{1,4}$/.test(String(F.ecOtherCc || "").replace(/\D/g, ""))) return false;
+  return n.length >= r[2] && n.length <= r[3] && (!r[4] || r[4].test(n));
+}
+function phoneText(F) {
+  const cc = F.ecCc === "other" ? String(F.ecOtherCc).replace(/\D/g, "") : F.ecCc, n = phoneDigits(F);
+  return "+" + cc + " " + (n.length === 8 && (cc === "65" || cc === "852") ? n.slice(0, 4) + " " + n.slice(4) : n);
+}
+const ppClean = s => String(s || "").toUpperCase().replace(/[\u2018\u2019`]/g, "'").replace(/\s+/g, " ").trim();
+const ppOk = s => /^[A-Z][A-Z ,'\-\/@.]*$/.test(s) && (s.match(/[A-Z]/g) || []).length >= 2;
 
 /* ---------- the form ---------- */
 const DOW = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -310,7 +357,7 @@ function renderForm(bad) {
         <div class="f${B("preHotel")}"><div class="lbl">Need extra nights at Lujiang Mega Hotel before 11 Jan?</div>${seg("preHotel", F.preHotel)}${err("Please choose Yes or No.")}</div>
         ${F.preHotel === true ? costBox("preHotelBox", `
           <div class="f${B("preIn")}"><label for="preIn">Check-in date</label><small>You'll stay through to the retreat on 11 Jan.</small>${dateOpts("preIn", 1, 10, F.preIn)}${err("Please choose a date.")}</div>
-          <div class="f"><label for="preShare">Sharing with (optional)</label><input type="text" id="preShare" value="${esc(F.preShare)}" placeholder="e.g. Joan, or leave blank" autocomplete="off"></div>`) : ""}` : ""}`;
+          <div class="f"><label for="preShare">Sharing with (optional)</label><input type="text" id="preShare" value="${esc(F.preShare)}" placeholder="e.g. Alex, or leave blank" autocomplete="off"></div>`) : ""}` : ""}`;
   }
 
   const departure = `<div class="f${B("depMode")}"><div class="lbl">What's your plan after the retreat ends on Thu 14 Jan?</div>
@@ -326,7 +373,7 @@ function renderForm(bad) {
         <div class="f${B("postHotel")}"><div class="lbl">Extend your stay at Lujiang Mega Hotel (group discount)?</div>${seg("postHotel", F.postHotel)}${err("Please choose Yes or No.")}</div>
         ${F.postHotel === true ? costBox("postHotelBox", `
           <div class="f${B("postOut")}"><label for="postOut">Check-out date</label><small>Extra nights start from 14 Jan.</small>${dateOpts("postOut", 15, 31, F.postOut)}${err("Please choose a date.")}</div>
-          <div class="f"><label for="postShare">Sharing with (optional)</label><input type="text" id="postShare" value="${esc(F.postShare)}" placeholder="e.g. Joan, or leave blank" autocomplete="off"></div>`) : ""}
+          <div class="f"><label for="postShare">Sharing with (optional)</label><input type="text" id="postShare" value="${esc(F.postShare)}" placeholder="e.g. Alex, or leave blank" autocomplete="off"></div>`) : ""}
         ${F.postHotel === false ? `
           <div class="f${B("depTime")}"><label for="depTime">Estimated time leaving Lujiang Mega Hotel · Thu 14 Jan</label>
             <small>Check-out is by 12:00.</small><input type="time" id="depTime" value="${esc(F.depTime)}">${err("Please enter your estimated time.")}</div>` : ""}` : ""}`;
@@ -334,7 +381,12 @@ function renderForm(bad) {
   const jk = st.jacket, jo = st.jacketOptions;
   const jacket = jk && jk.custom
     ? `<div class="jfix"><img src="img/jacket/${slug(jk.colour)}.jpg" alt=""><div><b>${esc(jk.colour)} · custom-made</b><small>${esc(jk.size)}</small></div></div>`
-    : `<p class="muted" style="margin-top:0">${jk ? `Your current order: <b>${esc(jk.colour)} · ${esc(jk.size)}</b>. You can change it until 25 Dec.` : "Pick your colour & size."}</p>
+    : jk && !S.jEdit
+    ? `<div class="jview"><img src="img/jacket/${slug(jk.colour)}.jpg" alt=""><div>
+        <p class="muted">Your current order:</p><b>${esc(jk.colour)} · ${esc(jk.size)}</b>
+        <p class="muted">You can change it until 25 Dec.</p>
+        <p style="margin:4px 0 0"><button type="button" class="linkbtn" id="jChange">Change my jacket order</button></p></div></div>`
+    : `${jk ? `<p class="jkeep"><button type="button" class="linkbtn" id="jKeep">Keep my current order (${esc(jk.colour)} · ${esc(jk.size)})</button></p>` : `<p class="muted" style="margin-top:0">Pick your colour & size.</p>`}
       <div class="f${B("jColour")}"><div class="lbl">Colour</div><div class="jgrid" data-pick="jColour">${jo.colours.map(c =>
         `<button type="button" data-v="${esc(c)}" class="${F.jColour === c ? "on" : ""}"><img src="img/jacket/${slug(c)}.jpg" alt=""><span>${esc(c)}</span></button>`).join("")}</div>${err("Please choose a colour.")}</div>
       <div class="f${B("jSize")}"><div class="lbl">Size</div><div class="sizes" data-pick="jSize">${jo.sizes.map(z =>
@@ -342,15 +394,36 @@ function renderForm(bad) {
 
   const contact = `<div class="f${B("ecName")}"><label for="ecName">Name</label><input type="text" id="ecName" value="${esc(F.ecName)}" autocomplete="off">${err("Please enter a name.")}</div>
       <div class="f${B("ecRel")}"><label for="ecRel">Relationship to you</label><input type="text" id="ecRel" value="${esc(F.ecRel)}" placeholder="e.g. Spouse, Parent, Sibling" autocomplete="off">${err("Please enter the relationship.")}</div>
-      <div class="f${B("ecMobile")}"><label for="ecMobile">Mobile number (with country code)</label><input type="tel" id="ecMobile" value="${esc(F.ecMobile)}" placeholder="+65 9123 4567" autocomplete="off">${err("Please enter a valid number, e.g. +65 9123 4567.")}</div>`;
+      <div class="f${B("ecMobile")}"><label for="ecNum">Mobile number</label>
+        <div class="tel"><select id="ecCc" aria-label="Country code">${CC.map(c => `<option value="${c[0]}" ${F.ecCc === c[0] ? "selected" : ""}>${c[1]}</option>`).join("")}</select>
+        <input type="tel" id="ecNum" inputmode="numeric" value="${esc(F.ecNum)}" placeholder="${F.ecCc === "65" ? "9123 4567" : "Mobile number"}" autocomplete="off"></div>
+        <div id="ecOtherBox" style="margin-top:8px" ${F.ecCc === "other" ? "" : "hidden"}><input type="tel" id="ecOtherCc" inputmode="numeric" value="${esc(F.ecOtherCc)}" placeholder="Country code, e.g. 81" autocomplete="off"></div>
+        <div class="err" id="ecErr">${phoneMsg(F.ecCc)}</div></div>`;
 
-  app(`<p class="muted" style="margin-top:0">Hi <b>${esc(me.short)}</b>! ${st.mine ? "Here's what you sent. Change anything, then review & submit again." : "Takes about 2 minutes."}</p>
+  const about = `<div class="f${B("passport")}"><label for="passport">Full name as in passport</label>
+      <input type="text" id="passport" value="${esc(F.passport)}" placeholder="e.g. ALEX TAN WEI MING" autocomplete="off" autocapitalize="characters" spellcheck="false">
+      ${err("Please use letters only (spaces, commas, hyphens and apostrophes are OK).")}</div>`;
+
+  const ad = st.admin;
+  const asBar = ad ? (() => {
+    const opt = p => `<option value="${esc(p.full)}" ${S.as === p.full ? "selected" : ""}>${esc(p.full)}${p.done ? " ✓" : ""}</option>`;
+    const core = ad.people.filter(p => p.core), rest = ad.people.filter(p => !p.core);
+    return `<div class="asbar"><label for="asSel">Filling in for</label><select id="asSel">
+      <option value="" ${S.as ? "" : "selected"}>Myself (${esc(ad.me.short)})</option>
+      ${core.length ? `<optgroup label="Core team">${core.map(opt).join("")}</optgroup>` : ""}
+      <optgroup label="Everyone else">${rest.map(opt).join("")}</optgroup></select></div>`;
+  })() : "";
+
+  const hi = S.as ? `You're filling in for <b>${esc(me.name)}</b>. ${st.mine ? "Here's what's been sent so far." : "Nothing sent yet."}`
+    : `Hi <b>${esc(me.short)}</b>! ${st.mine ? "Here's what you sent. Change anything, then review & submit again." : "Takes about 2 minutes."}`;
+  app(`${asBar}<p class="muted" style="margin-top:0">${hi}</p>
+    <div class="sec"><h3>🛂 About you</h3>${about}</div>
     <div class="sec"><h3>✈️ Getting to Xiamen</h3>${arrival}</div>
     <div class="sec"><h3>🧳 After the retreat</h3>${departure}</div>
     <div class="sec"><h3>🧥 Team jacket</h3>${jacket}</div>
     <div class="sec"><h3>🆘 Emergency contact</h3>${contact}</div>
     <div class="btns"><button class="btn primary wide" id="rvBtn">Review</button></div>
-    <p class="who center">Signed in as ${esc(me.name)} · <button class="linkbtn" id="so">Not you? Switch account</button></p>`);
+    <p class="who center">Signed in as ${esc(ad && S.as ? ad.me.name : me.name)} · <button class="linkbtn" id="so">Not you? Switch account</button></p>`);
 
   const rerender = (key, el) => {
     readForm(); renderForm();
@@ -372,17 +445,30 @@ function renderForm(bad) {
   }));
   [["arrFlight", "arrOtherBox"], ["depFlight", "depOtherBox"]].forEach(([k, box]) => { const el = $(k); if (el) el.onchange = () => { $(box).hidden = el.value !== "other"; }; });
   if ($("arrDate")) $("arrDate").onchange = e => { $("arrTimeBox").hidden = e.target.value !== "2027-01-11"; };
+  $("passport").oninput = e => { const el = e.target, p = el.selectionStart; el.value = el.value.toUpperCase(); try { el.setSelectionRange(p, p); } catch (x) {} };
+  $("ecCc").onchange = e => {
+    const v = e.target.value;
+    $("ecOtherBox").hidden = v !== "other"; $("ecErr").textContent = phoneMsg(v);
+    $("ecNum").placeholder = v === "65" ? "9123 4567" : "Mobile number";
+  };
+  if ($("jChange")) $("jChange").onclick = () => { readForm(); S.jEdit = true; rerender("jColour", "pick"); };
+  if ($("jKeep")) $("jKeep").onclick = () => { readForm(); S.jEdit = false; S.form.jColour = S.state.jacket.colour; S.form.jSize = S.state.jacket.size; renderForm(); document.querySelector(".jview").scrollIntoView({ block: "center" }); };
+  if ($("asSel")) $("asSel").onchange = e => { S.as = e.target.value || null; loadState(getPass()); };
   $("rvBtn").onclick = review;
   $("so").onclick = signOut;
   if (bad && bad.length) { const first = document.querySelector(".f.bad"); if (first) first.scrollIntoView({ block: "center" }); }
 }
 
 const FIELDS = ["arrFlight", "arrOther", "arrOtherTime", "arrDate", "arrTime", "preIn", "preShare", "lateTime",
-  "depFlight", "depOther", "depOtherTime", "postOut", "postShare", "depTime", "ecName", "ecRel", "ecMobile"];
-function readForm() { FIELDS.forEach(k => { if ($(k)) S.form[k] = $(k).value.trim(); }); }
+  "depFlight", "depOther", "depOtherTime", "postOut", "postShare", "depTime", "passport", "ecName", "ecRel", "ecCc", "ecOtherCc", "ecNum"];
+function readForm() {
+  FIELDS.forEach(k => { if ($(k)) S.form[k] = $(k).value.trim(); });
+  S.form.passport = ppClean(S.form.passport);
+}
 
 function validate() {
   const F = S.form, late = !!S.state.me.late, bad = [];
+  if (!ppOk(F.passport)) bad.push("passport");
   if (late) { if (!F.lateTime) bad.push("lateTime"); }
   else if (!F.arrMode) bad.push("arrMode");
   else if (F.arrMode === "flight") {
@@ -406,7 +492,7 @@ function validate() {
   if (!(S.state.jacket && S.state.jacket.custom)) { if (!F.jColour) bad.push("jColour"); if (!F.jSize) bad.push("jSize"); }
   if (!F.ecName) bad.push("ecName");
   if (!F.ecRel) bad.push("ecRel");
-  if (!/^\+?[\d\s()-]{8,20}$/.test(F.ecMobile)) bad.push("ecMobile");
+  if (!phoneOk(F)) bad.push("ecMobile");
   return bad;
 }
 
@@ -444,14 +530,21 @@ function review() {
       (F.postHotel ? li("Sharing with", F.postShare || "—") : li("Leaving the hotel", "Thu 14 Jan, " + F.depTime));
   }
   const jk = st.jacket;
-  const j = jk && jk.custom ? li("Jacket", `${jk.colour} · custom-made`) : li("Jacket", `${F.jColour} · ${F.jSize}`);
-  const c = li("Name", F.ecName) + li("Relationship", F.ecRel) + li("Mobile", F.ecMobile);
-  app(`<h2 style="margin-top:0">Check your details</h2>
+  const pick = `${F.jColour} · ${F.jSize}`;
+  const j = jk && jk.custom ? li("Jacket", `${jk.colour} · custom-made`)
+    : !jk ? li("Jacket", pick)
+    : jk.colour === F.jColour && jk.size === F.jSize ? li("Jacket", pick + " (no change)")
+    : li("Jacket", `Changed: ${jk.colour} · ${jk.size} → ${pick}`);
+  const c = li("Name", F.ecName) + li("Relationship", F.ecRel) + li("Mobile", phoneText(F));
+  app(`<h2 style="margin-top:0">Check your details</h2>${S.as ? `<p class="muted">Filling in for <b>${esc(st.me.name)}</b></p>` : ""}
+    <p class="rvh">🛂 Full name as in passport</p><div class="ppbig">${esc(F.passport)}</div>
     <p class="rvh">✈️ Getting to Xiamen</p><ul class="rv">${a}</ul>
     <p class="rvh">🧳 After the retreat</p><ul class="rv">${d}</ul>
     <p class="rvh">🧥 Team jacket</p><ul class="rv">${j}</ul>
     <p class="rvh">🆘 Emergency contact</p><ul class="rv">${c}</ul>
-    <div class="btns"><button class="btn" id="edit">Edit</button><button class="btn primary" id="go">Submit</button></div>`);
+    <label class="confirm"><input type="checkbox" id="ppTick"> I confirm my name above matches my passport exactly.</label>
+    <div class="btns"><button class="btn" id="edit">Edit</button><button class="btn primary" id="go" disabled>Submit</button></div>`);
+  $("ppTick").onchange = e => { $("go").disabled = !e.target.checked; };
   $("edit").onclick = () => renderForm();
   $("go").onclick = submit;
 }
@@ -460,8 +553,12 @@ function submit() {
   if (S.busy) return;
   S.busy = true;
   const b = $("go"); b.disabled = true; b.innerHTML = `<span class="spin"></span>Submitting…`;
-  api({ action: "submit", pass: getPass(), data: Object.assign({}, S.form, { jacket: { colour: S.form.jColour, size: S.form.jSize } }) }).then(r => {
-    if (r.ok) { try { localStorage.setItem("xm27-trip-done", String(Date.now())); } catch (e) {} return done(); }
+  api({ action: "submit", pass: getPass(), as: S.as || undefined, data: Object.assign({}, S.form, { jacket: { colour: S.form.jColour, size: S.form.jSize } }) }).then(r => {
+    if (r.ok) {
+      if (S.as) return doneFor();
+      try { localStorage.setItem("xm27-trip-done", String(Date.now())); } catch (e) {}
+      return done();
+    }
     if (r.error === "signed_out") { setPass(null); return showSignIn("Your sign-in expired. Please sign in again; your answers will need re-entering."); }
     if (r.error === "invalid") return renderForm(r.fields || []);
     if (r.error === "closed") return loadState(getPass());
@@ -471,6 +568,13 @@ function submit() {
     throw new Error(r.error);
   }).catch(() => netError(review))
     .finally(() => { S.busy = false; });
+}
+
+function doneFor() {   // admin filled in for someone else
+  app(`<div class="center"><div class="ic">✅</div><h2>Saved for ${esc(S.state.me.short)}</h2>
+    <p class="muted">${esc(S.state.me.name)}'s trip details are in. Their cards unlock when they sign in.</p>
+    <div class="btns"><button class="btn primary" id="next">Fill in for someone else</button><a class="btn" href="${HANDBOOK}">Back to the handbook</a></div></div>`);
+  $("next").onclick = () => { S.as = null; loadState(getPass()); };
 }
 
 function done() {
