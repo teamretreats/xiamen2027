@@ -1446,7 +1446,7 @@ function switchAccount() {
 // One Google sign-in serves both tabs: the album keeps Google's 1-hour token (xm27-idt);
 // My Trip swaps it for its own pass (xm27-pass), 30 days or 30 minutes ("Keep me signed in").
 const TRIP = {
-  exec: "",                                                         // trip script /exec URL (set after deploy)
+  exec: "https://script.google.com/macros/s/AKfycbypVuTrJ1-Yjc7t_LvICbuQ0iIxEqwKb6YGzgNJJA5X3fQjTdq6RVHlNR8KqyBMxOTpfA/exec",   // trip script /exec URL
   opensAt: new Date("2026-11-12T14:00:00+08:00").getTime(),         // the live page stays locked until then
   preview: ALBUM.preview,
   form: "trip.html"
