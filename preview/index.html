@@ -291,6 +291,11 @@ button{font:inherit;cursor:pointer}
 .scratch.teaser .foil b{font-size:18px;margin-top:6px}
 .scratch.teaser{min-height:120px}
 .reveal{display:block;margin:-6px auto 0}
+.jcard{display:flex;gap:14px;align-items:center}
+.jcard img{width:84px;aspect-ratio:500/580;object-fit:contain;border-radius:10px;background:#f6f1e8;flex:none}
+.jcard small{display:block;color:var(--sun);font-weight:600;font-size:12px;letter-spacing:.1em;text-transform:uppercase}
+.jcard b{display:block;font-family:var(--serif);font-size:22px;color:var(--sea);margin-top:2px}
+.jcard p{margin:0 0 4px}
 .tlist{border-bottom:1px solid var(--line);padding:10px 0}
 .tlist:last-child{border-bottom:0}
 .tlist h4{margin:0;font-size:16px;color:var(--sea-2)}
@@ -1569,6 +1574,14 @@ function tripLoad(pass) {
 
 function openTripForm() { window.open(TRIP.form, "_blank"); }
 
+const jSlug = c => String(c).toLowerCase().replace(/\s+/g, "-");
+function jacketCard() {
+  const st = TR.state, j = st && st.jacket;
+  if (!j) return "";
+  const change = !j.custom && st.window.status !== "closed" ? `<button class="linkbtn" data-tripform>Change ↗</button>` : "";
+  return `<div class="icard jcard"><img src="img/jacket/${jSlug(j.colour)}.jpg" alt="">
+    <div><small>🧥 Your team jacket</small><b>${esc(j.colour)}${j.custom ? " · custom-made" : ""}</b><p class="muted">${esc(j.size)}</p>${change}</div></div>`;
+}
 function renderFillIn() {
   const st = TR.state;
   if (st.window.status === "before" && !st.me.core) return tripLocked();
@@ -1578,17 +1591,25 @@ function renderFillIn() {
     <div class="btns"><button class="btn primary" data-tripform>✈️ Fill in my trip details ↗</button></div>
     <p class="muted small">Opens in a new tab. Come back here when you're done.</p></div>
     ${foilTeaser("Unlocks after you submit")}
+    <div id="tripJacket">${jacketCard()}</div>
     <p class="alb-foot">Signed in as ${esc(st.me.name)} · <button class="linkbtn" data-tripout>Not you? Switch account</button></p>`);
   TR.poll = setInterval(() => tripCheck(), 8000);
 }
 
 // Did they submit in the other tab? (also runs when they come back to this tab)
 function tripCheck() {
-  if (CUR_TAB !== "trip" || document.hidden || TR.checking || !TR.state || TR.state.cards) return;
+  if (CUR_TAB !== "trip" || document.hidden || TR.checking || !TR.state) return;
   const p = tripPass(); if (!p) return;
   TR.checking = true;
+  const had = !!TR.state.cards;
   tripApi({ action: "state", pass: p }).then(r => {
-    if (r.ok && r.cards) { TR.state = r; stopTripTimers(); renderTripCards(true); }
+    if (!r.ok) return;
+    if (had) {   // cards already showing: just refresh the jacket (they may have changed it in the form)
+      TR.state.jacket = r.jacket;
+      const el = document.getElementById("tripJacket"); if (el) el.innerHTML = jacketCard();
+      return;
+    }
+    if (r.cards) { TR.state = r; stopTripTimers(); renderTripCards(true); }
   }).catch(() => {}).finally(() => { TR.checking = false; });
 }
 window.addEventListener("storage", e => { if (e.key === "xm27-trip-done") tripCheck(); });
@@ -1628,7 +1649,7 @@ function renderTripCards(justNow) {
       ${done ? "" : `<button class="linkbtn reveal" data-reveal="${i}">Reveal without scratching</button>`}`;
   }).join("")}</div>` : `<div class="icard center tmsg"><div class="ic">💬</div><h3>Your team & room are on the way</h3><p class="muted">They'll be shared in the Retreat Chat.</p></div>`;
   const editable = st.window.status !== "closed";
-  tripCard(`${head}${cards}<div id="tripAfter"></div>
+  tripCard(`${head}${cards}<div id="tripAfter"></div><div id="tripJacket">${jacketCard()}</div>
     <div class="btns center-btns">${editable ? `<button class="btn" data-tripform>✏️ Edit my trip details ↗</button>` : ""}</div>
     <p class="alb-foot">Signed in as ${esc(st.me.name)} · <button class="linkbtn" data-tripout>Sign out</button></p>`);
   document.querySelectorAll("#tripBody .scratch:not(.done)").forEach(box => initScratch(box));
