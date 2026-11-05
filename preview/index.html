@@ -333,6 +333,7 @@ nav{position:fixed;left:0;right:0;bottom:0;background:rgba(255,253,249,.96);back
 nav .row{max-width:560px;margin:0 auto;display:flex}
 nav button{flex:1;border:0;background:transparent;padding:6px 0;color:var(--muted);font-size:11px;font-weight:500;display:flex;flex-direction:column;align-items:center;gap:2px}
 nav button .i{font-size:20px;line-height:1}
+nav button[hidden]{display:none}
 nav button.on{color:var(--sea)}
 nav button.on .i{transform:translateY(-1px)}
 
@@ -525,7 +526,7 @@ nav button.on .i{transform:translateY(-1px)}
       </div>
     </div>
 
-    <div class="icard chartcard" id="groupsCard">
+    <div class="icard chartcard" id="groupsCard" hidden>
       <h3>👥 Rooms &amp; Teams</h3>
       <div id="groupsBody" style="padding:0 6px"></div>
     </div>
@@ -577,7 +578,7 @@ nav button.on .i{transform:translateY(-1px)}
     <button class="on" data-tab="next"><span class="i">🧭</span>Next up</button>
     <button data-tab="agenda"><span class="i">📅</span>Agenda</button>
     <button data-tab="info"><span class="i">ℹ️</span>Info</button>
-    <button data-tab="trip"><span class="i">🎫</span>My Trip</button>
+    <button data-tab="trip" hidden><span class="i">🎫</span>My Trip</button>
     <button data-tab="album"><span class="i">📸</span>Album</button>
   </div>
 </nav>
@@ -1775,7 +1776,8 @@ function groupsLocked() {
     <div class="btns"><button class="btn primary" data-gotrip>🎫 Go to My Trip</button></div>`);
 }
 function renderGroups() {
-  if (!document.getElementById("groupsBody")) return;
+  const card = document.getElementById("groupsCard");
+  if (!card || card.hidden) return;
   if (GR.html) { groupsBody(GR.html); return fitCharts(); }
   const p = tripPass();
   if (!TRIP.exec || !p) return groupsLocked();
@@ -1870,7 +1872,18 @@ if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catc
 renderCarousel();
 renderHero();
 setInterval(renderHero, 1000);
-if (location.hash === "#trip") showTab("trip");
+// My Trip tab + Info → Rooms & Teams stay hidden on the live page until the form opens (12 Nov, 2pm SGT),
+// then appear by themselves (checked every 15 s, so an open page updates too). Always shown on /preview/.
+function applyTripVis() {
+  const on = TRIP.preview || now() >= TRIP.opensAt;
+  document.querySelector('nav [data-tab="trip"]').hidden = !on;
+  document.getElementById("groupsCard").hidden = !on;
+  if (!on && CUR_TAB === "trip") showTab("next");
+  if (on && TR.vis) { clearInterval(TR.vis); TR.vis = null; if (CUR_TAB === "info") renderGroups(); }
+  return on;
+}
+if (!applyTripVis()) TR.vis = setInterval(applyTripVis, 15000);
+if (location.hash === "#trip" && applyTripVis()) showTab("trip");
 </script>
 </body>
 </html>
