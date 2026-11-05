@@ -526,7 +526,7 @@ nav button.on .i{transform:translateY(-1px)}
 
     <div class="icard chartcard" id="groupsCard">
       <h3>👥 Groups &amp; ICs</h3>
-      <div id="groupsBody" style="padding:0 6px"><p>Refer to Retreat Chat</p></div>
+      <div id="groupsBody" style="padding:0 6px"></div>
     </div>
     <div class="icard">
       <h3>📲 Save offline</h3>
@@ -1671,7 +1671,7 @@ function renderTripCards(justNow) {
     const k = scrKey(it.kind, it.data), done = isScratched(k);
     return `<div class="scratch${done ? " done" : ""}" data-sk="${k}" data-label="${esc(it.label)}"><div class="face">${it.face}</div>${done ? "" : `<canvas></canvas>`}</div>
       ${done ? "" : `<button class="linkbtn reveal" data-reveal="${i}">Reveal without scratching</button>`}`;
-  }).join("")}</div>` : `<div class="icard center tmsg"><div class="ic">💬</div><h3>Your team & room are on the way</h3><p class="muted">They'll be shared in the Retreat Chat.</p></div>`;
+  }).join("")}</div>` : `<div class="icard center tmsg"><div class="ic">💬</div><h3>Your team & room are on the way</h3></div>`;
   const editable = st.window.status !== "closed";
   tripCard(`${head}${cards}<div id="tripAfter"></div><div id="tripJacket">${jacketCard()}</div>
     <div class="btns center-btns">${editable ? `<button class="btn" data-tripform>✏️ Edit my trip details ↗</button>` : ""}</div>
@@ -1793,7 +1793,7 @@ function renderGroups() {
       `<div class="col"><h5><span>${esc(c.name)}</span>${c.extra ? `<small>(${esc(c.extra)})</small>` : ""}</h5>${c.body}</div>`).join("")}</div>`;
     const teams = chart(r.teams.map(t => ({ name: t.name, body: t.lead.map(n => nm(n, true)).join("") + t.members.map(n => nm(n)).join("") })));
     const rooms = chart(r.villas.map(v => ({ name: v.name, extra: v.extra, body: v.names.map(n => nm(n)).join("") })));
-    GR.html = `<h4>🎽 Teams</h4><p class="muted small">Team Lead in bold</p>${teams}<h4>🛏️ Rooms</h4>${rooms}<p class="muted small" style="margin-top:14px">ICs: refer to Retreat Chat</p>`;
+    GR.html = `<h4>🎽 Teams</h4><p class="muted small">Team Lead in bold</p>${teams}<h4>🛏️ Rooms</h4>${rooms}`;
     if (CUR_TAB === "info") renderGroups();
   }).catch(() => groupsLocked());
 }
