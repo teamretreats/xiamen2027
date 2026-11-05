@@ -136,7 +136,7 @@ def info_html():
     sec = re.sub(r'<div class="addrbox">(.*?)</div>', r'<div class="box">\1</div>', sec, flags=re.S)
     # scams: expandable on the page, shown in full in the PDF
     sec = re.sub(r"<details><summary>(.*?)</summary>", r"<b>\1</b>", sec, flags=re.S).replace("</details>", "")
-    # drop "Teams & Rooms" (names are private: sign-in only) and "Save offline" (not relevant in the PDF)
+    # drop "Rooms & Teams" (names are private: sign-in only) and "Save offline" (not relevant in the PDF)
     sec = sec[:sec.index('<div class="icard chartcard" id="groupsCard">')]
     sec = sec[sec.index(">") + 1:]
     sec = sec.replace("See the live Xiamen weather above", "See Xiamen weather above")   # no live weather in the PDF

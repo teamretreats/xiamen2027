@@ -525,7 +525,7 @@ nav button.on .i{transform:translateY(-1px)}
     </div>
 
     <div class="icard chartcard" id="groupsCard">
-      <h3>👥 Teams &amp; Rooms</h3>
+      <h3>👥 Rooms &amp; Teams</h3>
       <div id="groupsBody" style="padding:0 6px"></div>
     </div>
     <div class="icard">
@@ -543,7 +543,7 @@ nav button.on .i{transform:translateY(-1px)}
     </div>
   </section>
 
-  <!-- MY TRIP (trip details form + team/room scratch cards) -->
+  <!-- MY TRIP (trip details form + room/team scratch cards) -->
   <section id="tab-trip" hidden>
     <div class="alb-top"><h2>My Trip</h2><span id="tripHi"></span></div>
     <div id="tripBody"></div>
@@ -1466,7 +1466,7 @@ function switchAccount() {
   showSignIn("Pick the Google account you gave for the retreat.");
 }
 
-/* ---------- My Trip: trip details form (opens trip.html in a new tab) + team/room scratch cards ---------- */
+/* ---------- My Trip: trip details form (opens trip.html in a new tab) + room/team scratch cards ---------- */
 // One Google sign-in serves both tabs: the album keeps Google's 1-hour token (xm27-idt);
 // My Trip swaps it for its own pass (xm27-pass), 30 days or 30 minutes ("Keep me signed in").
 const TRIP = {
@@ -1533,7 +1533,7 @@ function foilTeaser(label) {
 
 function tripLocked() {
   tripCard(`<div class="icard center tmsg"><div class="ic">🔒</div><h3>Opens Thu 12 Nov, 2pm</h3>
-    <p class="muted">Fill in your flights, extension plans & emergency contact, then scratch to reveal your team & roommate!</p>
+    <p class="muted">Fill in your flights, extension plans & emergency contact, then scratch to reveal your roommate & team!</p>
     <div class="count" id="tripCd"></div></div>${foilTeaser("🔒")}`);
   const tick = () => {
     const ms = TRIP.opensAt - now();
@@ -1671,7 +1671,7 @@ function renderTripCards(justNow) {
     const k = scrKey(it.kind, it.data), done = isScratched(k);
     return `<div class="scratch${done ? " done" : ""}" data-sk="${k}" data-label="${esc(it.label)}"><div class="face">${it.face}</div>${done ? "" : `<canvas></canvas>`}</div>
       ${done ? "" : `<button class="linkbtn reveal" data-reveal="${i}">Reveal without scratching</button>`}`;
-  }).join("")}</div>` : `<div class="icard center tmsg"><div class="ic">💬</div><h3>Your team & room are on the way</h3><p class="muted">We'll let you know soon.</p></div>`;
+  }).join("")}</div>` : `<div class="icard center tmsg"><div class="ic">💬</div><h3>Your room & team are on the way</h3><p class="muted">We'll let you know soon.</p></div>`;
   const editable = st.window.status !== "closed";
   tripCard(`${head}${cards}<div id="tripAfter"></div><div id="tripJacket">${jacketCard()}</div>
     <div class="btns center-btns">${editable ? `<button class="btn" data-tripform>✏️ Edit my trip details ↗</button>` : ""}</div>
@@ -1683,8 +1683,8 @@ function renderTripCards(justNow) {
 function updateTripAfter() {
   const left = document.querySelectorAll("#tripBody .scratch:not(.done)").length;
   const el = document.getElementById("tripAfter"); if (!el) return;
-  el.innerHTML = left ? "" : `<div class="btns center-btns"><button class="btn primary" data-tripall>👀 See all teams & rooms</button></div>
-    <p class="muted small" style="text-align:center">Also in Info → Teams & Rooms</p>`;
+  el.innerHTML = left ? "" : `<div class="btns center-btns"><button class="btn primary" data-tripall>👀 See all rooms & teams</button></div>
+    <p class="muted small" style="text-align:center">Also in Info → Rooms & Teams</p>`;
 }
 function revealCard(box) {
   if (box.classList.contains("done")) return;
@@ -1758,7 +1758,7 @@ function confetti(el) {
   setTimeout(() => layer.remove(), 1500);
 }
 
-/* everyone's teams & rooms: shown in Info → Groups & ICs once your own cards are scratched */
+/* everyone's rooms & teams: shown in Info → Rooms & Teams once your own cards are scratched */
 const GR = { html: null, loading: false };
 function allScratched() {
   const st = TR.state; if (!st || !st.cards) return false;
@@ -1769,7 +1769,7 @@ function allScratched() {
 }
 const groupsBody = html => { const el = document.getElementById("groupsBody"); if (el) el.innerHTML = html; };
 function groupsLocked() {
-  groupsBody(`<p class="muted">🔒 Your team & room are revealed in <b>My Trip</b>. Fill in your trip details and scratch your cards to unlock the full lists here.</p>
+  groupsBody(`<p class="muted">🔒 Your room & team are revealed in <b>My Trip</b>. Fill in your trip details and scratch your cards to unlock the full lists here.</p>
     <div class="btns"><button class="btn primary" data-gotrip>🎫 Go to My Trip</button></div>`);
 }
 function renderGroups() {
@@ -1784,7 +1784,7 @@ function renderGroups() {
       .catch(() => {}).finally(() => { GR.loading = false; if (TR.state) renderGroups(); else groupsLocked(); });
   }
   if (!allScratched()) return groupsLocked();
-  groupsBody(`<p class="muted">⏳ Loading teams & rooms…</p>`);
+  groupsBody(`<p class="muted">⏳ Loading rooms & teams…</p>`);
   tripApi({ action: "all", pass: p }).then(r => {
     if (!r.ok) return groupsLocked();
     const me = TR.state.me.short;

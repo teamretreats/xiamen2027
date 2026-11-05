@@ -165,7 +165,7 @@ function start() {
 
 function showLocked() {
   app(`<div class="center"><div class="ic">🔒</div><h2>Opens Thu 12 Nov, 2pm</h2>
-    <p class="muted">Fill in your flights, extension plans and emergency contact here, then scratch to reveal your team & roommate!</p>
+    <p class="muted">Fill in your flights, extension plans and emergency contact here, then scratch to reveal your roommate & team!</p>
     <div class="count" id="cd"></div><p class="btns"><a class="btn" href="${HANDBOOK}">Back to the handbook</a></p></div>`);
   const tick = () => {
     const ms = TRIP.opensAt - Date.now();
@@ -579,7 +579,7 @@ function doneFor() {   // admin filled in for someone else
 
 function done() {
   app(`<div class="center"><div class="ic">🎉</div><h2>All set, ${esc(S.state.me.short)}!</h2>
-    <p>Your trip details are in. Now head back to the handbook and <b>scratch to reveal your team & roommate</b>!</p>
+    <p>Your trip details are in. Now head back to the handbook and <b>scratch to reveal your roommate & team</b>!</p>
     <div class="btns"><button class="btn primary" id="back">Back to the handbook</button></div>
     <p class="muted" style="margin-top:12px;font-size:13px">Using the handbook from your Home Screen? Just switch back to it. Your cards will be ready.</p></div>`);
   $("back").onclick = () => {
