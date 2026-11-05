@@ -261,6 +261,7 @@ function loadState(pass) {
       <p class="muted">Need to change something? Please message Yen Ling.</p><div class="btns"><a class="btn primary" href="${HANDBOOK}">Back to the handbook</a></div></div>`);
     if (w.status === "before" && !r.me.core) return showLocked();
     S.form = Object.assign(blankForm(), r.mine || {});
+    if (!r.mine && !S.form.passport && r.ppName) S.form.passport = ppClean(r.ppName);
     if (r.mine && r.mine.ecMobile && !r.mine.ecNum) {   // older entries saved the number as one string
       const m = String(r.mine.ecMobile).replace(/[^\d+]/g, "").match(/^\+(65|852|886|60|86|62|63|91|61|44|1)(\d+)$/);
       if (m) { S.form.ecCc = m[1]; S.form.ecNum = m[2]; }
