@@ -1552,7 +1552,7 @@ function tripSignIn(msg) {
     <p class="muted">${msg || "Use the Google account you gave for the retreat (the same one as the photo album)."}</p>
     <div class="gbtn" id="tgbtn"><p class="muted">Loading Google sign-in…</p></div>
     <label class="keep"><input type="checkbox" id="tkeep" ${keepPref() ? "checked" : ""}> Keep me signed in</label>
-    <p class="muted small">Ticked: stay signed in for 30 days on this device. Unticked: signed out after 30 minutes.</p></div>${foilTeaser("Login and fill in your trip details to unlock")}`);
+    <p class="muted small">Ticked: stay signed in for 30 days on this device. Unticked: signed out after 30 minutes.</p></div>${foilTeaser("Sign in and fill in your trip details to unlock")}`);
   document.getElementById("tkeep").onchange = e => { try { localStorage.setItem("xm27-keep", e.target.checked ? "1" : "0"); } catch (x) {} };
   loadGis().then(() => {
     const el = document.getElementById("tgbtn"); if (!el) return;
