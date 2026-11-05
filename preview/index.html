@@ -1671,7 +1671,7 @@ function renderTripCards(justNow) {
     const k = scrKey(it.kind, it.data), done = isScratched(k);
     return `<div class="scratch${done ? " done" : ""}" data-sk="${k}" data-label="${esc(it.label)}"><div class="face">${it.face}</div>${done ? "" : `<canvas></canvas>`}</div>
       ${done ? "" : `<button class="linkbtn reveal" data-reveal="${i}">Reveal without scratching</button>`}`;
-  }).join("")}</div>` : `<div class="icard center tmsg"><div class="ic">💬</div><h3>Your team & room are on the way</h3></div>`;
+  }).join("")}</div>` : `<div class="icard center tmsg"><div class="ic">💬</div><h3>Your team & room are on the way</h3><p class="muted">We'll let you know soon.</p></div>`;
   const editable = st.window.status !== "closed";
   tripCard(`${head}${cards}<div id="tripAfter"></div><div id="tripJacket">${jacketCard()}</div>
     <div class="btns center-btns">${editable ? `<button class="btn" data-tripform>✏️ Edit my trip details ↗</button>` : ""}</div>
