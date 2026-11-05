@@ -1486,6 +1486,7 @@ function tripExchange(cred, show) {
     if (r.ok) { setTripPass(r.pass, r.exp); if (show) tripLoad(r.pass); return; }
     if (!show) return;
     if (r.error === "not_listed") return tripWrong(r.email);
+    if (r.error === "not_matched") return tripUnmatched(r.email);
     tripSignIn("Sign-in didn't work. Please try again.");
   }).catch(() => { if (show) tripNet(() => tripExchange(cred, true)); });
 }
@@ -1537,6 +1538,10 @@ function tripWrong(email) {
   tripMsg("🙈", "This is for retreat attendees", "Signed in with the wrong account? Switch to the one you gave for the retreat.",
     `<p class="who">Signed in as ${esc(email)}</p><div class="btns"><button class="btn primary" data-tripout>Switch account</button></div>`);
 }
+function tripUnmatched(email) {
+  tripMsg("🧐", "Almost there!", "You're on the guest list but we couldn't match your account yet. Please message Yen Ling.",
+    `<p class="who">Signed in as ${esc(email)}</p><div class="btns"><button class="btn" data-tripout>Switch account</button></div>`);
+}
 function tripNet(retry) {
   tripMsg("📡", "Couldn't connect", "Check your connection and try again.", `<div class="btns"><button class="btn primary" id="tripRetry">Try again</button></div>`);
   document.getElementById("tripRetry").onclick = retry;
@@ -1553,6 +1558,7 @@ function tripLoad(pass) {
     if (!r.ok) {
       if (r.error === "signed_out") { setTripPass(null); return tripSignIn("Your sign-in expired. Please sign in again."); }
       if (r.error === "not_listed") return tripWrong(r.email);
+      if (r.error === "not_matched") return tripUnmatched(r.email);
       throw new Error(r.error);
     }
     TR.state = r;
