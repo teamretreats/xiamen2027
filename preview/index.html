@@ -309,12 +309,13 @@ button{font:inherit;cursor:pointer}
 .chart.two{row-gap:14px}
 .chart h5{display:flex;flex-direction:column}
 .chart .col{min-width:0}
-.chart h5{margin:0 0 7px;padding-bottom:3px;border-bottom:1.5px solid var(--sea-2);font-size:1em;color:var(--sea-2);font-weight:700;line-height:1.25;justify-content:flex-end}
+.chart h5{margin:0 0 7px;padding-bottom:3px;border-bottom:1.5px solid var(--sea-2);font-size:1em;color:var(--sea-2);font-weight:700;line-height:1.25;justify-content:center}
 .chart h5 span{display:block;white-space:nowrap;overflow:hidden;font-size:1.15em;text-transform:uppercase;letter-spacing:.05em}
 .gnote{font-weight:400;font-size:13px;color:var(--muted);margin-left:6px}
 .gdiv{border:0;border-top:1px solid var(--line);margin:28px 0 0}
 .gdiv + h4{margin-top:24px}
 .chart.glast{margin-bottom:14px}
+.chart[data-cols].two{row-gap:24px}
 .chart h5 small{display:block;font-weight:500;color:var(--muted);font-size:.75em;line-height:1.2;margin-top:1px}
 .chart .nm{white-space:nowrap;overflow:hidden;line-height:1.6}
 .chart .nm.ld{font-weight:700}
@@ -1831,7 +1832,7 @@ function renderGroups() {
     const me = TR.state.me.short;
     const nm = (n, lead) => `<div class="nm${lead ? " ld" : ""}${n === me ? " me" : ""}">${esc(n)}</div>`;
     const chart = (cols, fixed) => `<div class="chart" data-n="${cols.length}"${fixed ? ` data-cols="${fixed}"` : ""}>${cols.map(c =>
-      `<div class="col"><h5><span>${esc(c.name)}</span>${c.extra ? `<small>(${esc(c.extra)})</small>` : ""}</h5>${c.body}</div>`).join("")}</div>`;
+      `<div class="col"><h5><span>${esc(c.name)}</span>${c.extra ? `<small>(${esc(c.extra.replace(/\s+room$/i, ""))})</small>` : ""}</h5>${c.body}</div>`).join("")}</div>`;
     const teams = chart(r.teams.map(t => ({ name: t.name, body: t.lead.map(n => nm(n, true)).join("") + t.members.map(n => nm(n)).join("") }))).replace('class="chart"', 'class="chart glast"');
     const vno = v => Number((v.name.match(/\d+/) || [0])[0]);
     const vs = r.villas.filter(v => vno(v) >= 20).concat(r.villas.filter(v => vno(v) < 20));   // Villa 20s on top, then 8 & 9
