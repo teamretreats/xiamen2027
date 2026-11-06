@@ -235,6 +235,10 @@ button{font:inherit;cursor:pointer}
 .atile{position:relative;aspect-ratio:1;border:0;padding:0;background:#e6ddcf;overflow:hidden}
 .atile img{width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .3s}
 .atile img.ld{opacity:1}
+.atile .you{position:absolute;left:5px;top:5px;background:rgba(255,253,249,.92);color:var(--sea);font-size:10px;font-weight:700;border-radius:999px;padding:1px 7px;z-index:1}
+.atile.new::before{content:"";position:absolute;right:6px;top:6px;width:9px;height:9px;border-radius:50%;background:var(--sun);box-shadow:0 0 0 2px #fff;z-index:1}
+.caught{grid-column:1/-1;display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12.5px;padding:10px 6px;background:var(--sand)}
+.caught::before,.caught::after{content:"";flex:1;border-top:1px solid var(--line)}
 .atile.vid::after{content:"▶";position:absolute;right:6px;bottom:6px;background:rgba(0,0,0,.55);color:#fff;font-size:11px;border-radius:999px;padding:2px 7px}
 .alb-up{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin:0 0 12px}
 .alb-up .btns{justify-content:center}
@@ -567,7 +571,7 @@ nav button.on .i{transform:translateY(-1px)}
       </div>
       <input type="file" id="albCam" accept="image/*,video/*" capture="environment" hidden>
       <input type="file" id="albPick" accept="image/*,video/*" multiple hidden>
-      <p class="consent">Uploaded photos and videos are shared with all retreat attendees until 28 Feb 2027. Save a copy if needed. You may delete your own uploads anytime.</p>
+      <p class="consent">Photos, videos, reactions, comments and tags are shared with all retreat attendees until 28 Feb 2027, then kept on each person's souvenir card.</p>
       <div class="upq" id="albQueue"></div>
     </div>
     <div class="alb-wall" id="albWall">
@@ -842,6 +846,7 @@ function renderCarousel() {
 
 let CUR_TAB = "next";
 function showTab(name) {
+  if (CUR_TAB === "album" && name !== "album") albMarkSeen();
   CUR_TAB = name;
   document.querySelectorAll("nav [data-tab]").forEach(b => b.classList.toggle("on", b.dataset.tab === name));
   ["next", "agenda", "info", "trip", "album"].forEach(k => document.getElementById("tab-" + k).hidden = k !== name);
@@ -1073,9 +1078,64 @@ function savedToken() {
 }
 // The album accepts the 30-day My Trip pass ("xp1.…") too, so no Google sign-in is needed in China.
 // Prefer the pass; fall back to Google's 1-hour token.
-const isPass = tok => typeof tok === "string" && tok.indexOf("xp1.") === 0;
-function tokOk(tok) { return !!tok && (isPass(tok) ? tok === tripPass() : tokenExp(tok) - Date.now() > 120000); }
-function albumToken() { return tripPass() || savedToken(); }
+// The album also has its own 30-day pass ("xa1.…"): used when My Trip can't issue one (after 28 Feb).
+const isPass = tok => typeof tok === "string" && (tok.indexOf("xp1.") === 0 || tok.indexOf("xa1.") === 0);
+function tokOk(tok) {
+  if (!tok) return false;
+  if (tok.indexOf("xp1.") === 0) return tok === tripPass();
+  if (tok.indexOf("xa1.") === 0) return tok === albumPass();
+  return tokenExp(tok) - Date.now() > 120000;
+}
+function albumPass() {
+  try { const j = JSON.parse(localStorage.getItem("xm27-apass") || "null"); if (j && j.exp - Date.now() > 60000) return j.pass; } catch (e) {}
+  return null;
+}
+function setAlbumPass(p, exp) {
+  try { p ? localStorage.setItem("xm27-apass", JSON.stringify({ pass: p, exp: exp })) : localStorage.removeItem("xm27-apass"); } catch (e) {}
+}
+function albumSignIn(cred) {
+  albumApi({ action: "signin", idToken: cred }).then(r => { if (r.ok) setAlbumPass(r.pass, r.exp); }).catch(() => {});
+}
+function albumToken() { return tripPass() || albumPass() || savedToken(); }
+
+/* Saved on this phone for a fast reopen: the photo list, small images, and what you've already seen.
+   Signing out / switching account wipes all of it. */
+const TSTORE = "xm27-thumbs";
+const tKey = (id, size) => `./__thumb/${encodeURIComponent(id)}-${size}`;
+function thumbGet(id, size) {
+  if (!window.caches) return Promise.resolve(null);
+  return caches.open(TSTORE).then(c => c.match(tKey(id, size)))
+    .then(r => r ? r.blob().then(b => URL.createObjectURL(b)) : null).catch(() => null);
+}
+function thumbPut(id, size, url) {
+  if (!window.caches) return;
+  fetch(url).then(r => r.blob())
+    .then(b => caches.open(TSTORE).then(c => c.put(tKey(id, size), new Response(b, { headers: { "Content-Type": b.type || "image/jpeg" } }))))
+    .catch(() => {});
+}
+function albSaveLocal() {
+  try { localStorage.setItem("xm27-alb", JSON.stringify({ email: AL.email, items: AL.items })); } catch (e) {}
+}
+function albLoadLocal() {
+  try { return JSON.parse(localStorage.getItem("xm27-alb") || "null"); } catch (e) { return null; }
+}
+function albWipeLocal() {
+  ["xm27-alb", "xm27-apass", "xm27-seen"].forEach(k => { try { localStorage.removeItem(k); } catch (e) {} });
+  if (window.caches) caches.delete(TSTORE).catch(() => {});
+  Object.keys(TH).forEach(k => delete TH[k]);
+  AL.items = null; AL.seen = null;
+}
+// "Seen": the newest photo time when you last left the album (per phone). Photos newer than that get a dot.
+function albSeen() {
+  try { return JSON.parse(localStorage.getItem("xm27-seen") || "null"); } catch (e) { return null; }
+}
+function albMarkSeen() {
+  if (!AL.items || !AL.items.length) return;
+  const old = albSeen() || { p: 0, a: 0 };
+  const p = Math.max(old.p, ...AL.items.map(x => Date.parse(x.at) || 0));
+  try { localStorage.setItem("xm27-seen", JSON.stringify({ p: p, a: Date.now() })); } catch (e) {}
+}
+document.addEventListener("visibilitychange", () => { if (document.hidden && CUR_TAB === "album") albMarkSeen(); });
 function saveToken(tok) {
   AL.token = tok;
   try { tok ? localStorage.setItem("xm27-idt", tok) : localStorage.removeItem("xm27-idt"); } catch (e) {}
@@ -1093,9 +1153,15 @@ function openAlbum() {
     return;
   }
   if (AL.busy) return;
-  if (AL.items && tokOk(AL.token)) return refreshGallery();
+  AL.seen = albSeen();                               // what was new is fixed while you're here
+  if (AL.items && tokOk(AL.token)) { renderGrid(); return refreshGallery(); }
   const tok = (tokOk(AL.token) && AL.token) || albumToken();
-  if (tok) checkAccess(tok);
+  let quiet = false;
+  if (tok && !AL.items) {
+    const c = albLoadLocal();
+    if (c && c.items && c.items.length) { AL.items = c.items; AL.email = c.email; renderGrid(); quiet = true; }
+  }
+  if (tok) checkAccess(tok, quiet);
   else showSignIn();
   if (!tok) albumApi({ action: "count" }).then(r => r.ok && albCountText(r)).catch(() => {});
 }
@@ -1136,21 +1202,28 @@ function loadGis() {
   return AL.gis;
 }
 
-function checkAccess(tok) {
+function checkAccess(tok, quiet) {
   AL.busy = true; AL.token = tok;
-  albCard(`<div class="ic">⏳</div><h3>Checking the guest list…</h3>`);
-  albumApi({ action: "whoami", token: tok }).then(r => {
+  if (!quiet) albCard(`<div class="ic">⏳</div><h3>Checking the guest list…</h3>`);
+  albumApi({ action: "open", token: tok, since: (AL.seen && AL.seen.a) || 0 }).then(r => {
     if (!r.ok) {
       if (r.error === "invalid_token") return signInAgain();
       throw new Error(r.error);
     }
-    albCountText(r);
     const who = `<p class="who">Signed in as ${esc(r.email)}</p>`;
     const sw = `<div class="btns"><button class="btn" data-albswitch>Switch account</button></div>`;
+    AL.me = r;
     if (r.access === "ok") {
       AL.email = r.email;
-      return loadGallery();
-    } else if (r.access === "not_listed") {
+      albApply(r);
+      renderGrid();
+      albSaveLocal();
+      return;
+    }
+    AL.items = null;
+    albCountText(r);
+    if (r.access === "not_listed") {
+      albWipeLocal();                                  // not on the guest list: nothing stays on this phone
       albCard(`<div class="ic">🙈</div><h3>This album is for retreat attendees</h3>
         <p>Signed in with the wrong account? Switch to the one you gave for the retreat.</p>${who}${sw}`);
     } else if (r.access === "not_open") {
@@ -1160,6 +1233,7 @@ function checkAccess(tok) {
     }
 
   }).catch(() => {
+    if (quiet) return;                                 // the saved gallery stays on screen
     albCard(`<div class="ic">📡</div><h3>Couldn't reach the album</h3>
       <p>Check your connection and try again. In China, the album needs roaming data.</p>
       <div class="btns"><button class="btn primary" id="albRetry">Try again</button></div>`);
@@ -1179,25 +1253,27 @@ const ICON = {
 const DRIVE_SVG = `<svg class="drv" viewBox="0 0 87.3 78" aria-hidden="true"><path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/><path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0-1.2 4.5h27.5z" fill="#00ac47"/><path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335"/><path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"/><path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc"/><path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/></svg>`;
 
 function signInAgain() {
-  if (isPass(AL.token)) setTripPass(null);   // the pass was refused (e.g. everyone signed out): start fresh
+  if (isPass(AL.token)) { if (AL.token.indexOf("xa1.") === 0) setAlbumPass(null); else setTripPass(null); }   // the pass was refused: start fresh
   saveToken(null); AL.items = null;
   showSignIn("Your sign-in expired. Please sign in again.");
 }
 
-function loadGallery() {
-  albCard(`<div class="ic">⏳</div><h3>Loading photos…</h3>`);
-  return albumApi({ action: "list", token: AL.token }).then(r => {
-    if (!r.ok) { if (r.error === "invalid_token") return signInAgain(); throw new Error(r.error); }
-    AL.items = r.items;
-    renderGrid();
-  });
+// Photo list + reactions/comments/tags + "what's new for me", as one answer from the album script
+function albApply(r) {
+  AL.items = r.items || [];
+  AL.comments = r.comments || {};
+  AL.activity = r.activity || [];
+  AL.activityCount = r.activityCount || 0;
+  AL.roster = r.roster || [];
 }
 
 function refreshGallery() {
-  albumApi({ action: "list", token: AL.token }).then(r => {
+  albumApi({ action: "list", token: AL.token, since: (AL.seen && AL.seen.a) || 0 }).then(r => {
     if (!r.ok) { if (r.error === "invalid_token") signInAgain(); return; }
-    const same = AL.items.map(x => x.id).join() === r.items.map(x => x.id).join();
-    AL.items = r.items;
+    const same = (AL.items || []).map(x => x.id).join() === r.items.map(x => x.id).join();
+    AL.me = r;
+    albApply(r);
+    albSaveLocal();
     if (!same) renderGrid();
   }).catch(() => {});
 }
@@ -1213,8 +1289,14 @@ function renderGrid() {
     return;
   }
   const grid = document.getElementById("albGrid");
+  const seenAt = AL.seen ? AL.seen.p : Infinity;          // first visit on this phone: nothing is "new"
+  const isNew = it => !it.mine && (Date.parse(it.at) || 0) > seenAt;
+  const nNew = items.filter(isNew).length;
+  let lastNew = -1;
+  items.forEach((it, i) => { if (isNew(it)) lastNew = i; });
   grid.innerHTML = items.map((it, i) =>
-    `<button class="atile${it.video ? " vid" : ""}" data-aview="${i}" data-id="${esc(it.id)}" aria-label="${it.video ? "Video" : "Photo"} by ${esc(it.by)}"><img alt=""></button>`).join("");
+    `<button class="atile${it.video ? " vid" : ""}${isNew(it) ? " new" : ""}" data-aview="${i}" data-id="${esc(it.id)}" aria-label="${it.video ? "Video" : "Photo"} by ${esc(it.by)}${isNew(it) ? ", new" : ""}"><img alt="">${it.mine ? `<span class="you">You</span>` : ""}</button>`
+    + (nNew && i === lastNew && i < items.length - 1 ? `<div class="caught">You're all caught up</div>` : "")).join("");
   document.getElementById("albWall").hidden = true;
   document.getElementById("albUp").hidden = false;
   grid.hidden = false;
@@ -1280,12 +1362,17 @@ function upright(url, it) {
 const itemById = id => (AL.items || []).find(x => x.id === id);
 
 function getThumbs(ids, size) {
-  const need = ids.filter(id => !TH[id + "|" + size]);
-  if (!need.length) return Promise.resolve();
-  return albumApi({ action: "thumbs", token: AL.token, ids: need, size }).then(r => {
-    if (r.ok) return Promise.all(Object.keys(r.thumbs).map(id =>
-      upright(r.thumbs[id], itemById(id)).then(u => { TH[id + "|" + size] = u; })));
-    else if (r.error === "invalid_token") { closeViewer(); signInAgain(); }
+  const want = ids.filter(id => !TH[id + "|" + size]);
+  if (!want.length) return Promise.resolve();
+  const keep = size === 400 || size === 1200;            // grid + viewer sizes are saved on the phone
+  return Promise.all(want.map(id => keep ? thumbGet(id, size).then(u => { if (u) TH[id + "|" + size] = u; }) : null)).then(() => {
+    const need = want.filter(id => !TH[id + "|" + size]);
+    if (!need.length) return;
+    return albumApi({ action: "thumbs", token: AL.token, ids: need, size }).then(r => {
+      if (r.ok) return Promise.all(Object.keys(r.thumbs).map(id =>
+        upright(r.thumbs[id], itemById(id)).then(u => { TH[id + "|" + size] = u; if (keep) thumbPut(id, size, u); })));
+      else if (r.error === "invalid_token") { closeViewer(); signInAgain(); }
+    });
   }).catch(() => {});
 }
 
@@ -1302,11 +1389,10 @@ function showAlbumPhoto(img, it) {
   const next = AL.items[VW.i + 1];
   if (next) setTimeout(() => getThumbs([next.id], 1200), 600);
   document.getElementById("viewerCredit").textContent = `${it.video ? "🎬 Video · " : ""}by ${it.by} · ${fmtWhen(it.at)}`;
-  const drive = `<a class="vbtn" href="${driveLink(it.id)}" target="_blank" rel="noopener" aria-label="Download HD original from Google Drive">${ICON.download}${ICON.hd}</a>`;
   const del = it.mine ? `<button class="vbtn" data-adel aria-label="Delete">${ICON.del}</button>` : "";
   document.getElementById("viewerAct").innerHTML = (it.video
-    ? `<a class="vbtn" href="${driveLink(it.id)}" target="_blank" rel="noopener" aria-label="Play">${ICON.play}</a>${drive}`
-    : `<button class="vbtn" data-adl aria-label="Download">${ICON.download}</button>${drive}`) + del;
+    ? `<a class="vbtn" href="${driveLink(it.id)}" target="_blank" rel="noopener" aria-label="Play">${ICON.play}</a>`
+    : `<button class="vbtn" data-adl aria-label="Download">${ICON.download}</button>`) + del;
 }
 
 const DL = { id: null, file: null };
@@ -1314,7 +1400,8 @@ function albDownload(btn) {
   const it = AL.items[VW.i];
   if (DL.id === it.id && DL.file) return saveFile(DL.file, btn);
   btn.disabled = true; btn.classList.add("busy");
-  albumApi({ action: "thumbs", token: AL.token, ids: [it.id], size: 2000 }).then(r => {
+  const full = Math.min(3000, Math.max(it.pw || 0, it.ph || 0) || 2000);   // the size it was uploaded at
+  albumApi({ action: "thumbs", token: AL.token, ids: [it.id], size: full }).then(r => {
     const u = r.ok && r.thumbs[it.id];
     if (!u) throw new Error("no_image");
     return upright(u, it).then(fixed => fetch(fixed)).then(x => x.blob());
@@ -1422,9 +1509,39 @@ async function upCall(body, tries = 3) {
   }
 }
 
+// Photos go up at 2560px on the long side (JPEG). Faster uploads, and the phone's location tags are left behind.
+const SHRINK = { max: 2560, q: 0.85 };
+function shrinkImage(file) {
+  if (!file.type.startsWith("image/") || /gif/i.test(file.type)) return Promise.resolve(file);
+  return new Promise(ok => {
+    const url = URL.createObjectURL(file), im = new Image();
+    im.onload = () => {
+      const w = im.naturalWidth, h = im.naturalHeight, k = Math.min(1, SHRINK.max / Math.max(w, h));
+      const c = document.createElement("canvas");
+      c.width = Math.round(w * k); c.height = Math.round(h * k);
+      c.getContext("2d").drawImage(im, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      c.toBlob(b => ok(b ? new File([b], file.name.replace(/\.[^.]+$/, "") + ".jpg", { type: "image/jpeg" }) : file), "image/jpeg", SHRINK.q);
+    };
+    im.onerror = () => { URL.revokeObjectURL(url); ok(file); };   // can't read it here: send it as it is
+    im.src = url;
+  });
+}
+
 async function uploadOne(job) {
   job.state = "sending"; job.msg = ""; upRow(job);
-  if (!job.uploadId) {
+  if (!job.ready) {                                        // one photo at a time, so big photos don't fill the phone's memory
+    job.file = await shrinkImage(job.file);
+    if (/\.jpg$/i.test(job.file.name)) job.name = job.name.replace(/\.[^.]+$/, ".jpg");
+    job.ready = true; upRow(job);
+  }
+  if (!job.uploadId && job.file.size <= UP.CHUNK) {        // small enough: start + send in one call
+    const r = await upCall({ action: "upstart", name: job.name, mime: job.file.type, size: job.file.size, data: await readB64(job.file) });
+    if (!r.ok) throw r;
+    job.uploadId = r.uploadId;
+    if (r.done) { job.sent = job.file.size; return; }
+    job.sent = r.received || 0;
+  } else if (!job.uploadId) {
     const r = await upCall({ action: "upstart", name: job.name, mime: job.file.type, size: job.file.size });
     if (!r.ok) throw r;
     job.uploadId = r.uploadId; job.sent = 0;
@@ -1475,7 +1592,7 @@ window.addEventListener("beforeunload", e => { if (UP.running) { e.preventDefaul
 }));
 
 function switchAccount() {
-  saveToken(null); AL.items = null; setTripPass(null);
+  saveToken(null); setTripPass(null); albWipeLocal();
   if (window.google && google.accounts) google.accounts.id.disableAutoSelect();
   showSignIn("Pick the Google account you gave for the retreat.");
 }
@@ -1522,7 +1639,7 @@ function tripExchange(cred, show) {
   if (show) tripMsg("⏳", "Signing you in…");
   tripApi({ action: "signin", idToken: cred, keep: keepPref() }).then(r => {
     if (r.ok) { setTripPass(r.pass, r.exp); if (show) tripLoad(r.pass); return; }
-    if (!show) return;
+    if (!show) { if (r.error === "not_listed" || r.error === "not_matched") albumSignIn(cred); return; }
     if (r.error === "not_listed") return tripWrong(r.email);
     if (r.error === "not_matched") return tripUnmatched(r.email);
     tripSignIn("Sign-in didn't work. Please try again.");
@@ -1586,7 +1703,7 @@ function tripNet(retry) {
   document.getElementById("tripRetry").onclick = retry;
 }
 function tripSignOut() {
-  setTripPass(null); saveToken(null); AL.items = null;
+  setTripPass(null); saveToken(null); albWipeLocal();
   if (window.google && google.accounts) google.accounts.id.disableAutoSelect();
   tripSignIn("Pick the Google account you gave for the retreat.");
 }
