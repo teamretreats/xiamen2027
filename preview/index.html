@@ -336,7 +336,12 @@ button{font:inherit;cursor:pointer}
 .wrow{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:15px}
 .wrow:last-child{border-bottom:0}
 .wrow span{font-size:20px;line-height:1.2}
-.ehint{font-size:12.5px;color:var(--muted);margin:6px 0 0}
+.egrp{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:12px 0 6px}
+.egrp:first-child{margin-top:4px}
+.egrid{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:2px}
+.egrid button{border:0;background:none;font-size:27px;line-height:1;aspect-ratio:1;border-radius:10px;padding:0;display:grid;place-items:center}
+.egrid button:active,.egrid button.mine{background:var(--sand)}
+.egrid button.mine{box-shadow:inset 0 0 0 2px var(--sun)}
 
 /* My Trip */
 .tmsg .ic{font-size:30px}
@@ -394,7 +399,7 @@ button{font:inherit;cursor:pointer}
 .gdiv + h4{margin-top:24px}
 .chart.glast{margin-bottom:14px}
 .chart h5 small{display:block;font-weight:500;color:var(--muted);font-size:.75em;line-height:1.2;margin-top:1px}
-.chart .nm{white-space:nowrap;overflow:hidden;line-height:1.6}
+.chart .nm{white-space:nowrap;overflow:hidden;line-height:1.6;text-align:center}
 .chart .nm.ld{font-weight:700}
 .chart .nm.me{color:var(--sun);font-weight:700}
 .tlist{border-bottom:1px solid var(--line);padding:10px 0}
@@ -1847,15 +1852,19 @@ function openTagPicker(it) {
     `<input type="text" id="tagQ" class="tagq" placeholder="Search a name" aria-label="Search a name" autocomplete="off" autocorrect="off" autocapitalize="words" enterkeyhint="done"><div class="plist" id="tagList">${list("")}</div>`);
   document.getElementById("tagQ").addEventListener("input", e => { document.getElementById("tagList").innerHTML = list(e.target.value); });
 }
+// Tap one to react (no keyboard). Kept to emoji that show on older phones too.
+const EMOJI = [
+  ["Smileys", "😀 😃 😄 😁 😆 😅 🤣 😂 🙂 😉 😊 😇 🥰 😍 🤩 😘 😋 😛 😜 🤪 😎 🥳 🤗 🤭 🤔 😏 😌 😴 🥹 😢 😭 😤 😱 😳 🤯 🙃 😬 🤤"],
+  ["Hands", "👍 👎 👏 🙌 🙏 💪 🤝 👌 ✌️ 🤞 🤟 🤙 👋 💯"],
+  ["Hearts & sparkle", "❤️ 🧡 💛 💚 💙 💜 🖤 🤍 💖 💕 💘 ✨ 🔥 ⭐ 🌟 💥 🎉 🎊"],
+  ["Trip & food", "✈️ 🏝️ 🌊 🌅 🏖️ ⛰️ 🥾 📸 🧳 🗺️ 🏨 🍜 🥟 🍲 🍤 🦀 🍵 🧋 🍻 🥂 🎂 🍰"],
+  ["Fun", "🙈 🐶 🐱 🐼 🦁 🐒 🐟 🎤 🎶 🕺 💃 🀄 🎲 🏆 🥇 👑 🤑 💰"]
+];
 function openEmojiPicker(it) {
-  openSheet("emoji", it.id, "React with any emoji",
-    `<input type="text" id="emoQ" placeholder="Tap here, then pick one emoji" aria-label="One emoji" autocomplete="off" style="width:100%;font-size:28px;text-align:center">
-     <p class="ehint">On iPhone, tap 😊 or 🌐 on the keyboard to find emoji.</p>`,
-    `<button class="send" id="emoSend" style="flex:1" disabled>React</button>`);
-  const q = document.getElementById("emoQ"), b = document.getElementById("emoSend");
-  q.addEventListener("input", () => { b.disabled = !oneEmoji(q.value); });
-  b.addEventListener("click", () => { const e = oneEmoji(q.value); if (!e) return; closeSheet(); react(it, e); });
-  setTimeout(() => q.focus(), 50);
+  const mine = ((it.r || []).find(x => x[2]) || [])[0];
+  openSheet("emoji", it.id, "React", EMOJI.map(([g, list]) =>
+    `<p class="egrp">${g}</p><div class="egrid">${list.split(" ").map(e =>
+      `<button type="button" data-epick="${e}" class="${e === mine ? "mine" : ""}" aria-label="${e}">${e}</button>`).join("")}</div>`).join(""));
 }
 function openWho(it) {
   openSheet("who", it.id, "Reactions", (it.r || []).map(x =>
@@ -1883,6 +1892,8 @@ document.addEventListener("click", e => {
   if (t.closest("#sheet")) {
     const sit = AL.items && AL.items.find(x => x.id === SH.id);
     if (!sit) return;
+    const ep = t.closest("[data-epick]");
+    if (ep) { const e = oneEmoji(ep.dataset.epick); closeSheet(); if (e) react(sit, e); return; }
     const tp = t.closest("[data-tagpick]");
     if (tp) {
       const name = tp.dataset.tagpick;
