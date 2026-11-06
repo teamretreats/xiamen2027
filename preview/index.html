@@ -256,18 +256,21 @@ button{font:inherit;cursor:pointer}
 .uprow .linkbtn{font-size:12px}
 .alb-foot{font-size:13px;color:var(--muted);text-align:center;margin:14px 0 0;word-break:break-all}
 .linkbtn{border:0;background:none;color:var(--sea-2);font-weight:600;padding:0;text-decoration:underline;font-size:13px}
-.vact{display:flex;gap:10px;justify-content:center;margin-top:12px}
+.vact{display:flex;gap:18px;justify-content:center;margin-top:8px}
 .vact[hidden]{display:none}
-.vbtn{background:#fff;border:0;border-radius:999px;height:42px;min-width:42px;padding:0 16px;display:inline-flex;align-items:center;justify-content:center;gap:6px;
-  font-weight:600;font-size:14px;color:var(--sea);text-decoration:none}
+.vbtn{background:none;border:0;border-radius:999px;height:44px;min-width:44px;padding:0 10px;display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  font-weight:600;font-size:14px;color:#fff;text-decoration:none}
+.vbtn:active{background:rgba(255,255,255,.14)}
+.vbtn:focus-visible{outline:2px solid #fff;outline-offset:1px}
 .vbtn:disabled{opacity:.7}
-.vbtn svg{width:22px;height:22px;fill:currentColor;flex:none}
+.vbtn svg{width:25px;height:25px;fill:currentColor;flex:none}
 .vbtn svg.drv{width:22px;height:20px}
 .vbtn.busy{animation:pulse 1.2s infinite}
 .vbtn .lbl{font-size:13px}
 
 /* Album: reactions, tags, comments (in the photo viewer) + the bottom sheet they open */
-.viewer.soc img{max-height:52vh}
+.viewer.soc img{max-height:50vh}
+.viewer.soc .vcount{margin-top:10px}
 .vsoc{width:100%;max-width:440px;margin-top:10px;display:grid;gap:8px;color:#fff;touch-action:manipulation}
 .vsoc[hidden]{display:none}
 .rrow{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
@@ -1274,6 +1277,7 @@ function checkAccess(tok, quiet) {
       albApply(r);
       renderGrid();
       albSaveLocal();
+      albViewerBits(curItem());
       return;
     }
     AL.items = null;
@@ -1304,7 +1308,8 @@ const ICON = {
   download: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z"/></svg>`,
   hd: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-8 12H9.5v-2h-2v2H6V9h1.5v2.5h2V9H11v6zm2-6h4c.55 0 1 .45 1 1v4c0 .55-.45 1-1 1h-4V9zm1.5 4.5h2v-3h-2v3z"/></svg>`,
   del: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>`,
-  play: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>`
+  play: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>`,
+  at: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10h5v-2h-5c-4.34 0-8-3.66-8-8s3.66-8 8-8 8 3.66 8 8v1.43c0 .79-.71 1.57-1.5 1.57s-1.5-.78-1.5-1.57V12c0-2.76-2.24-5-5-5s-5 2.24-5 5 2.24 5 5 5c1.38 0 2.64-.56 3.54-1.47.65.89 1.77 1.47 2.96 1.47 1.97 0 3.5-1.6 3.5-3.57V12c0-5.52-4.48-10-10-10zm0 13c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3z"/></svg>`
 };
 const DRIVE_SVG = `<svg class="drv" viewBox="0 0 87.3 78" aria-hidden="true"><path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/><path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0-1.2 4.5h27.5z" fill="#00ac47"/><path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335"/><path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"/><path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc"/><path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/></svg>`;
 
@@ -1331,6 +1336,7 @@ function refreshGallery() {
     albApply(r);
     albSaveLocal();
     if (!same) renderGrid();
+    if (document.getElementById("viewer").classList.contains("open")) albViewerBits(curItem());
   }).catch(() => {});
 }
 
@@ -1445,9 +1451,15 @@ function showAlbumPhoto(img, it) {
   const next = AL.items[VW.i + 1];
   if (next) setTimeout(() => getThumbs([next.id], 1200), 600);
   document.getElementById("viewerCredit").textContent = `${it.video ? "🎬 Video · " : ""}by ${it.by} · ${fmtWhen(it.at)}`;
+  albViewerBits(it);
+}
+// Buttons under the photo (@ tag · download/play · delete) + reactions/comments. Re-run once sign-in details arrive.
+function albViewerBits(it) {
+  if (!it) return;
   socRender(it);
+  const tag = canWrite() ? `<button class="vbtn" data-tagadd aria-label="Tag who's in this photo">${ICON.at}</button>` : "";
   const del = it.mine ? `<button class="vbtn" data-adel aria-label="Delete">${ICON.del}</button>` : "";
-  document.getElementById("viewerAct").innerHTML = (it.video
+  document.getElementById("viewerAct").innerHTML = tag + (it.video
     ? `<a class="vbtn" href="${driveLink(it.id)}" target="_blank" rel="noopener" aria-label="Play">${ICON.play}</a>`
     : `<button class="vbtn" data-adl aria-label="Download">${ICON.download}</button>`) + del;
 }
@@ -1517,7 +1529,6 @@ function socRender(it) {
     <div class="slinks">
       ${total ? `<button data-who>${total} reaction${total === 1 ? "" : "s"}</button>` : ""}
       ${it.c || w ? `<button data-comments>${it.c ? `💬 ${it.c} comment${it.c === 1 ? "" : "s"}` : "💬 Comment"}</button>` : ""}
-      ${w ? `<button data-tagadd>👥 Tag who's in it</button>` : ""}
     </div>`;
 }
 
@@ -1671,6 +1682,7 @@ function openWho(it) {
 document.addEventListener("click", e => {
   const it = curItem();
   const t = e.target;
+  if (it && t.closest("#viewerAct [data-tagadd]")) return openTagPicker(it);
   if (t.closest("#viewerSoc")) {
     if (!it) return;
     const rb = t.closest("[data-react]");
@@ -1678,7 +1690,6 @@ document.addEventListener("click", e => {
     if (t.closest("[data-reactplus]")) return openEmojiPicker(it);
     if (t.closest("[data-who]")) return openWho(it);
     if (t.closest("[data-comments]")) return openComments(it);
-    if (t.closest("[data-tagadd]")) return openTagPicker(it);
     const ut = t.closest("[data-untag]");
     if (ut) {
       const name = ut.dataset.untag;
