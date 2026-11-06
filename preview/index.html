@@ -2427,7 +2427,7 @@ function renderCard() {
 
 // Tapping a card photo or comment opens it in the Album (reactions + comments). If the album has closed
 // or the photo was deleted since, it opens here on the card instead.
-async function cardOpen(id, orig, cid) {
+async function cardOpen(id, orig, cid, isComment) {
   const t = CARD.meta[id];
   const albumId = orig || (t && t.orig) || id;
   const here = msg => { const i = CARD.list.findIndex(x => x.id === id); if (msg) toast(msg); if (i >= 0) openViewer("card", i); };
@@ -2439,8 +2439,9 @@ async function cardOpen(id, orig, cid) {
   const i = AL.items.findIndex(x => x.id === albumId);
   if (i < 0) { showTab("trip"); return here("That photo is no longer in the album"); }
   openViewer("album", i);
-  if (cid) {
+  if (isComment) {
     openComments(AL.items[i]);
+    if (!cid) return;
     const c = document.querySelector(`#sheetBody .cmt[data-cid="${CSS.escape(cid)}"]`);
     if (c) { c.scrollIntoView({ block: "center" }); c.classList.add("flash"); }
   }
@@ -2518,7 +2519,7 @@ async function sendAll() {
 document.addEventListener("click", e => {
   const t = e.target;
   const v = t.closest("[data-cview]");
-  if (v) { cardOpen(v.dataset.cview, v.dataset.corig, v.dataset.ccid); return; }
+  if (v) { cardOpen(v.dataset.cview, v.dataset.corig, v.dataset.ccid, "ccid" in v.dataset); return; }
   const m = t.closest("[data-cmore]");
   if (m) { const k = m.dataset.cmore; CARD.show[k] += k === "com" ? 50 : 12; renderCard(); return; }
   const sv = t.closest("[data-csave]");
