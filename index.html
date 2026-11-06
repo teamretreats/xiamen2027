@@ -150,6 +150,9 @@ button{font:inherit;cursor:pointer}
 /* Info tab */
 .icard{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin:18px 0 0}
 .icard h3{font-family:var(--serif);font-size:20px;margin:0 0 10px;color:var(--sea)}
+.icard.fold > :not(h3){display:none}
+.icard.fold h3{margin:0}
+.icard .foldbtn{float:right;border:0;background:none;color:var(--sea-2);font:600 13px var(--sans);padding:4px 0}
 .icard h4{font-size:15px;margin:16px 0 6px}
 .icard p{margin:6px 0}
 .icard .muted{color:var(--muted);font-size:14px}
@@ -235,6 +238,22 @@ button{font:inherit;cursor:pointer}
 .atile{position:relative;aspect-ratio:1;border:0;padding:0;background:#e6ddcf;overflow:hidden}
 .atile img{width:100%;height:100%;object-fit:cover;display:block;opacity:0;transition:opacity .3s}
 .atile img.ld{opacity:1}
+.atile .you{position:absolute;left:5px;top:5px;background:rgba(255,253,249,.92);color:var(--sea);font-size:10px;font-weight:700;border-radius:999px;padding:1px 7px;z-index:1}
+.atile.new::before{content:"";position:absolute;right:6px;top:6px;width:9px;height:9px;border-radius:50%;background:var(--sun);box-shadow:0 0 0 2px #fff;z-index:1}
+.atile .adot{position:absolute;left:5px;bottom:5px;background:rgba(255,253,249,.94);border-radius:999px;font-size:11px;line-height:1;padding:3px 5px;z-index:1}
+.actv{display:flex;gap:10px;align-items:center;width:100%;background:var(--card);border:1px solid var(--chipline,#f8dcc0);border-left:4px solid var(--sun);
+  border-radius:14px;padding:10px 12px;margin:0 0 12px;text-align:left;font-size:14px;color:var(--ink)}
+.actv[hidden]{display:none}
+.actv .bell{font-size:18px;flex:none}
+.actv .txt{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.actv .more{flex:none;color:var(--sea-2);font-weight:600;font-size:13px}
+.arow{display:flex;gap:10px;align-items:center;width:100%;border:0;border-bottom:1px solid var(--line);background:none;padding:10px 0;text-align:left;font-size:14.5px;color:var(--ink)}
+.arow:last-child{border-bottom:0}
+.arow img{width:44px;height:44px;border-radius:8px;object-fit:cover;flex:none;background:var(--line)}
+.arow .at{display:block;font-size:12px;color:var(--muted)}
+.arow .q{color:var(--muted)}
+.caught{grid-column:1/-1;display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12.5px;padding:10px 6px;background:var(--sand)}
+.caught::before,.caught::after{content:"";flex:1;border-top:1px solid var(--line)}
 .atile.vid::after{content:"▶";position:absolute;right:6px;bottom:6px;background:rgba(0,0,0,.55);color:#fff;font-size:11px;border-radius:999px;padding:2px 7px}
 .alb-up{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin:0 0 12px}
 .alb-up .btns{justify-content:center}
@@ -252,15 +271,137 @@ button{font:inherit;cursor:pointer}
 .uprow .linkbtn{font-size:12px}
 .alb-foot{font-size:13px;color:var(--muted);text-align:center;margin:14px 0 0;word-break:break-all}
 .linkbtn{border:0;background:none;color:var(--sea-2);font-weight:600;padding:0;text-decoration:underline;font-size:13px}
-.vact{display:flex;gap:10px;justify-content:center;margin-top:12px}
+.vact{display:flex;gap:18px;justify-content:center;margin-top:8px}
 .vact[hidden]{display:none}
-.vbtn{background:#fff;border:0;border-radius:999px;height:42px;min-width:42px;padding:0 16px;display:inline-flex;align-items:center;justify-content:center;gap:6px;
-  font-weight:600;font-size:14px;color:var(--sea);text-decoration:none}
+.vdel{position:absolute;right:calc(10px + env(safe-area-inset-right));bottom:calc(14px + env(safe-area-inset-bottom));opacity:.85}
+.vdel[hidden]{display:none}
+.vbtn{background:none;border:0;border-radius:999px;height:44px;min-width:44px;padding:0 10px;display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  font-weight:600;font-size:14px;color:#fff;text-decoration:none}
+.vbtn:active{background:rgba(255,255,255,.14)}
+.vbtn:focus-visible{outline:2px solid #fff;outline-offset:1px}
 .vbtn:disabled{opacity:.7}
-.vbtn svg{width:22px;height:22px;fill:currentColor;flex:none}
+.vbtn svg{width:25px;height:25px;fill:currentColor;flex:none}
 .vbtn svg.drv{width:22px;height:20px}
 .vbtn.busy{animation:pulse 1.2s infinite}
 .vbtn .lbl{font-size:13px}
+
+/* Album: reactions, tags, comments (in the photo viewer) + the bottom sheet they open */
+.viewer.soc img{max-height:50vh}
+.viewer.soc .vcount{margin-top:10px}
+.vsoc{width:100%;max-width:440px;margin-top:10px;display:grid;gap:8px;color:#fff;touch-action:manipulation}
+.vsoc[hidden]{display:none}
+.rrow{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.rbtn{border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.1);color:#fff;border-radius:999px;height:36px;min-width:44px;padding:0 10px;
+  font-size:17px;display:inline-flex;align-items:center;gap:5px;font-variant-numeric:tabular-nums}
+.rbtn small{font-size:13px;font-weight:600}
+.rbtn.mine{background:#fff;color:var(--sea);border-color:#fff}
+.rbtn.plus{font-size:18px;font-weight:600}
+.rbtn:disabled{opacity:1}
+.slinks{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;font-size:13px}
+.slinks button{border:0;background:none;color:rgba(255,255,255,.85);padding:2px 0;font-size:13px;text-decoration:underline;text-underline-offset:3px}
+.trow{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;font-size:13px;color:rgba(255,255,255,.8)}
+.tchip{background:rgba(255,255,255,.14);border:0;color:#fff;border-radius:999px;padding:4px 10px;font-size:13px;display:inline-flex;gap:6px;align-items:center}
+.tchip b{font-weight:400;opacity:.7;font-size:12px}
+.sheetbg{position:fixed;inset:0;background:rgba(10,20,30,.45);z-index:85;display:none}
+.sheetbg.open{display:block}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:86;background:var(--card);color:var(--ink);border-radius:20px 20px 0 0;
+  max-height:78vh;display:none;flex-direction:column;box-shadow:0 -10px 30px rgba(0,0,0,.2);padding-bottom:env(safe-area-inset-bottom)}
+.sheet.open{display:flex}
+.sheet .shd{display:flex;justify-content:space-between;align-items:center;padding:14px 16px 8px;border-bottom:1px solid var(--line)}
+.sheet .shd h3{margin:0;font-size:16px;letter-spacing:0;text-transform:none;color:var(--sea)}
+.sheet .shd button{border:0;background:var(--sand);width:32px;height:32px;border-radius:50%;font-size:15px;color:var(--sea)}
+.sheet .sbody{overflow-y:auto;padding:8px 16px 12px;-webkit-overflow-scrolling:touch;flex:1}
+.sheet .sfoot{padding:10px 16px 12px;border-top:1px solid var(--line);display:flex;gap:8px;align-items:flex-end}
+.sheet textarea,.sheet input[type=text]{flex:1;font:inherit;font-size:16px;border:1px solid var(--line);border-radius:14px;padding:9px 12px;background:#fff;color:var(--ink);resize:none;min-width:0}
+.sheet .send{border:0;background:var(--sea);color:#fff;border-radius:999px;height:40px;padding:0 16px;font-weight:600}
+.sheet .send:disabled{opacity:.5}
+.cmt{padding:9px 0;border-bottom:1px solid var(--line);font-size:15px}
+.cmt:last-child{border-bottom:0}
+.cmt .ch{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;color:var(--muted)}
+.cmt .ch b{color:var(--sea-2)}
+.cmt p{margin:2px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.cmt.pending{opacity:.55}
+.cmt.picked{background:#fff4e8;box-shadow:inset 4px 0 0 var(--sun);margin:0 -16px;padding-left:16px;padding-right:16px}
+.cmt.picked .ch::after{content:"From your souvenir card";color:var(--sun);font-weight:600;font-size:11.5px}
+.cmt.reply.picked{margin-left:6px;padding-left:12px}
+.cmt.reply{margin-left:22px;padding-left:10px;border-left:2px solid var(--line);border-bottom:0;padding-top:6px;padding-bottom:6px}
+.cmt .cacts{display:flex;gap:14px;margin-top:3px}
+.cmt .cacts button{border:0;background:none;color:var(--muted);font-size:12.5px;font-weight:600;padding:0}
+.cmt .men{color:var(--sea-2);font-weight:700}
+.cwrap{flex:1;display:grid;gap:6px;min-width:0}
+.crow{display:flex;gap:8px;align-items:flex-end}
+.rto{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--muted)}
+.rto button{border:0;background:none;color:var(--muted);font-size:14px;padding:0 2px}
+.msug{display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.msug::-webkit-scrollbar{display:none}
+.msug button{flex:none;border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 12px;font-size:14px;color:var(--sea-2);font-weight:600}
+.cmt .cdel{border:0;background:none;color:var(--muted);font-size:12.5px;text-decoration:underline;padding:0}
+.empty{color:var(--muted);font-size:14px;text-align:center;padding:16px 0}
+.sheet .tagq{width:100%;position:sticky;top:0;z-index:1;box-shadow:0 6px 8px -6px var(--card)}
+.sheet .sbody:has(.tagq){padding-top:10px}
+.plist button.grp{background:#fff4e8;border-color:#f8dcc0;color:#8a4a1f;font-weight:600}
+.plist{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:8px}
+.plist button{border:1px solid var(--line);background:#fff;border-radius:12px;padding:9px 10px;text-align:left;font-size:15px;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wrow{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:15px}
+.wrow:last-child{border-bottom:0}
+.wrow span{font-size:20px;line-height:1.2}
+.ejump{position:sticky;top:-8px;z-index:1;display:flex;justify-content:space-between;background:var(--card);padding:8px 0 6px;margin-top:-8px;border-bottom:1px solid var(--line)}
+.ejump button{border:0;background:none;font-size:21px;padding:4px;border-radius:8px}
+.ejump button:active{background:var(--sand)}
+.sheet .sbody:has(.ejump){position:relative}
+.egrp{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:12px 0 6px}
+.egrp:first-child{margin-top:4px}
+.egrid{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:2px}
+.egrid button{border:0;background:none;font-size:27px;line-height:1;aspect-ratio:1;border-radius:10px;padding:0;display:grid;place-items:center}
+.egrid button:active,.egrid button.mine{background:var(--sand)}
+.egrid button.mine{box-shadow:inset 0 0 0 2px var(--sun)}
+
+/* Souvenir card (My Trip, from 15 Jan) */
+.scard{border-radius:var(--radius);overflow:hidden;background:var(--sand);box-shadow:0 10px 30px rgba(20,50,74,.14);margin:0 0 18px}
+.sc-top{color:#fff;background:linear-gradient(180deg,#14324a 0%,#2b4f73 45%,#c9677a 80%,#f08a4b 100%);padding:22px 18px 48px}
+.sc-top .eb{font-size:12px;letter-spacing:.18em;text-transform:uppercase;opacity:.85;margin:0}
+.sc-top h3{font-family:var(--serif);font-weight:600;font-size:34px;line-height:1.1;margin:6px 0 2px;letter-spacing:0;text-transform:none;color:#fff}
+.sc-top .dt{margin:0;font-size:14px;opacity:.92}
+.sc-pill{display:inline-flex;align-items:center;gap:6px;margin-top:12px;font-size:12px;font-weight:600;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);border-radius:999px;padding:4px 10px}
+.sc-pill i{width:7px;height:7px;border-radius:50%;background:var(--sun-2)}
+.sc-body{padding:0 12px 14px;margin-top:-32px;position:relative;display:grid;gap:12px}
+.sbox{background:var(--card);border-radius:var(--radius);box-shadow:0 8px 24px rgba(20,50,74,.08);padding:14px}
+.sbox h4{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--sea-2);margin:0 0 10px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.sbox h4 small{font-size:12px;letter-spacing:0;text-transform:none;color:var(--muted);font-weight:400}
+.sstats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
+.sstats b{display:block;font-family:var(--serif);font-size:26px;line-height:1.1;color:var(--sea);font-variant-numeric:tabular-nums}
+.sstats span{font-size:11.5px;color:var(--muted);line-height:1.25;display:block;margin-top:3px}
+.sloved{position:relative;border:0;padding:0;width:100%;border-radius:12px;overflow:hidden;aspect-ratio:4/3;background:var(--line);display:block}
+.sloved img{width:100%;height:100%;object-fit:cover;display:block}
+.sloved .rx{position:absolute;left:10px;bottom:10px;display:flex;gap:6px}
+.sloved .rx span{background:rgba(255,253,249,.92);color:var(--ink);border-radius:999px;padding:3px 9px;font-size:13px}
+.sday{font-size:14px;font-weight:600;color:var(--sea);margin:12px 0 6px}
+.sday:first-of-type{margin-top:0}
+.sday small{font-weight:400;color:var(--muted);font-size:12px}
+.scap{font-size:13px;color:var(--muted);margin:8px 0 0}
+.sgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
+.sgrid .atile{border-radius:6px}
+.atile .lab{position:absolute;left:0;right:0;bottom:0;padding:14px 5px 4px;background:linear-gradient(transparent,rgba(10,25,38,.72));color:#fff;text-align:left;line-height:1.25;display:grid;z-index:1}
+.atile .lab b,.atile .lab i{font-size:10.5px;font-style:normal;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.atile .lab b{font-weight:600}
+.smore{margin-top:10px;width:100%;background:none;border:1px solid var(--line);border-radius:12px;padding:8px;color:var(--sea-2);font-size:14px;font-weight:600}
+.snudge{background:#fff4e8;border:1px solid #f8dcc0;color:#8a4a1f;border-radius:12px;padding:10px 12px;font-size:14px;margin-bottom:10px;display:flex;gap:10px;align-items:center;justify-content:space-between}
+.snudge button{border:0;background:var(--sun);color:#fff;border-radius:999px;padding:6px 12px;font-size:13px;font-weight:600;white-space:nowrap}
+.scom{display:grid;grid-template-columns:44px 1fr;gap:10px;align-items:start;border:0;background:none;padding:0;text-align:left;width:100%;color:var(--ink)}
+.scom + .scom{margin-top:10px}
+.scom img{width:44px;height:44px;border-radius:8px;object-fit:cover;background:var(--line)}
+.scom p{margin:0;font-size:14.5px;background:var(--sand);border-radius:4px 14px 14px 14px;padding:8px 11px;min-width:0;overflow-wrap:anywhere}
+.scom p b{display:block;font-size:12px;color:var(--sea-2)}
+.scom .men{color:var(--sea-2);font-weight:700}
+.sbox.chartcard{padding:14px 8px}
+.sbox.chartcard h4{padding:0 6px}
+.sbox .gsec{font-size:13.5px;color:var(--sea);margin:4px 6px 0;letter-spacing:.04em}
+.ssave{width:100%;border:0;background:var(--sea);color:#fff;border-radius:14px;padding:13px;font-size:15.5px;font-weight:600}
+.ssave:disabled{opacity:.6}
+.sfoot{text-align:center;font-size:12px;color:var(--muted);margin:2px 0 0}
+.sadmin{border:1px dashed var(--sun);background:#fffaf3}
+.sadmin p{margin:0 0 10px;font-size:14px}
+.sadmin .btns{display:flex;gap:8px;flex-wrap:wrap}
 
 /* My Trip */
 .tmsg .ic{font-size:30px}
@@ -318,7 +459,7 @@ button{font:inherit;cursor:pointer}
 .gdiv + h4{margin-top:24px}
 .chart.glast{margin-bottom:14px}
 .chart h5 small{display:block;font-weight:500;color:var(--muted);font-size:.75em;line-height:1.2;margin-top:1px}
-.chart .nm{white-space:nowrap;overflow:hidden;line-height:1.6}
+.chart .nm{white-space:nowrap;overflow:hidden;line-height:1.6;text-align:center}
 .chart .nm.ld{font-weight:700}
 .chart .nm.me{color:var(--sun);font-weight:700}
 .tlist{border-bottom:1px solid var(--line);padding:10px 0}
@@ -342,6 +483,10 @@ nav button .i{font-size:20px;line-height:1}
 nav button[hidden]{display:none}
 nav button.on{color:var(--sea)}
 nav button.on .i{transform:translateY(-1px)}
+nav button{position:relative}
+.nbadge{position:absolute;top:1px;left:calc(50% + 6px);min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:var(--sun);color:#fff;
+  font-size:11px;font-weight:700;line-height:18px;text-align:center;box-shadow:0 0 0 2px var(--card);font-variant-numeric:tabular-nums}
+.nbadge[hidden]{display:none}
 
 /* Driver card overlay */
 .driver{position:fixed;inset:0;background:var(--sea);color:#fff;z-index:50;display:none;flex-direction:column;justify-content:center;
@@ -354,10 +499,14 @@ nav button.on .i{transform:translateY(-1px)}
 .driver .close{align-self:flex-start;margin-top:28px;background:#fff;color:var(--sea);border:0;border-radius:999px;padding:11px 22px;font-weight:600}
 
 .toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);
-  background:var(--ink);color:#fff;padding:10px 16px;border-radius:999px;font-size:14px;opacity:0;transition:.25s;z-index:60;pointer-events:none;white-space:nowrap}
+  background:var(--ink);color:#fff;padding:10px 16px;border-radius:999px;font-size:14px;opacity:0;transition:.25s;z-index:95;pointer-events:none;white-space:nowrap}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-.preview{background:#fff4c2;color:#6b5400;font-size:13px;text-align:center;padding:6px 12px}
+.preview{background:#fff4c2;color:#6b5400;font-size:13px;text-align:center;padding:6px 8px;display:flex;gap:6px;justify-content:center;flex-wrap:wrap;align-items:center}
+.preview[hidden]{display:none}
+.preview .pvl{font-weight:600}
+.preview button{border:1px solid #e7cf7a;background:#fffbe6;color:#6b5400;border-radius:999px;padding:3px 10px;font-size:12.5px}
+.preview button.on{background:#6b5400;color:#fff;border-color:#6b5400}
 [hidden]{display:none!important}
 </style>
 </head>
@@ -554,6 +703,7 @@ nav button.on .i{transform:translateY(-1px)}
   <!-- MY TRIP (trip details form + room/team scratch cards) -->
   <section id="tab-trip" hidden>
     <div class="alb-top"><h2>My Trip</h2><span id="tripHi"></span></div>
+    <div id="cardBox"></div>
     <div id="tripBody"></div>
   </section>
 
@@ -567,7 +717,7 @@ nav button.on .i{transform:translateY(-1px)}
       </div>
       <input type="file" id="albCam" accept="image/*,video/*" capture="environment" hidden>
       <input type="file" id="albPick" accept="image/*,video/*" multiple hidden>
-      <p class="consent">Uploaded photos and videos are shared with all retreat attendees until 28 Feb 2027. Save a copy if needed. You may delete your own uploads anytime.</p>
+      <p class="consent">Photos, videos, reactions, comments and tags are shared with all retreat attendees until 28 Feb 2027, then kept on each person's souvenir card.</p>
       <div class="upq" id="albQueue"></div>
     </div>
     <div class="alb-wall" id="albWall">
@@ -585,7 +735,7 @@ nav button.on .i{transform:translateY(-1px)}
     <button data-tab="agenda"><span class="i">📅</span>Agenda</button>
     <button data-tab="info"><span class="i">ℹ️</span>Info</button>
     <button data-tab="trip" hidden><span class="i">🎫</span>My Trip</button>
-    <button data-tab="album"><span class="i">📸</span>Album</button>
+    <button data-tab="album"><span class="i">📸</span>Album<span class="nbadge" id="albBadge" hidden></span></button>
   </div>
 </nav>
 
@@ -605,6 +755,15 @@ nav button.on .i{transform:translateY(-1px)}
   <p class="vcount" id="viewerCount"></p>
   <p class="vcredit" id="viewerCredit"></p>
   <div class="vact" id="viewerAct" hidden></div>
+  <button class="vbtn vdel" id="viewerDel" data-adel aria-label="Delete" hidden></button>
+  <div class="vsoc" id="viewerSoc" hidden></div>
+</div>
+
+<div class="sheetbg" id="sheetBg"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+  <div class="shd"><h3 id="sheetTitle"></h3><button id="sheetClose" aria-label="Close">✕</button></div>
+  <div class="sbody" id="sheetBody"></div>
+  <div class="sfoot" id="sheetFoot" hidden></div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -684,10 +843,26 @@ const params = new URLSearchParams(location.search);
 const fakeNow = params.get("now");                      // preview only: ?now=2027-01-11T16:30
 const offset = fakeNow ? t(fakeNow) - Date.now() : 0;
 const now = () => Date.now() + offset;
-if (fakeNow) {
+// Preview only: a bar to see the handbook as it will look on other dates (reloads with ?now=…)
+const SIM_DATES = [["Before 11 Jan", "2027-01-05T10:00"], ["11–14 Jan", "2027-01-12T10:00"],
+  ["15–20 Jan", "2027-01-17T10:00"], ["From 21 Jan", "2027-01-25T10:00"]];
+const SIM = !!fakeNow;                                   // a pretend date: the page acts out that period itself
+if (location.pathname.includes("/preview/") || fakeNow) {
   const bar = document.getElementById("previewBar");
   bar.hidden = false;
-  bar.textContent = "Preview mode — pretending it is " + fakeNow.replace("T", " ") + " (Xiamen time)";
+  const cur = fakeNow || "";
+  bar.innerHTML = `<span class="pvl">Preview as:</span>` + SIM_DATES.map(([l, d]) =>
+    `<button data-simdate="${d}" class="${cur === d ? "on" : ""}">${l}</button>`).join("")
+    + `<button data-simdate="" class="${cur ? "" : "on"}">Real time</button>`
+    + (cur && !SIM_DATES.some(x => x[1] === cur) ? `<span class="pvl">${cur.replace("T", " ")}</span>` : "");
+  bar.addEventListener("click", e => {
+    const b = e.target.closest("[data-simdate]");
+    if (!b) return;
+    const q = new URLSearchParams(location.search);
+    if (b.dataset.simdate) q.set("now", b.dataset.simdate); else q.delete("now");
+    q.delete("card");
+    location.search = q.toString();
+  });
 }
 
 const timed = EVENTS.filter(e => !e.tba && !e.noCountdown);
@@ -842,7 +1017,10 @@ function renderCarousel() {
 
 let CUR_TAB = "next";
 function showTab(name) {
+  const leaving = CUR_TAB === "album" && name !== "album";
+  if (leaving) { albMarkSeen(); AL.seen = albSeen(); }
   CUR_TAB = name;
+  if (name === "album") setBadge(0); else if (leaving) setBadge();   // after leaving: count what waited while you were in
   document.querySelectorAll("nav [data-tab]").forEach(b => b.classList.toggle("on", b.dataset.tab === name));
   ["next", "agenda", "info", "trip", "album"].forEach(k => document.getElementById("tab-" + k).hidden = k !== name);
   if (name === "agenda") renderAgenda();
@@ -854,11 +1032,17 @@ function showTab(name) {
 
 /* ---------- Photo viewer (swipe left/right, swipe down to close) ---------- */
 const VW = { key: null, i: 0 };
-const vlist = () => VW.key === "album" ? AL.items : PLACES[VW.key].photos;
+const vlist = () => VW.key === "album" ? AL.items : VW.key === "card" ? CARD.list : PLACES[VW.key].photos;
 function openViewer(key, i) {
   VW.key = key; VW.i = i;
+  if (key === "album" && AL.items && AL.items[i]) actOpened(AL.items[i].id);
   document.getElementById("viewerCredit").innerHTML = key === "album" ? "" : PLACES[key].credit || "";
-  document.getElementById("viewerAct").hidden = key !== "album";
+  document.getElementById("viewerAct").hidden = key !== "album" && key !== "card";
+  document.getElementById("viewerSoc").hidden = key !== "album";
+  const vd = document.getElementById("viewerDel");
+  if (!vd.innerHTML) vd.innerHTML = ICON.del;
+  if (key !== "album") vd.hidden = true;
+  document.getElementById("viewer").classList.toggle("soc", key === "album");
   showViewer();
   document.getElementById("viewer").classList.add("open");
 }
@@ -867,6 +1051,7 @@ function showViewer() {
   const img = document.getElementById("viewerImg");
   img.style.transform = ""; img.style.opacity = "";
   if (VW.key === "album") showAlbumPhoto(img, list[VW.i]);
+  else if (VW.key === "card") showCardPhoto(img, list[VW.i]);
   else img.src = list[VW.i];
   document.getElementById("viewerCount").textContent = list.length > 1 ? `${VW.i + 1} / ${list.length}` : "";
   document.querySelector(".vprev").disabled = VW.i === 0;
@@ -877,7 +1062,7 @@ function stepViewer(d) {
   if (n < 0 || n >= list.length) { document.getElementById("viewerImg").style.transform = ""; return; }
   VW.i = n; showViewer();
 }
-function closeViewer() { document.getElementById("viewer").classList.remove("open"); }
+function closeViewer() { document.getElementById("viewer").classList.remove("open"); closeSheet(); }
 (function () {
   const vw = document.getElementById("viewer"), img = document.getElementById("viewerImg");
   let x0 = null, y0 = 0, dx = 0, dy = 0;
@@ -896,7 +1081,7 @@ function closeViewer() { document.getElementById("viewer").classList.remove("ope
     x0 = null;
   });
   document.addEventListener("keydown", ev => {
-    if (!vw.classList.contains("open")) return;
+    if (!vw.classList.contains("open") || /^(INPUT|TEXTAREA)$/.test(ev.target.tagName)) return;   // typing a comment
     if (ev.key === "ArrowRight") stepViewer(1);
     if (ev.key === "ArrowLeft") stepViewer(-1);
     if (ev.key === "Escape") closeViewer();
@@ -1034,6 +1219,8 @@ const ALBUM = {
   exec: "https://script.google.com/macros/s/AKfycbwBcpE0UCqXaOewE2eCKNARiBq-kX9Qz6XYwQT19JlbvLtbtCO94reBbkp9Q6ujrPo/exec",                                                        // album script /exec URL (set after deploy)
   clientId: "294551766250-mgcvcckj5p9596uneaokeght448sb4pi.apps.googleusercontent.com",
   opensAt: new Date("2027-01-11T00:00:00+08:00").getTime(),        // the live page stays locked until then
+  memoriesAt: new Date("2027-01-15T00:00:00+08:00").getTime(),     // souvenir card shows in My Trip from then
+  freezeAt: new Date("2027-01-21T00:00:00+08:00").getTime(),       // cards fixed, album view-only
   preview: location.pathname.includes("/preview/")                 // preview is never locked, for testing
 };
 const AL = { token: null, gis: null, busy: false, email: "", items: null };
@@ -1073,16 +1260,74 @@ function savedToken() {
 }
 // The album accepts the 30-day My Trip pass ("xp1.…") too, so no Google sign-in is needed in China.
 // Prefer the pass; fall back to Google's 1-hour token.
-const isPass = tok => typeof tok === "string" && tok.indexOf("xp1.") === 0;
-function tokOk(tok) { return !!tok && (isPass(tok) ? tok === tripPass() : tokenExp(tok) - Date.now() > 120000); }
-function albumToken() { return tripPass() || savedToken(); }
+// The album also has its own 30-day pass ("xa1.…"): used when My Trip can't issue one (after 28 Feb).
+const isPass = tok => typeof tok === "string" && (tok.indexOf("xp1.") === 0 || tok.indexOf("xa1.") === 0);
+function tokOk(tok) {
+  if (!tok) return false;
+  if (tok.indexOf("xp1.") === 0) return tok === tripPass();
+  if (tok.indexOf("xa1.") === 0) return tok === albumPass();
+  return tokenExp(tok) - Date.now() > 120000;
+}
+function albumPass() {
+  try { const j = JSON.parse(localStorage.getItem("xm27-apass") || "null"); if (j && j.exp - Date.now() > 60000) return j.pass; } catch (e) {}
+  return null;
+}
+function setAlbumPass(p, exp) {
+  try { p ? localStorage.setItem("xm27-apass", JSON.stringify({ pass: p, exp: exp })) : localStorage.removeItem("xm27-apass"); } catch (e) {}
+}
+function albumSignIn(cred) {
+  albumApi({ action: "signin", idToken: cred }).then(r => { if (r.ok) setAlbumPass(r.pass, r.exp); }).catch(() => {});
+}
+function albumToken() { return tripPass() || albumPass() || savedToken(); }
+
+/* Saved on this phone for a fast reopen: the photo list, small images, and what you've already seen.
+   Signing out / switching account wipes all of it. */
+const TSTORE = "xm27-thumbs";
+const tKey = (id, size) => `./__thumb/${encodeURIComponent(id)}-${size}`;
+function thumbGet(id, size) {
+  if (!window.caches) return Promise.resolve(null);
+  return caches.open(TSTORE).then(c => c.match(tKey(id, size)))
+    .then(r => r ? r.blob().then(b => URL.createObjectURL(b)) : null).catch(() => null);
+}
+function thumbPut(id, size, url) {
+  if (!window.caches) return;
+  fetch(url).then(r => r.blob())
+    .then(b => caches.open(TSTORE).then(c => c.put(tKey(id, size), new Response(b, { headers: { "Content-Type": b.type || "image/jpeg" } }))))
+    .catch(() => {});
+}
+function albSaveLocal() {
+  try { localStorage.setItem("xm27-alb", JSON.stringify({ email: AL.email, items: AL.items })); } catch (e) {}
+}
+function albLoadLocal() {
+  try { return JSON.parse(localStorage.getItem("xm27-alb") || "null"); } catch (e) { return null; }
+}
+function albWipeLocal() {
+  const cb = document.getElementById("cardBox"); if (cb) cb.innerHTML = "";
+  if (typeof CARD !== "undefined") { CARD.data = null; CARD.list = []; CARD.meta = {}; }
+  ["xm27-alb", "xm27-apass", "xm27-seen", "xm27-fu", "xm27-card"].forEach(k => { try { localStorage.removeItem(k); } catch (e) {} });
+  if (window.caches) caches.delete(TSTORE).catch(() => {});
+  Object.keys(TH).forEach(k => delete TH[k]);
+  AL.items = null; AL.seen = null;
+}
+// "Seen": the newest photo time when you last left the album (per phone). Photos newer than that get a dot.
+function albSeen() {
+  try { return JSON.parse(localStorage.getItem("xm27-seen") || "null"); } catch (e) { return null; }
+}
+function albMarkSeen() {
+  if (!AL.items || !AL.items.length) return;
+  const old = albSeen() || { p: 0, a: 0 };
+  const p = Math.max(old.p, ...AL.items.map(x => Date.parse(x.at) || 0));
+  const a = Math.max(old.a || 0, AL.shownAt || 0);          // things that came in after the last check you saw stay "new"
+  try { localStorage.setItem("xm27-seen", JSON.stringify({ p: p, a: a })); } catch (e) {}
+}
+document.addEventListener("visibilitychange", () => { if (document.hidden && CUR_TAB === "album") albMarkSeen(); });
 function saveToken(tok) {
   AL.token = tok;
   try { tok ? localStorage.setItem("xm27-idt", tok) : localStorage.removeItem("xm27-idt"); } catch (e) {}
 }
 
 function openAlbum() {
-  if (!ALBUM.preview && now() < ALBUM.opensAt) {
+  if ((!ALBUM.preview || SIM) && now() < ALBUM.opensAt) {
     albCountText(null);
     albCard(`<div class="ic">🔒</div><h3>Opens Mon 11 Jan 2027</h3>
       <p>Snap with your camera or upload from your gallery. Everyone's photos, all in one place.</p>`);
@@ -1093,9 +1338,16 @@ function openAlbum() {
     return;
   }
   if (AL.busy) return;
-  if (AL.items && tokOk(AL.token)) return refreshGallery();
+  AL.seen = albSeen();                               // what was new is fixed while you're here
+  AL.dotCut = Date.now();                            // follow-up dots: only what came in before now (see followUps)
+  if (AL.items && tokOk(AL.token)) { renderGrid(); return refreshGallery(); }
   const tok = (tokOk(AL.token) && AL.token) || albumToken();
-  if (tok) checkAccess(tok);
+  let quiet = false;
+  if (tok && !AL.items) {
+    const c = albLoadLocal();
+    if (c && c.items && c.items.length) { AL.items = c.items; AL.email = c.email; renderGrid(); quiet = true; }
+  }
+  if (tok) checkAccess(tok, quiet);
   else showSignIn();
   if (!tok) albumApi({ action: "count" }).then(r => r.ok && albCountText(r)).catch(() => {});
 }
@@ -1136,21 +1388,32 @@ function loadGis() {
   return AL.gis;
 }
 
-function checkAccess(tok) {
+function checkAccess(tok, quiet) {
   AL.busy = true; AL.token = tok;
-  albCard(`<div class="ic">⏳</div><h3>Checking the guest list…</h3>`);
-  albumApi({ action: "whoami", token: tok }).then(r => {
+  if (!quiet) albCard(`<div class="ic">⏳</div><h3>Checking the guest list…</h3>`);
+  const t0 = Date.now();
+  albumApi({ action: "open", token: tok, since: 0 }).then(r => {
     if (!r.ok) {
       if (r.error === "invalid_token") return signInAgain();
       throw new Error(r.error);
     }
-    albCountText(r);
     const who = `<p class="who">Signed in as ${esc(r.email)}</p>`;
     const sw = `<div class="btns"><button class="btn" data-albswitch>Switch account</button></div>`;
+    AL.me = r;
     if (r.access === "ok") {
       AL.email = r.email;
-      return loadGallery();
-    } else if (r.access === "not_listed") {
+      fuState();                                         // first time on this phone: older activity doesn't count
+      albApply(r);
+      AL.shownAt = t0;
+      renderGrid();
+      albSaveLocal();
+      albViewerBits(curItem());
+      return;
+    }
+    AL.items = null;
+    albCountText(r);
+    if (r.access === "not_listed") {
+      albWipeLocal();                                  // not on the guest list: nothing stays on this phone
       albCard(`<div class="ic">🙈</div><h3>This album is for retreat attendees</h3>
         <p>Signed in with the wrong account? Switch to the one you gave for the retreat.</p>${who}${sw}`);
     } else if (r.access === "not_open") {
@@ -1160,6 +1423,7 @@ function checkAccess(tok) {
     }
 
   }).catch(() => {
+    if (quiet) return;                                 // the saved gallery stays on screen
     albCard(`<div class="ic">📡</div><h3>Couldn't reach the album</h3>
       <p>Check your connection and try again. In China, the album needs roaming data.</p>
       <div class="btns"><button class="btn primary" id="albRetry">Try again</button></div>`);
@@ -1174,35 +1438,67 @@ const ICON = {
   download: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20h14v-2H5v2zM19 9h-4V3H9v6H5l7 7 7-7z"/></svg>`,
   hd: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-8 12H9.5v-2h-2v2H6V9h1.5v2.5h2V9H11v6zm2-6h4c.55 0 1 .45 1 1v4c0 .55-.45 1-1 1h-4V9zm1.5 4.5h2v-3h-2v3z"/></svg>`,
   del: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>`,
-  play: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>`
+  play: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>`,
+  chat: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg>`,
+  at: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10h5v-2h-5c-4.34 0-8-3.66-8-8s3.66-8 8-8 8 3.66 8 8v1.43c0 .79-.71 1.57-1.5 1.57s-1.5-.78-1.5-1.57V12c0-2.76-2.24-5-5-5s-5 2.24-5 5 2.24 5 5 5c1.38 0 2.64-.56 3.54-1.47.65.89 1.77 1.47 2.96 1.47 1.97 0 3.5-1.6 3.5-3.57V12c0-5.52-4.48-10-10-10zm0 13c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3z"/></svg>`
 };
 const DRIVE_SVG = `<svg class="drv" viewBox="0 0 87.3 78" aria-hidden="true"><path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/><path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0-1.2 4.5h27.5z" fill="#00ac47"/><path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335"/><path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"/><path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc"/><path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/></svg>`;
 
 function signInAgain() {
-  if (isPass(AL.token)) setTripPass(null);   // the pass was refused (e.g. everyone signed out): start fresh
+  if (isPass(AL.token)) { if (AL.token.indexOf("xa1.") === 0) setAlbumPass(null); else setTripPass(null); }   // the pass was refused: start fresh
   saveToken(null); AL.items = null;
   showSignIn("Your sign-in expired. Please sign in again.");
 }
 
-function loadGallery() {
-  albCard(`<div class="ic">⏳</div><h3>Loading photos…</h3>`);
-  return albumApi({ action: "list", token: AL.token }).then(r => {
-    if (!r.ok) { if (r.error === "invalid_token") return signInAgain(); throw new Error(r.error); }
-    AL.items = r.items;
-    renderGrid();
-  });
+// Photo list + reactions/comments/tags + "what's new for me", as one answer from the album script
+function albApply(r) {
+  AL.items = r.items || [];
+  AL.comments = r.comments || {};
+  AL.activity = r.activity || [];
+  AL.activityCount = r.activityCount || 0;
+  AL.roster = r.roster || [];
+  AL.groups = r.groups || AL.groups || { teams: [], villas: [] };
 }
 
+// What the grid shows that can change: the photos, and which tiles have a new-activity dot
+const gridKey = () => (AL.items || []).map(x => x.id).join() + "|" + Object.keys(followUps()).join();
 function refreshGallery() {
-  albumApi({ action: "list", token: AL.token }).then(r => {
+  if (AL.refreshing) return;
+  AL.refreshing = true;
+  const t0 = Date.now();
+  const before = gridKey();
+  const vOpen = document.getElementById("viewer").classList.contains("open") && VW.key === "album";
+  const curId = vOpen && curItem() ? curItem().id : null;
+  albumApi({ action: "list", token: AL.token, since: 0 }).then(r => {
     if (!r.ok) { if (r.error === "invalid_token") signInAgain(); return; }
-    const same = AL.items.map(x => x.id).join() === r.items.map(x => x.id).join();
-    AL.items = r.items;
-    if (!same) renderGrid();
-  }).catch(() => {});
+    AL.me = r;
+    albApply(r);
+    AL.shownAt = t0;
+    albSaveLocal();
+    if (curId) { const i = AL.items.findIndex(x => x.id === curId); if (i >= 0) VW.i = i; }   // new photos arrive at the top
+    if (gridKey() !== before) renderGrid(); else renderActivity();
+    if (vOpen && curItem()) albViewerBits(curItem());
+    if (SH.kind === "comments" && curItem() && SH.id === curItem().id) { SH.keepScroll = true; renderComments(curItem()); SH.keepScroll = false; }
+  }).catch(() => {}).finally(() => { AL.refreshing = false; });
 }
+// Almost live: while the album is on screen, check every 30 s (the album script shares one answer for everyone)
+setInterval(() => {
+  if (CUR_TAB === "album" && !document.hidden && AL.items && tokOk(AL.token) && !AL.busy) refreshGallery();
+}, 30000);
 
+// After 21 Jan: no adding photos, reactions, comments or tags
+function albViewOnlyNote() {
+  let n = document.getElementById("albVo");
+  const show = AL.me && !canWrite();
+  if (!show) { if (n) n.remove(); return; }
+  if (!n) {
+    n = document.createElement("div"); n.id = "albVo"; n.className = "snudge";
+    document.getElementById("albUp").insertAdjacentElement("afterend", n);
+  }
+  n.innerHTML = `<span>📦 The album is view-only now. Your souvenir card is in My Trip.</span><button data-tab="trip">Open</button>`;
+}
 function renderGrid() {
+  renderActivity();
   const items = AL.items;
   const videos = items.filter(x => x.video).length;
   albCountText({ photos: items.length - videos, videos });
@@ -1213,10 +1509,17 @@ function renderGrid() {
     return;
   }
   const grid = document.getElementById("albGrid");
+  const seenAt = AL.seen ? AL.seen.p : Infinity;          // first visit on this phone: nothing is "new"
+  const isNew = it => !it.mine && (Date.parse(it.at) || 0) > seenAt;
+  const nNew = items.filter(isNew).length;
+  let lastNew = -1;
+  items.forEach((it, i) => { if (isNew(it)) lastNew = i; });
   grid.innerHTML = items.map((it, i) =>
-    `<button class="atile${it.video ? " vid" : ""}" data-aview="${i}" data-id="${esc(it.id)}" aria-label="${it.video ? "Video" : "Photo"} by ${esc(it.by)}"><img alt=""></button>`).join("");
+    `<button class="atile${it.video ? " vid" : ""}${isNew(it) ? " new" : ""}" data-aview="${i}" data-id="${esc(it.id)}" aria-label="${it.video ? "Video" : "Photo"} by ${esc(it.by)}${isNew(it) ? ", new" : ""}"><img alt="">${it.mine ? `<span class="you">You</span>` : ""}${actDot(it)}</button>`
+    + (nNew && i === lastNew && i < items.length - 1 ? `<div class="caught">You're all caught up</div>` : "")).join("");
   document.getElementById("albWall").hidden = true;
-  document.getElementById("albUp").hidden = false;
+  document.getElementById("albUp").hidden = !canWrite();
+  albViewOnlyNote();
   grid.hidden = false;
   const f = document.getElementById("albFoot");
   f.innerHTML = foot; f.hidden = false;
@@ -1277,15 +1580,20 @@ function upright(url, it) {
     im.src = url;
   });
 }
-const itemById = id => (AL.items || []).find(x => x.id === id);
+const itemById = id => (AL.items || []).find(x => x.id === id) || (CARD.meta && CARD.meta[id]);
 
 function getThumbs(ids, size) {
-  const need = ids.filter(id => !TH[id + "|" + size]);
-  if (!need.length) return Promise.resolve();
-  return albumApi({ action: "thumbs", token: AL.token, ids: need, size }).then(r => {
-    if (r.ok) return Promise.all(Object.keys(r.thumbs).map(id =>
-      upright(r.thumbs[id], itemById(id)).then(u => { TH[id + "|" + size] = u; })));
-    else if (r.error === "invalid_token") { closeViewer(); signInAgain(); }
+  const want = ids.filter(id => !TH[id + "|" + size]);
+  if (!want.length) return Promise.resolve();
+  const keep = size === 400 || size === 1200;            // grid + viewer sizes are saved on the phone
+  return Promise.all(want.map(id => keep ? thumbGet(id, size).then(u => { if (u) TH[id + "|" + size] = u; }) : null)).then(() => {
+    const need = want.filter(id => !TH[id + "|" + size]);
+    if (!need.length) return;
+    return albumApi({ action: "thumbs", token: AL.token, ids: need, size }).then(r => {
+      if (r.ok) return Promise.all(Object.keys(r.thumbs).map(id =>
+        upright(r.thumbs[id], itemById(id)).then(u => { TH[id + "|" + size] = u; if (keep) thumbPut(id, size, u); })));
+      else if (r.error === "invalid_token") { closeViewer(); signInAgain(); }
+    });
   }).catch(() => {});
 }
 
@@ -1302,19 +1610,29 @@ function showAlbumPhoto(img, it) {
   const next = AL.items[VW.i + 1];
   if (next) setTimeout(() => getThumbs([next.id], 1200), 600);
   document.getElementById("viewerCredit").textContent = `${it.video ? "🎬 Video · " : ""}by ${it.by} · ${fmtWhen(it.at)}`;
-  const drive = `<a class="vbtn" href="${driveLink(it.id)}" target="_blank" rel="noopener" aria-label="Download HD original from Google Drive">${ICON.download}${ICON.hd}</a>`;
-  const del = it.mine ? `<button class="vbtn" data-adel aria-label="Delete">${ICON.del}</button>` : "";
-  document.getElementById("viewerAct").innerHTML = (it.video
-    ? `<a class="vbtn" href="${driveLink(it.id)}" target="_blank" rel="noopener" aria-label="Play">${ICON.play}</a>${drive}`
-    : `<button class="vbtn" data-adl aria-label="Download">${ICON.download}</button>${drive}`) + del;
+  albViewerBits(it);
+}
+// Buttons under the photo (@ tag · download/play · delete) + reactions/comments. Re-run once sign-in details arrive.
+function albViewerBits(it) {
+  if (!it) return;
+  socRender(it);
+  const w = canWrite();
+  const tag = w ? `<button class="vbtn" data-tagadd aria-label="Tag who's in this photo">${ICON.at}</button>` : "";
+  const cmt = w || it.c ? `<button class="vbtn" data-comments aria-label="Comments">${ICON.chat}${it.c ? `<span class="lbl">${it.c}</span>` : ""}</button>` : "";
+  document.getElementById("viewerAct").innerHTML = tag + cmt + (it.video
+    ? `<a class="vbtn" href="${driveLink(it.id)}" target="_blank" rel="noopener" aria-label="Play">${ICON.play}</a>`
+    : `<button class="vbtn" data-adl aria-label="Download">${ICON.download}</button>`);
+  const del = document.getElementById("viewerDel");
+  del.hidden = !it.mine;
 }
 
 const DL = { id: null, file: null };
 function albDownload(btn) {
-  const it = AL.items[VW.i];
+  const it = vlist()[VW.i];
   if (DL.id === it.id && DL.file) return saveFile(DL.file, btn);
   btn.disabled = true; btn.classList.add("busy");
-  albumApi({ action: "thumbs", token: AL.token, ids: [it.id], size: 2000 }).then(r => {
+  const full = Math.min(3000, Math.max(it.pw || 0, it.ph || 0) || 2000);   // the size it was uploaded at
+  albumApi({ action: "thumbs", token: AL.token, ids: [it.id], size: full }).then(r => {
     const u = r.ok && r.thumbs[it.id];
     if (!u) throw new Error("no_image");
     return upright(u, it).then(fixed => fetch(fixed)).then(x => x.blob());
@@ -1342,6 +1660,7 @@ function saveFile(file, btn) {
 
 /* Delete your own upload (goes to Trash on the album account) */
 function albDelete(btn) {
+  if (VW.key !== "album") return;
   const it = AL.items[VW.i];
   if (!confirm(`Delete this ${it.video ? "video" : "photo"} from the album for everyone?`)) return;
   btn.disabled = true;
@@ -1351,6 +1670,382 @@ function albDelete(btn) {
     closeViewer(); renderGrid(); toast("Deleted");
   }).catch(() => { btn.disabled = false; toast("Couldn't delete. Try again"); });
 }
+
+/* ---------- Follow-up dots: a 💬 / ❤️ / @ on photos with something new for you, until you open that photo ---------- */
+// On this phone: when the album was first opened here (older things don't count) and when you last opened each photo.
+function fuGet() {
+  try { return JSON.parse(localStorage.getItem("xm27-fu") || "null"); } catch (e) { return null; }
+}
+function fuSave(f) { try { localStorage.setItem("xm27-fu", JSON.stringify(f)); } catch (e) {} }
+function fuState() {
+  let f = fuGet();
+  if (!f) { f = { base: Date.now(), open: {} }; fuSave(f); }
+  return f;
+}
+// Per photo: what's new since you last opened it (reactions/comments on yours, replies/mentions to you, tags of you)
+function followUps() {
+  const f = fuGet(), out = {};
+  if (!f || !AL.activity) return out;
+  const live = {};
+  (AL.items || []).forEach(x => { live[x.id] = 1; });
+  // While you're in the album, nothing new pops up: only what happened before you came in.
+  // The rest waits (it isn't marked as seen) and shows the next time you open the album.
+  const cut = CUR_TAB === "album" && AL.dotCut ? AL.dotCut : Infinity;
+  AL.activity.forEach(a => {
+    if (!live[a.f]) return;
+    const since = Math.max(f.base, f.open[a.f] || 0), t = Date.parse(a.at);
+    if (t <= since || t > cut) return;
+    (out[a.f] || (out[a.f] = [])).push(a);
+  });
+  return out;
+}
+function newPhotos() {
+  if (!AL.seen || !AL.items) return 0;
+  return AL.items.filter(it => !it.mine && (Date.parse(it.at) || 0) > AL.seen.p).length;
+}
+// Album tab badge: new photos + photos waiting for a follow-up
+function setBadge(n) {
+  const b = document.getElementById("albBadge");
+  if (n === undefined) n = CUR_TAB === "album" ? 0 : newPhotos() + Object.keys(followUps()).length;
+  b.textContent = n > 99 ? "99+" : String(n);
+  b.hidden = !n;
+}
+function renderActivity() { setBadge(); }
+function actDot(it) {
+  const list = followUps()[it.id];
+  if (!list) return "";
+  const ic = list.some(a => a.k !== "react" && a.k !== "tag") ? "💬" : list.some(a => a.k === "react") ? "❤️" : "@";
+  return `<span class="adot" aria-label="Something new to follow up">${ic}</span>`;
+}
+function actOpened(id) {
+  const f = fuState();
+  f.open[id] = Date.now();
+  const ids = Object.keys(f.open);
+  if (ids.length > 600) ids.sort((a, b) => f.open[a] - f.open[b]).slice(0, ids.length - 600).forEach(k => delete f.open[k]);
+  fuSave(f);
+  const d = document.querySelector(`.atile[data-id="${CSS.escape(id)}"] .adot`);
+  if (d) d.remove();
+}
+
+// Keep the Album badge up to date in the background (on opening the handbook, and when you come back to it)
+let _albBg = 0;
+function albBackground() {
+  if (CUR_TAB === "album" || AL.busy || !ALBUM.exec) return;
+  if (!ALBUM.preview && now() < ALBUM.opensAt) return;
+  const tok = (tokOk(AL.token) && AL.token) || albumToken();
+  if (!tok || Date.now() - _albBg < 60000) return;
+  _albBg = Date.now();
+  AL.seen = albSeen();
+  if (!AL.seen) return;                                      // never opened the album on this phone yet
+  albumApi({ action: "list", token: tok, since: 0 }).then(r => {
+    if (!r.ok) return;
+    AL.token = tok; AL.me = r; AL.email = r.email;
+    albApply(r); albSaveLocal(); setBadge();          // (not "shown" yet: AL.shownAt only moves when you're in the album)
+  }).catch(() => {});
+}
+document.addEventListener("visibilitychange", () => { if (!document.hidden) albBackground(); });
+setTimeout(albBackground, 1500);
+
+/* ---------- Reactions, comments, tags (album viewer) ---------- */
+const QUICK = ["❤️", "😂", "🔥", "👏"];
+const simFrozen = () => SIM && now() >= ALBUM.freezeAt;       // preview: pretend the 21 Jan freeze happened
+const canWrite = () => !!(AL.me && AL.me.canWrite) && !simFrozen();
+const curItem = () => (VW.key === "album" && AL.items) ? AL.items[VW.i] : null;
+
+function socRender(it) {
+  const el = document.getElementById("viewerSoc");
+  if (!it) { el.innerHTML = ""; return; }
+  const r = it.r || [], w = canWrite();
+  const by = {};
+  r.forEach(x => { by[x[0]] = x; });
+  const extra = r.filter(x => QUICK.indexOf(x[0]) === -1);
+  const chip = e => { const x = by[e]; return `<button class="rbtn${x && x[2] ? " mine" : ""}" data-react="${esc(e)}"${w ? "" : " disabled"} aria-label="React ${esc(e)}">${e}${x ? `<small>${x[1]}</small>` : ""}</button>`; };
+  const shown = w ? QUICK.concat(extra.map(x => x[0])) : r.map(x => x[0]);
+  const total = r.reduce((n, x) => n + x[1], 0);
+  const tags = it.t || [];
+  el.innerHTML = `${shown.length || w ? `<div class="rrow">${shown.map(chip).join("")}${w ? `<button class="rbtn plus" data-reactplus aria-label="Pick any emoji">＋</button>` : ""}</div>` : ""}
+    ${!tags.length && w ? `<div class="trow"><button class="tchip" data-tagadd style="cursor:pointer">👥 Who's in this photo? Tag them</button></div>` : ""}
+    ${tags.length ? `<div class="trow">With ${tags.map(t => `<span class="tchip">${esc(t[0])}${t[1] ? `<button data-untag="${esc(t[0])}" aria-label="Remove ${esc(t[0])}" style="all:unset;cursor:pointer;opacity:.7">✕</button>` : ""}</span>`).join("")}</div>` : ""}
+    <div class="slinks">
+      ${total ? `<button data-who>${total} reaction${total === 1 ? "" : "s"}</button>` : ""}
+    </div>`;
+}
+
+// Apply the album script's answer for one photo
+function socSettle(state) {
+  if (!state || !AL.items) return;
+  const it = AL.items.find(x => x.id === state.id);
+  if (!it) return;
+  it.r = state.r; it.t = state.t; it.c = state.c;
+  AL.comments[state.id] = state.comments || [];
+  albSaveLocal();
+  if (curItem() === it) albViewerBits(it);
+  if (SH.kind === "comments" && SH.id === it.id) renderComments(it);
+}
+
+// Change the screen now, save in the background, undo if it didn't save
+function socSend(it, body, change) {
+  const before = JSON.stringify({ r: it.r, t: it.t, c: it.c, cm: AL.comments[it.id] || [] });
+  change();
+  if (curItem() === it) socRender(it);
+  albumApi(Object.assign({ token: AL.token }, body)).then(r => {
+    if (!r.ok) throw new Error(r.error);
+    socSettle(r.item);
+  }).catch(err => {
+    const b = JSON.parse(before);
+    it.r = b.r; it.t = b.t; it.c = b.c; AL.comments[it.id] = b.cm;
+    if (curItem() === it) socRender(it);
+    if (SH.kind === "comments" && SH.id === it.id) renderComments(it);
+    const e = err && err.message;
+    toast(e === "view_only" ? "The album is view-only now" : e === "invalid_token" ? "Please sign in again" : "Couldn't save. Try again");
+  });
+}
+
+function react(it, emoji) {
+  socSend(it, { action: "react", id: it.id, emoji: emoji }, () => {
+    let r = (it.r || []).map(x => [x[0], x[1], x[2], x[3].slice()]);
+    const me = (AL.me && AL.me.short) || "You";
+    const mine = r.find(x => x[2]);
+    if (mine) { mine[1]--; mine[2] = 0; mine[3].splice(mine[3].indexOf(me), 1); }
+    if (!mine || mine[0] !== emoji) {
+      const x = r.find(y => y[0] === emoji);
+      if (x) { x[1]++; x[2] = 1; x[3].push(me); } else r.push([emoji, 1, 1, [me]]);
+    }
+    it.r = r.filter(x => x[1] > 0).sort((a, b) => b[1] - a[1]);
+  });
+}
+
+// Exactly one emoji (skin tones, flags and family emoji count as one)
+function oneEmoji(s) {
+  s = String(s || "").trim();
+  if (!s || s.length > 16) return "";
+  if (window.Intl && Intl.Segmenter) {
+    const parts = [...new Intl.Segmenter().segment(s)];
+    if (parts.length !== 1) return "";
+  }
+  return /^(?:\p{Extended_Pictographic}|\p{Regional_Indicator}|\p{Emoji_Modifier}|[‍️])+$/u.test(s)
+    && /\p{Extended_Pictographic}|\p{Regional_Indicator}/u.test(s) ? s : "";
+}
+
+/* Bottom sheet: comments, tag picker, any-emoji picker, who reacted */
+const SH = { kind: "", id: "" };
+function openSheet(kind, id, title, body, foot) {
+  SH.kind = kind; SH.id = id;
+  document.getElementById("sheetTitle").textContent = title;
+  document.getElementById("sheetBody").innerHTML = body;
+  const f = document.getElementById("sheetFoot");
+  f.innerHTML = foot || ""; f.hidden = !foot;
+  document.getElementById("sheetBg").classList.add("open");
+  document.getElementById("sheet").classList.add("open");
+  fitSheet();
+}
+function closeSheet() {
+  SH.kind = SH.id = ""; SH.picked = "";
+  document.getElementById("sheetBg").classList.remove("open");
+  const sh = document.getElementById("sheet");
+  sh.classList.remove("open");
+  sh.style.bottom = sh.style.maxHeight = sh.style.paddingBottom = "";
+}
+// iPhone keyboards cover the page instead of shrinking it: keep the sheet just above the keyboard,
+// sized to the space that's left, so the name list and comment box stay in view while typing.
+function fitSheet() {
+  const vv = window.visualViewport, sh = document.getElementById("sheet");
+  if (!vv || !sh.classList.contains("open")) return;
+  const kb = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+  sh.style.bottom = kb + "px";
+  sh.style.maxHeight = Math.round(vv.height * (kb ? 0.96 : 0.78)) + "px";
+  sh.style.paddingBottom = kb ? "0px" : "";
+}
+if (window.visualViewport) {
+  visualViewport.addEventListener("resize", fitSheet);
+  visualViewport.addEventListener("scroll", fitSheet);
+}
+document.getElementById("sheetBg").addEventListener("click", closeSheet);
+document.getElementById("sheetClose").addEventListener("click", closeSheet);
+
+const fmtAgo = iso => {
+  const m = Math.round((Date.now() - Date.parse(iso)) / 60000);
+  return m < 1 ? "just now" : m < 60 ? m + " min ago" : m < 1440 ? Math.round(m / 60) + " h ago" : fmtWhen(iso);
+};
+// "@Wai Leong" → bold, for names on the guest list (longest names first, so "@Jess" doesn't eat "@Jessica")
+function withMentions(text) {
+  let h = esc(text);
+  const names = groupList().concat(AL.roster || []).sort((a, b) => b.length - a.length);
+  names.forEach(n => {
+    const e = esc(n).replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/ /g, " ?");   // "@Team 6" or "@Team6"
+    h = h.replace(new RegExp("(^|[^\\w@])@(" + e + ")(?![\\w])", "gi"), (m, pre, nm) => `${pre}<span class="men">@${nm}</span>`);
+  });
+  return h;
+}
+// Comments with their replies underneath (one level, like Facebook)
+function renderComments(it) {
+  const list = AL.comments[it.id] || [];
+  const tops = list.filter(c => !c[6] || !list.some(x => x[0] === c[6]));
+  const one = (c, reply) => {
+    const tmp = c[0].indexOf("tmp-") === 0;
+    return `<div class="cmt${reply ? " reply" : ""}${tmp ? " pending" : ""}${SH.picked === c[0] ? " picked" : ""}" data-cid="${esc(c[0])}"><div class="ch"><span><b>${esc(c[1])}</b> · ${esc(fmtAgo(c[2]))}</span></div>
+      <p>${withMentions(c[3])}</p>${tmp ? "" : `<div class="cacts">${canWrite() ? `<button data-creply="${esc(c[0])}" data-cby="${esc(c[1])}">Reply</button>` : ""}${c[5] ? `<button data-cdel="${esc(c[0])}">Delete</button>` : ""}</div>`}</div>`;
+  };
+  document.getElementById("sheetBody").innerHTML = tops.length ? tops.map(c =>
+    one(c, false) + list.filter(r => r[6] === c[0]).map(r => one(r, true)).join("")).join("")
+    : `<p class="empty">No comments yet.${canWrite() ? " Be the first!" : ""}</p>`;
+  if (!SH.keepScroll) { const b = document.getElementById("sheetBody"); b.scrollTop = b.scrollHeight; }
+}
+function openComments(it) {
+  SH.replyTo = ""; SH.keepScroll = false;
+  openSheet("comments", it.id, "Comments", "", canWrite()
+    ? `<div class="cwrap"><div class="rto" id="rto" hidden></div><div class="msug" id="msug" hidden></div>
+       <div class="crow"><textarea id="cmtText" rows="1" maxlength="300" placeholder="Add a comment… type @ to mention" aria-label="Your comment"></textarea><button class="send" id="cmtSend" disabled>Post</button></div></div>` : "");
+  renderComments(it);
+  const ta = document.getElementById("cmtText");
+  if (!ta) return;
+  const btn = document.getElementById("cmtSend"), sug = document.getElementById("msug");
+  const grow = () => { btn.disabled = !ta.value.trim(); ta.style.height = "auto"; ta.style.height = Math.min(ta.scrollHeight, 120) + "px"; };
+  // "@" + a few letters right before the cursor → name suggestions
+  const atQuery = () => {
+    const m = /(^|\s)@([^@\n]{0,24})$/.exec(ta.value.slice(0, ta.selectionStart));
+    return m ? m[2] : null;
+  };
+  const suggest = () => {
+    const q = atQuery();
+    if (q === null) { sug.hidden = true; return; }
+    const ql = q.toLowerCase().trim();
+    const pool = groupList().concat(AL.roster || []);
+    const hits = pool.filter(n => !ql || n.toLowerCase().indexOf(ql) === 0 || n.toLowerCase().indexOf(" " + ql) !== -1
+      || n.toLowerCase().replace(/\s+/g, "").indexOf(ql.replace(/\s+/g, "")) === 0).slice(0, 12);
+    sug.innerHTML = hits.map(n => `<button type="button" data-mpick="${esc(n)}">@${esc(n)}</button>`).join("");
+    sug.hidden = !hits.length;
+    fitSheet();
+  };
+  ta.addEventListener("input", () => { grow(); suggest(); });
+  ta.addEventListener("click", suggest);
+  ["mousedown", "pointerdown"].forEach(ev => sug.addEventListener(ev, e => e.preventDefault()));   // keep the keyboard up
+  sug.addEventListener("click", e => {
+    const b = e.target.closest("[data-mpick]");
+    if (!b) return;
+    const pos = ta.selectionStart, before = ta.value.slice(0, pos).replace(/@([^@\n]{0,24})$/, "@" + b.dataset.mpick + " ");
+    ta.value = before + ta.value.slice(pos);
+    ta.setSelectionRange(before.length, before.length);
+    ta.focus(); sug.hidden = true; grow();
+  });
+  btn.addEventListener("click", () => {
+    const text = ta.value.trim().slice(0, 300);
+    if (!text) return;
+    const parent = SH.replyTo;
+    ta.value = ""; btn.disabled = true; ta.style.height = "auto"; sug.hidden = true;
+    setReplyTo("", "");
+    socSend(it, { action: "comment", id: it.id, text: text, parent: parent }, () => {
+      const list = (AL.comments[it.id] || []).slice();
+      const p = parent && list.find(c => c[0] === parent);
+      list.push(["tmp-" + Date.now(), (AL.me && AL.me.short) || "You", new Date().toISOString(), text, 1, 0, p ? (p[6] || p[0]) : ""]);
+      AL.comments[it.id] = list; it.c = (it.c || 0) + 1;
+      SH.keepScroll = !!parent; renderComments(it); SH.keepScroll = false;
+    });
+  });
+}
+// Replying: "Replying to Sam ✕" above the box, and "@Sam " filled in
+function setReplyTo(cid, by) {
+  SH.replyTo = cid;
+  const bar = document.getElementById("rto"), ta = document.getElementById("cmtText");
+  if (!bar) return;
+  bar.hidden = !cid;
+  bar.innerHTML = cid ? `<span>Replying to <b>${esc(by)}</b></span><button type="button" data-rtoclear aria-label="Cancel reply">✕</button>` : "";
+  if (cid && ta) {
+    const tag = "@" + by + " ";
+    if (by !== ((AL.me && AL.me.short) || "") && ta.value.indexOf(tag) !== 0) ta.value = tag + ta.value;
+    ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length);
+    ta.dispatchEvent(new Event("input"));
+  }
+  fitSheet();
+}
+const groupList = () => ((AL.groups && AL.groups.teams) || []).concat((AL.groups && AL.groups.villas) || []);
+function openTagPicker(it) {
+  const tagged = (it.t || []).map(t => t[0]);
+  const free = arr => arr.filter(n => tagged.indexOf(n) === -1);
+  const groups = free(groupList()), names = free(AL.roster || []);
+  const match = (n, q) => !q || n.toLowerCase().replace(/\s+/g, "").indexOf(q.toLowerCase().replace(/\s+/g, "")) !== -1;
+  const btns = (arr, q, cls) => arr.filter(n => match(n, q)).map(n => `<button data-tagpick="${esc(n)}"${cls ? ` class="${cls}"` : ""}>${cls ? "👥 " : ""}${esc(n)}</button>`).join("");
+  const list = q => {
+    const g = btns(groups, q, "grp"), p = btns(names, q, "");
+    return (g ? `<p class="egrp">Teams &amp; villas</p><div class="plist">${g}</div>` : "")
+      + (p ? `<p class="egrp">People</p><div class="plist">${p}</div>` : "") || `<p class="empty">No match</p>`;
+  };
+  openSheet("tag", it.id, "Who's in this photo?",
+    `<input type="text" id="tagQ" class="tagq" placeholder="Search a name, team or villa" aria-label="Search a name, team or villa" autocomplete="off" autocorrect="off" autocapitalize="words" enterkeyhint="done"><div id="tagList">${list("")}</div>`);
+  document.getElementById("tagQ").addEventListener("input", e => { document.getElementById("tagList").innerHTML = list(e.target.value); });
+}
+// Tap one to react (no keyboard). Kept to emoji that show on older phones too.
+const EMOJI = [
+  ["😀", "Smileys", "😀 😃 😄 😁 😆 😅 🤣 😂 🙂 🙃 😉 😊 😇 🥰 😍 🤩 😘 😗 😚 😋 😛 😜 🤪 😝 🤑 🤗 🤭 🤫 🤔 🤐 🤨 😐 😑 😶 😏 😒 🙄 😬 😌 😔 😪 🤤 😴 😷 🤒 🤕 🤢 🤮 🤧 🥵 🥶 🥴 😵 🤯 🤠 🥳 😎 🤓 🧐 😕 😟 🙁 😮 😯 😲 😳 🥺 🥹 😦 😧 😨 😰 😥 😢 😭 😱 😖 😣 😞 😓 😩 😫 🥱 😤 😡 😠 🤬 😈 💀 🤡 👻 👽 🤖 💩 😺 😸 😹 😻 😼 😽 🙀 😿 😾 🙈 🙉 🙊"],
+  ["👍", "Hands & people", "👋 🤚 🖐️ ✋ 🖖 👌 🤌 🤏 ✌️ 🤞 🤟 🤘 🤙 👈 👉 👆 👇 ☝️ 👍 👎 ✊ 👊 🤛 🤜 👏 🙌 👐 🤲 🤝 🙏 ✍️ 💅 🤳 💪 👀 🧠 👶 🧒 👦 👧 🧑 👨 👩 🧓 👴 👵 🙋 🙆 🙅 🤷 🤦 💁 🙇 🚶 🏃 💃 🕺 👯 🧘 🏊 🚴 🧗 🤸 👫 👭 👬 💑"],
+  ["❤️", "Hearts & symbols", "❤️ 🧡 💛 💚 💙 💜 🤎 🖤 🤍 💔 ❣️ 💕 💞 💓 💗 💖 💘 💝 ✨ ⭐ 🌟 💫 🔥 💥 💯 💢 💦 💨 🎉 🎊 ✅ ❌ ❓ ❗ ‼️ 💤 🆗 🆒 🆕 🔝"],
+  ["🐶", "Animals & nature", "🐶 🐱 🐭 🐹 🐰 🦊 🐻 🐼 🐨 🐯 🦁 🐮 🐷 🐸 🐵 🐒 🐔 🐧 🐦 🐤 🦆 🦉 🐺 🐴 🦄 🐝 🦋 🐌 🐞 🐢 🐍 🐙 🦑 🦐 🦀 🐠 🐟 🐬 🐳 🦈 🐊 🐘 🦒 🐪 🌸 🌺 🌻 🌹 🌷 🌼 🌿 🍀 🍁 🍂 🌴 🌵 🌲 🌈 ☀️ 🌤️ ⛅ 🌧️ ⛈️ ❄️ 🌊 🌙"],
+  ["🍜", "Food & drink", "🍎 🍊 🍋 🍌 🍉 🍇 🍓 🍒 🍑 🥭 🍍 🥥 🥝 🍅 🥑 🌽 🌶️ 🥔 🍞 🥐 🧀 🥚 🍳 🥞 🥓 🍗 🍖 🌭 🍔 🍟 🍕 🥪 🌮 🌯 🥗 🍝 🍜 🍲 🍛 🍣 🍱 🥟 🍤 🍙 🍚 🍘 🍥 🥮 🍢 🍡 🍧 🍨 🍦 🥧 🍰 🎂 🧁 🍮 🍭 🍬 🍫 🍿 🍩 🍪 ☕ 🍵 🧋 🥤 🧃 🍶 🍺 🍻 🥂 🍷 🥃 🍸 🍹"],
+  ["✈️", "Travel & places", "✈️ 🛫 🛬 🚀 🚁 🚄 🚇 🚌 🚕 🚗 🚲 🛵 ⛴️ 🚢 ⛵ 🗺️ 🧭 🏔️ ⛰️ 🌋 🏕️ 🏖️ 🏝️ 🏞️ 🏟️ 🏛️ 🏯 🏰 🗼 🗽 ⛩️ 🎡 🎢 🎠 🌃 🌆 🌇 🌅 🌄 🌉 🏨 🏠 🧳 🎒 📍 🛍️"],
+  ["⚽", "Activities", "⚽ 🏀 🏈 ⚾ 🎾 🏐 🏓 🏸 ⛳ 🥾 🎣 🎯 🎳 🎮 🎲 🧩 🀄 🃏 🎤 🎧 🎵 🎶 🎸 🎹 🥁 🎷 🎺 🎬 📸 🎨 🎭 🎁 🎈 🏆 🥇 🥈 🥉 🏅 🎖️ 👑 💍 💎"],
+  ["💡", "Objects", "📱 💻 ⌚ 📷 🔋 💡 🔦 🕯️ 💰 💵 💳 🧧 ✉️ 📦 📝 📌 📎 ✂️ 🔑 🔒 🛏️ 🛁 🧴 🎀 👓 🕶️ 👕 👗 👙 👠 👟 🧢 🎩 🧥"],
+  ["🇸🇬", "Flags", "🇸🇬 🇨🇳 🇲🇾 🇭🇰 🇹🇼 🇯🇵 🇰🇷 🇹🇭 🇮🇩 🇵🇭 🇻🇳 🇮🇳 🇦🇺 🇺🇸 🇬🇧 🏳️‍🌈 🏁 🎌"]
+];
+function openEmojiPicker(it) {
+  const mine = ((it.r || []).find(x => x[2]) || [])[0];
+  openSheet("emoji", it.id, "React",
+    `<div class="ejump">${EMOJI.map(([ic, g], k) => `<button type="button" data-ejump="${k}" aria-label="${g}">${ic}</button>`).join("")}</div>`
+    + EMOJI.map(([ic, g, list], k) =>
+    `<p class="egrp" id="egrp${k}">${g}</p><div class="egrid">${list.split(" ").map(e =>
+      `<button type="button" data-epick="${e}" class="${e === mine ? "mine" : ""}" aria-label="${e}">${e}</button>`).join("")}</div>`).join(""));
+}
+function openWho(it) {
+  openSheet("who", it.id, "Reactions", (it.r || []).map(x =>
+    `<div class="wrow"><span>${x[0]}</span><div>${x[3].map(esc).join(", ")}</div></div>`).join("") || `<p class="empty">No reactions yet.</p>`);
+}
+
+document.addEventListener("click", e => {
+  const it = curItem();
+  const t = e.target;
+  if (it && t.closest("#viewerAct [data-tagadd], #viewerSoc [data-tagadd]")) return openTagPicker(it);
+  if (it && t.closest("#viewerAct [data-comments]")) return openComments(it);
+  if (t.closest("#viewerSoc")) {
+    if (!it) return;
+    const rb = t.closest("[data-react]");
+    if (rb && canWrite()) return react(it, rb.dataset.react);
+    if (t.closest("[data-reactplus]")) return openEmojiPicker(it);
+    if (t.closest("[data-who]")) return openWho(it);
+    if (t.closest("[data-comments]")) return openComments(it);
+    const ut = t.closest("[data-untag]");
+    if (ut) {
+      const name = ut.dataset.untag;
+      return socSend(it, { action: "untag", id: it.id, name: name }, () => { it.t = (it.t || []).filter(x => x[0] !== name); });
+    }
+    return;
+  }
+  if (t.closest("#sheet")) {
+    const sit = AL.items && AL.items.find(x => x.id === SH.id);
+    if (!sit) return;
+    const ej = t.closest("[data-ejump]");
+    if (ej) { const h = document.getElementById("egrp" + ej.dataset.ejump), b = document.getElementById("sheetBody"); if (h) b.scrollTo({ top: b.scrollTop + h.getBoundingClientRect().top - b.getBoundingClientRect().top - b.querySelector(".ejump").offsetHeight - 4, behavior: "smooth" }); return; }
+    const ep = t.closest("[data-epick]");
+    if (ep) { const e = oneEmoji(ep.dataset.epick); closeSheet(); if (e) react(sit, e); return; }
+    const tp = t.closest("[data-tagpick]");
+    if (tp) {
+      const name = tp.dataset.tagpick;
+      closeSheet();
+      return socSend(sit, { action: "tag", id: sit.id, name: name }, () => { sit.t = (sit.t || []).concat([[name, 1]]); });
+    }
+    const cr = t.closest("[data-creply]");
+    if (cr) return setReplyTo(cr.dataset.creply, cr.dataset.cby);
+    if (t.closest("[data-rtoclear]")) return setReplyTo("", "");
+    const cd = t.closest("[data-cdel]");
+    if (cd) {
+      const cid = cd.dataset.cdel;
+      return socSend(sit, { action: "uncomment", cid: cid }, () => {
+        const before = (AL.comments[sit.id] || []).length;
+        AL.comments[sit.id] = (AL.comments[sit.id] || []).filter(c => c[0] !== cid && c[6] !== cid);   // its replies go too
+        sit.c = Math.max(0, (sit.c || 0) - (before - AL.comments[sit.id].length));
+        SH.keepScroll = true; renderComments(sit); SH.keepScroll = false;
+      });
+    }
+  }
+});
 
 /* Uploads: one file at a time, 4 MB pieces through the album script, resumable */
 const UP = { queue: [], running: false, CHUNK: 2 * 1024 * 1024 };   // 2 MB pieces: kinder to roaming data
@@ -1372,11 +2067,12 @@ function videoSeconds(file) {
 function upRow(job) {
   const q = document.getElementById("albQueue");
   if (!job.el) { job.el = document.createElement("div"); job.el.className = "uprow"; q.appendChild(job.el); }
-  const pct = Math.round(100 * job.sent / (job.file.size || 1));
+  const real = Math.round(100 * job.sent / (job.file.size || 1));
+  const pct = job.state === "done" ? 100 : job.est != null ? job.est : real;
   job.el.className = "uprow" + (job.state === "done" ? " ok" : job.state === "error" ? " bad" : "");
   const st = job.state === "done" ? "✓ Uploaded"
     : job.state === "error" ? `${esc(job.msg)}${job.retry ? ` · <button class="linkbtn" data-upretry>Retry</button>` : ""}`
-    : job.state === "waiting" ? "Waiting…" : `${pct}%`;
+    : job.state === "waiting" ? "Waiting…" : job.prep ? "Preparing…" : job.est != null ? "Uploading…" : `${pct}%`;
   job.el.innerHTML = `<span class="nm">${job.file.type.startsWith("video/") ? "🎬" : "📷"} ${esc(job.name)}</span>
     <span class="st">${st}</span><span class="bar"><i style="width:${job.state === "error" ? 0 : pct}%"></i></span>`;
   job.el._job = job;
@@ -1422,10 +2118,93 @@ async function upCall(body, tries = 3) {
   }
 }
 
+// When a photo was taken, from its JPEG info (DateTimeOriginal + OffsetTimeOriginal). Read before shrinking.
+async function photoTaken(file) {
+  try {
+    if (!/jpe?g/i.test(file.type)) return "";
+    const v = new DataView(await file.slice(0, 256 * 1024).arrayBuffer());
+    if (v.getUint16(0) !== 0xFFD8) return "";
+    let o = 2;
+    while (o + 4 < v.byteLength) {
+      const mk = v.getUint16(o), len = v.getUint16(o + 2);
+      if (mk === 0xFFE1 && v.getUint32(o + 4) === 0x45786966) {          // "Exif"
+        const t = o + 10, le = v.getUint16(t) === 0x4949;
+        const u16 = x => v.getUint16(t + x, le), u32 = x => v.getUint32(t + x, le);
+        const str = (x, n) => { let r = ""; for (let i = 0; i < n; i++) { const c = v.getUint8(t + x + i); if (!c) break; r += String.fromCharCode(c); } return r; };
+        const tagsAt = ifd => { const out = {}, n = u16(ifd); for (let i = 0; i < n; i++) { const e = ifd + 2 + i * 12; out[u16(e)] = e; } return out; };
+        const ifd0 = tagsAt(u32(4));
+        if (!ifd0[0x8769]) return "";
+        const ex = tagsAt(u32(ifd0[0x8769] + 8));
+        const val = tag => ex[tag] ? str(u32(ex[tag] + 8), u32(ex[tag] + 4)) : "";
+        const d = val(0x9003), off = val(0x9011);                         // "2027:01:11 19:32:05", "+08:00"
+        const m = /^(\d{4}):(\d\d):(\d\d) (\d\d):(\d\d):(\d\d)/.exec(d);
+        if (!m) return "";
+        const tz = /^[+-]\d\d:\d\d$/.test(off) ? off : "+08:00";         // no zone saved: assume Xiamen/Singapore time
+        const iso = `${m[1]}-${m[2]}-${m[3]}T${m[4]}:${m[5]}:${m[6]}${tz}`;
+        return isNaN(Date.parse(iso)) ? "" : iso;
+      }
+      if ((mk & 0xFF00) !== 0xFF00) return "";
+      o += 2 + len;
+    }
+  } catch (e) {}
+  return "";
+}
+
+// Photos go up at 2560px on the long side (JPEG). Faster uploads, and the phone's location tags are left behind.
+const SHRINK = { max: 2560, q: 0.85 };
+function shrinkImage(file) {
+  if (!file.type.startsWith("image/") || /gif/i.test(file.type)) return Promise.resolve(file);
+  return new Promise(ok => {
+    const url = URL.createObjectURL(file), im = new Image();
+    im.onload = () => {
+      const w = im.naturalWidth, h = im.naturalHeight, k = Math.min(1, SHRINK.max / Math.max(w, h));
+      const c = document.createElement("canvas");
+      c.width = Math.round(w * k); c.height = Math.round(h * k);
+      c.getContext("2d").drawImage(im, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      c.toBlob(b => ok(b ? new File([b], file.name.replace(/\.[^.]+$/, "") + ".jpg", { type: "image/jpeg" }) : file), "image/jpeg", SHRINK.q);
+    };
+    im.onerror = () => { URL.revokeObjectURL(url); ok(file); };   // can't read it here: send it as it is
+    im.src = url;
+  });
+}
+
+// One-piece uploads can't report progress, so the bar moves on an estimate from recent uploads on this phone,
+// slows near 90%, and completes when Google confirms.
+function estProgress(job) {
+  let rate = 200, base = 2500;                             // bytes per ms, fixed overhead (ms): first guess
+  try { const j = JSON.parse(localStorage.getItem("xm27-uprate") || "null"); if (j) { rate = j.rate; base = j.base; } } catch (e) {}
+  const eta = base + job.file.size / rate, t0 = Date.now();
+  job.est = 0; upRow(job);
+  const iv = setInterval(() => { job.est = Math.round(92 * (1 - Math.exp(-2.2 * (Date.now() - t0) / eta))); upRow(job); }, 250);
+  return ok => {
+    clearInterval(iv); job.est = null;
+    if (!ok) return;
+    const took = Date.now() - t0, r = job.file.size / Math.max(took - base, 500);
+    try { localStorage.setItem("xm27-uprate", JSON.stringify({ rate: Math.round((rate + r) / 2), base: base })); } catch (e) {}
+  };
+}
+
 async function uploadOne(job) {
   job.state = "sending"; job.msg = ""; upRow(job);
-  if (!job.uploadId) {
-    const r = await upCall({ action: "upstart", name: job.name, mime: job.file.type, size: job.file.size });
+  if (!job.ready) {                                        // one photo at a time, so big photos don't fill the phone's memory
+    job.prep = true; upRow(job);
+    job.taken = await photoTaken(job.file);
+    job.file = await shrinkImage(job.file);
+    if (/\.jpg$/i.test(job.file.name)) job.name = job.name.replace(/\.[^.]+$/, ".jpg");
+    job.ready = true; job.prep = false; upRow(job);
+  }
+  if (!job.uploadId && job.file.size <= UP.CHUNK) {        // small enough: start + send in one call
+    const stop = estProgress(job);
+    let r;
+    try { r = await upCall({ action: "upstart", name: job.name, mime: job.file.type, size: job.file.size, taken: job.taken || "", data: await readB64(job.file) }); }
+    finally { stop(r && r.ok); }
+    if (!r.ok) throw r;
+    job.uploadId = r.uploadId;
+    if (r.done) { job.sent = job.file.size; return; }
+    job.sent = r.received || 0;
+  } else if (!job.uploadId) {
+    const r = await upCall({ action: "upstart", name: job.name, mime: job.file.type, size: job.file.size, taken: job.taken || "" });
     if (!r.ok) throw r;
     job.uploadId = r.uploadId; job.sent = 0;
   } else {
@@ -1475,7 +2254,7 @@ window.addEventListener("beforeunload", e => { if (UP.running) { e.preventDefaul
 }));
 
 function switchAccount() {
-  saveToken(null); AL.items = null; setTripPass(null);
+  saveToken(null); setTripPass(null); albWipeLocal();
   if (window.google && google.accounts) google.accounts.id.disableAutoSelect();
   showSignIn("Pick the Google account you gave for the retreat.");
 }
@@ -1504,7 +2283,15 @@ function tripApi(body, ms = 25000) {
   const ctl = new AbortController();
   const tm = setTimeout(() => ctl.abort(), ms);
   return fetch(TRIP.exec, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(body), signal: ctl.signal })
-    .then(r => r.json()).finally(() => clearTimeout(tm));
+    .then(r => r.json()).then(simWindow).finally(() => clearTimeout(tm));
+}
+// Preview with a pretend date: the form's open/closed state follows that date (the script uses the real one)
+function simWindow(r) {
+  if (SIM && r && r.window && r.window.opensAt) {
+    const n = now();
+    r.window.status = n < r.window.opensAt ? "before" : n > r.window.closesAt ? "closed" : "open";
+  }
+  return r;
 }
 const tripCard = html => { document.getElementById("tripBody").innerHTML = html; };
 const tripMsg = (ic, h, p, extra) => tripCard(`<div class="icard center tmsg"><div class="ic">${ic}</div><h3>${h}</h3>${p ? `<p class="muted">${p}</p>` : ""}${extra || ""}</div>`);
@@ -1521,16 +2308,259 @@ function tripExchange(cred, show) {
   if (!TRIP.exec) return;
   if (show) tripMsg("⏳", "Signing you in…");
   tripApi({ action: "signin", idToken: cred, keep: keepPref() }).then(r => {
-    if (r.ok) { setTripPass(r.pass, r.exp); if (show) tripLoad(r.pass); return; }
-    if (!show) return;
+    if (r.ok) { setTripPass(r.pass, r.exp); if (show) tripLoad(r.pass); if (CUR_TAB === "trip") loadCard(); return; }
+    if (!show) { if (r.error === "not_listed" || r.error === "not_matched") albumSignIn(cred); return; }
     if (r.error === "not_listed") return tripWrong(r.email);
     if (r.error === "not_matched") return tripUnmatched(r.email);
     tripSignIn("Sign-in didn't work. Please try again.");
   }).catch(() => { if (show) tripNet(() => tripExchange(cred, true)); });
 }
 
+/* ---------- Souvenir card ("Your Xiamen 2027", My Trip tab) ----------
+   Live from 15 Jan (still filling up), fixed from the 21 Jan freeze. Only ever the signed-in person's own card.
+   Saved on this phone so it opens offline; signing out wipes it. */
+const CARD = { data: null, list: [], meta: {}, show: { inP: 9, groupP: 6, up: 6, fav: 9, com: 4 }, busy: false };
+const ctile = t => ({ id: t[0], by: t[1], at: t[2], video: !!t[3], pw: t[4], ph: t[5], rot: t[6], with: t[7] || [], n: t[8] || 0, orig: t[10] || t[0] });
+function cardSaved() { try { return JSON.parse(localStorage.getItem("xm27-card") || "null"); } catch (e) { return null; } }
+function loadCard() {
+  const box = document.getElementById("cardBox");
+  if (!ALBUM.exec) return;
+  if ((!ALBUM.preview || SIM) && now() < ALBUM.memoriesAt) { box.innerHTML = ""; return; }
+  const tok = (tokOk(AL.token) && AL.token) || albumToken();
+  if (!tok) { box.innerHTML = ""; return; }
+  AL.token = tok;
+  if (!CARD.data) { const c = cardSaved(); if (c) { CARD.data = c; renderCard(); } }
+  if (CARD.busy) return;
+  CARD.busy = true;
+  albumApi({ action: "card", token: tok }, 30000).then(r => {
+    if (!r.ok) {
+      if (r.error === "no_card" || r.error === "not_matched") { CARD.data = null; box.innerHTML = ""; try { localStorage.removeItem("xm27-card"); } catch (e) {} }
+      return;
+    }
+    CARD.data = { card: r.card, charts: r.charts, frozen: r.frozen, me: r.me };
+    try { localStorage.setItem("xm27-card", JSON.stringify(CARD.data)); } catch (e) {}
+    renderCard();
+  }).catch(() => {}).finally(() => { CARD.busy = false; });
+}
+
+function cardTiles(list, n, mineList) {
+  const me = CARD.data.card.short;
+  return list.slice(0, n).map(t => {
+    const w = t.with.filter(x => x !== me);
+    const lab = (mineList ? "" : `<b>📷 ${esc(t.by)}</b>`) + (w.length ? `<i>with ${esc(w.slice(0, 2).join(", "))}${w.length > 2 ? ` +${w.length - 2}` : ""}</i>` : "");
+    return `<button class="atile${t.video ? " vid" : ""}" data-cview="${esc(t.id)}" data-id="${esc(t.id)}" aria-label="${t.video ? "Video" : "Photo"} by ${esc(t.by)}"><img alt="">${lab ? `<span class="lab">${lab}</span>` : ""}</button>`;
+  }).join("");
+}
+function cardCharts(ch, me) {
+  const nm = (n, lead) => `<div class="nm${lead ? " ld" : ""}${n === me ? " me" : ""}">${esc(n)}</div>`;
+  const chart = (cols, fixed) => `<div class="chart" data-n="${cols.length}"${fixed ? ` data-cols="${fixed}"` : ""}>${cols.map(c =>
+    `<div class="col"><h5><span>${esc(c.name)}</span>${c.extra ? `<small>(${esc(c.extra.replace(/\s+room$/i, ""))})</small>` : ""}</h5>${c.body}</div>`).join("")}</div>`;
+  const vno = v => Number((v.name.match(/\d+/) || [0])[0]);
+  const vs = (ch.villas || []).filter(v => vno(v) >= 20).concat((ch.villas || []).filter(v => vno(v) < 20));
+  const rooms = chart(vs.map(v => ({ name: v.name, extra: v.extra, body: v.names.map(n => nm(n)).join("") })), 3);
+  const teams = chart((ch.teams || []).map(t => ({ name: t.name, body: t.lead.map(n => nm(n, true)).join("") + t.members.map(n => nm(n)).join("") })));
+  return `<h4 class="gsec">🛏️ Rooms</h4>${rooms}<hr class="gdiv"><h4 class="gsec">🎽 Teams<span class="gnote">Team Lead in bold</span></h4>${teams}`;
+}
+
+function renderCard() {
+  const box = document.getElementById("cardBox"), d = CARD.data;
+  if (!d || !d.card) { box.innerHTML = ""; return; }
+  const c = d.card, me = c.short;
+  const L = k => (c[k] || []).map(ctile);
+  const inP = L("inP"), groupP = L("groupP"), up = L("up"), fav = L("fav");
+  const days = (c.days || []).map(x => ({ title: x.title, n: x.n, tiles: x.tiles.map(ctile) }));
+  const loved = c.loved ? ctile(c.loved) : null, moment = c.moment ? ctile(c.moment) : null, hero = loved || moment;
+  // one list for the viewer (no repeats)
+  const seen = {};
+  CARD.list = [].concat(hero ? [hero] : [], inP, groupP, ...days.map(x => x.tiles), up, fav).filter(t => !seen[t.id] && (seen[t.id] = 1));
+  CARD.meta = {};
+  CARD.list.forEach(t => { CARD.meta[t.id] = t; });
+  const S = CARD.show;
+  const grid = (key, list, n, mine) => list.length ? `<div class="sgrid">${cardTiles(list, n, mine)}</div>${list.length > n ? `<button class="smore" data-cmore="${key}">See more</button>` : ""}` : "";
+  const box1 = (title, count, inner) => inner ? `<div class="sbox"><h4>${title}${count ? ` <small>${count}</small>` : ""}</h4>${inner}</div>` : "";
+  // numbers: only ones worth showing; if they're all small, trip facts instead
+  const st = c.stats || {};
+  const nums = [[st.inP, "photos<br>you're in"], [st.up, "photos<br>you shared"], [st.reacts, "reactions<br>on yours"]].filter(x => x[0] > 0);
+  const facts = [[4, "days in<br>Xiamen"], c.room ? [esc(c.room.villa.replace("Villa ", "")), "your<br>villa"] : null, c.team ? [esc(c.team.name.replace("Team ", "")), "your<br>team"] : null, st.album ? [st.album, "photos of<br>the trip"] : null].filter(Boolean);
+  const statRow = (nums.length >= 2 ? nums : facts).map(x => `<div><b>${x[0]}</b><span>${x[1]}</span></div>`).join("");
+  const heroHtml = hero ? `<div class="sbox"><h4>${loved ? "Your most-loved photo" : "A moment from your trip"}</h4>
+      <button class="sloved" data-cview="${esc(hero.id)}" data-id="${esc(hero.id)}"><img alt="" id="cardLoved">${loved ? `<span class="rx"><span>❤️ ${loved.n}</span></span>` : ""}</button>
+      <p class="scap">${hero.by === me ? "Shared by you" : "By " + esc(hero.by)} · ${esc(fmtWhen(hero.at))}${hero.with.filter(x => x !== me).length ? `<br>With ${esc(hero.with.filter(x => x !== me).join(", "))}` : ""}</p></div>` : "";
+  const daysHtml = days.length ? `<div class="sbox"><h4>Your trip, day by day</h4>${days.map((x, k) =>
+      `<p class="sday">${esc(x.title)}${x.n > x.tiles.length ? ` <small>${x.n} photos</small>` : ""}</p><div class="sgrid">${cardTiles(x.tiles, 6)}</div>`).join("")}</div>` : "";
+  const com = c.com || [];
+  const comHtml = com.length >= 2 ? `<div class="sbox"><h4>Comments <small>${com.length}</small></h4>${com.slice(0, S.com).map(x =>
+      `<button class="scom" data-cview="${esc(x[0])}" data-corig="${esc(x[5] || x[0])}" data-ccid="${esc(x[4] || "")}" data-cat="${esc(x[2])}" data-ctext="${esc(x[3].slice(0, 120))}"><img alt="" data-cimg="${esc(x[0])}"><p><b>${esc(x[1])}</b>${withMentions(x[3])}</p></button>`).join("")}
+      ${com.length > S.com ? `<button class="smore" data-cmore="com">See all ${com.length} comments</button>` : ""}</div>` : "";
+  const frozen = d.frozen || simFrozen();
+  const nudge = !frozen && now() < ((d.me && d.me.freezeAt) || ALBUM.freezeAt)
+    ? `<div class="snudge"><span>Got leftover photos? Add them before 21 Jan.</span><button data-tab="album">Add</button></div>` : "";
+  const teamTitle = [c.team && c.team.name, c.room && c.room.villa].filter(Boolean).join(" & ");
+  const rt = (c.room || c.team) ? `<div class="sbox chartcard"><h4>Rooms &amp; Teams</h4>${cardCharts(d.charts || {}, me)}</div>` : "";
+  const nSave = [].concat(hero ? [hero] : [], inP, up).filter((t, i, a) => !t.video && a.findIndex(x => x.id === t.id) === i).length;
+  box.innerHTML = `<div class="scard">
+    <div class="sc-top"><p class="eb">EXO Team Retreat 2027 Xiamen</p><h3>${esc(me)}</h3><p class="dt">厦门 · Mon 11 – Thu 14 January 2027</p>
+      <span class="sc-pill"><i></i>${frozen ? "Kept since 21 Jan 2027" : "Still filling up · locks 21 Jan"}</span></div>
+    <div class="sc-body">
+      <div class="sbox sstats" style="grid-template-columns:repeat(${(nums.length >= 2 ? nums : facts).length},1fr)">${statRow}</div>
+      ${heroHtml}
+      ${box1("Photos you're in", inP.length, grid("inP", inP, S.inP))}
+      ${box1(teamTitle ? "Your " + esc(teamTitle) + " photos" : "Your team photos", groupP.length, grid("groupP", groupP, S.groupP))}
+      ${daysHtml}
+      ${box1("Photos you shared", st.up > up.length ? `${st.up} · ${up.length} kept` : up.length, (nudge || "") + (up.length ? grid("up", up, S.up, true) : (nudge ? `<p class="muted" style="margin:0">None yet.</p>` : "")))}
+      ${comHtml}
+      ${box1("Everyone's favourites", "", grid("fav", fav, S.fav))}
+      ${rt}
+      ${nSave ? `<button class="ssave" id="cardSave" data-csave>⤓ Save my photos (${nSave})</button>` : ""}
+      ${frozen ? "" : `<p class="sfoot">Your card keeps updating until 21 Jan</p>`}
+      ${d.me && d.me.admin ? `<div class="sbox sadmin" id="cardAdmin"><h4>Souvenir emails <small>only you see this</small></h4><p id="sendInfo">${d.frozen ? "Checking…" : simFrozen() ? "Preview: after the real freeze, the send buttons show here." : "Emails can be sent after the freeze on 21 Jan."}</p><div class="btns" id="sendBtns"></div></div>` : ""}
+    </div></div>`;
+  box.querySelectorAll(".sgrid .atile").forEach(t => {
+    const u = TH[t.dataset.id + "|400"];
+    if (u) setImg(t.querySelector("img"), u); else tileObserver().observe(t);
+  });
+  if (hero) getThumbs([hero.id], 1200).then(() => { const im = document.getElementById("cardLoved"); if (im && TH[hero.id + "|1200"]) im.src = TH[hero.id + "|1200"]; });
+  const cids = com.length >= 2 ? [...new Set(com.slice(0, S.com).map(x => x[0]))] : [];
+  if (cids.length) getThumbs(cids, 400).then(() => box.querySelectorAll("[data-cimg]").forEach(im => { const u = TH[im.dataset.cimg + "|400"]; if (u) im.src = u; }));
+  if (rt) requestAnimationFrame(fitCharts);
+  if (d.me && d.me.admin && d.frozen) sendStatus();
+}
+
+// Tapping a card photo or comment opens it from the Album (reactions + comments) right over the card, so closing
+// it leaves you exactly where you were. If the album has closed or the photo was deleted, it opens from the card.
+async function albumData() {
+  if (AL.items && AL.me && tokOk(AL.token)) return AL.me.access === "ok";
+  const tok = (tokOk(AL.token) && AL.token) || albumToken();
+  if (!tok) return false;
+  try {
+    const r = await albumApi({ action: "open", token: tok, since: 0 });
+    if (!r.ok) return false;
+    AL.token = tok; AL.me = r; AL.email = r.email;
+    if (r.access !== "ok") return false;
+    fuState(); albApply(r); AL.shownAt = Date.now(); albSaveLocal();
+    return true;
+  } catch (e) { return false; }
+}
+async function cardOpen(id, orig, com) {
+  const t = CARD.meta[id];
+  const albumId = orig || (t && t.orig) || id;
+  const here = msg => { const i = CARD.list.findIndex(x => x.id === id); if (msg) toast(msg); if (i >= 0) openViewer("card", i); };
+  if (CARD.opening) return;
+  CARD.opening = true;
+  const slow = setTimeout(() => toast("Opening…"), 400);
+  const ok = await albumData();
+  clearTimeout(slow); CARD.opening = false;
+  if (!ok) return here();
+  const i = AL.items.findIndex(x => x.id === albumId);
+  if (i < 0) return here("That photo is no longer in the album");
+  openViewer("album", i);
+  if (!com) return;
+  openComments(AL.items[i]);
+  // the comment you tapped: by its id, or (cards made before ids were kept) by when it was written + its text
+  const list = AL.comments[AL.items[i].id] || [];
+  const hit = list.find(c => com.id && c[0] === com.id) || list.find(c => c[2] === com.at && c[3].slice(0, 120) === com.text)
+    || list.find(c => c[2] === com.at);
+  if (!hit) return;
+  SH.picked = hit[0];
+  const el = document.querySelector(`#sheetBody .cmt[data-cid="${CSS.escape(hit[0])}"]`);
+  if (el) { el.classList.add("picked"); el.scrollIntoView({ block: "center" }); }
+}
+
+// Viewer for card photos: download (or play, for videos); no reactions here
+function showCardPhoto(img, it) {
+  img.src = TH[it.id + "|1200"] || TH[it.id + "|400"] || "";
+  if (!TH[it.id + "|1200"]) getThumbs([it.id], 1200).then(() => { if (vlist()[VW.i] === it && TH[it.id + "|1200"]) img.src = TH[it.id + "|1200"]; });
+  const w = it.with.filter(x => x !== (CARD.data && CARD.data.card.short));
+  document.getElementById("viewerCredit").textContent = `${it.video ? "🎬 Video · " : ""}by ${it.by} · ${fmtWhen(it.at)}${w.length ? " · with " + w.join(", ") : ""}`;
+  document.getElementById("viewerAct").innerHTML = it.video
+    ? `<a class="vbtn" href="${driveLink(it.id)}" target="_blank" rel="noopener" aria-label="Play">${ICON.play}</a>`
+    : `<button class="vbtn" data-adl aria-label="Download">${ICON.download}</button>`;
+  document.getElementById("viewerDel").hidden = true;
+}
+
+// Save my photos: a set of 10 at a time into the phone's Photos (share sheet), at the size they were uploaded
+const SAVE = { files: [], next: 0 };
+async function cardSave(btn) {
+  const c = CARD.data.card, ids = {};
+  [].concat(c.loved ? [c.loved] : [], c.moment ? [c.moment] : [], c.inP || [], c.up || []).forEach(t => { ids[t[0]] = 1; });
+  const photos = CARD.list.filter(t => !t.video && ids[t.id]);
+  if (SAVE.files.length) {                                   // ready: hand this set to the share sheet (needs the tap)
+    const files = SAVE.files; SAVE.files = [];
+    if (navigator.canShare && navigator.canShare({ files })) {
+      try { await navigator.share({ files }); } catch (e) {}
+    } else files.forEach(f => saveFile(f, btn));
+    btn.textContent = SAVE.next < photos.length ? `⤓ Get the next ${Math.min(10, photos.length - SAVE.next)} photos` : "✓ All saved";
+    if (SAVE.next >= photos.length) { btn.disabled = true; SAVE.next = 0; }
+    return;
+  }
+  const set = photos.slice(SAVE.next, SAVE.next + 10);
+  btn.disabled = true;
+  for (let i = 0; i < set.length; i++) {
+    btn.textContent = `Getting photo ${SAVE.next + i + 1} of ${photos.length}…`;
+    const t = set[i], size = Math.min(3000, Math.max(t.pw || 0, t.ph || 0) || 2000);
+    try {
+      const r = await albumApi({ action: "thumbs", token: AL.token, ids: [t.id], size }, 60000);
+      const u = r.ok && r.thumbs[t.id];
+      if (u) {
+        const blob = await (await fetch(await upright(u, t))).blob();
+        SAVE.files.push(new File([blob], `Xiamen2027_${String(SAVE.next + i + 1).padStart(2, "0")}.jpg`, { type: "image/jpeg" }));
+      }
+    } catch (e) {}
+  }
+  SAVE.next += set.length;
+  btn.disabled = false;
+  btn.textContent = SAVE.files.length ? `⤓ Tap to save ${SAVE.files.length} photo${SAVE.files.length === 1 ? "" : "s"}` : "Couldn't get the photos. Try again";
+}
+
+// Admin only: send the souvenir emails (yours goes out by itself at the freeze; everyone else's waits for this)
+function sendStatus(msg) {
+  albumApi({ action: "sendstatus", token: AL.token }).then(r => {
+    const info = document.getElementById("sendInfo"), btns = document.getElementById("sendBtns");
+    if (!info || !r.ok) return;
+    info.innerHTML = (msg ? msg + "<br>" : "") + `Sent <b>${r.sent}</b> of ${r.total}${r.mineSent ? " · yours went out " + esc(fmtWhen(r.mineSent)) : " · yours not sent yet"} · ${r.quota} emails left today`;
+    btns.innerHTML = `<button class="btn" data-sendme>Send mine again</button>${r.pending ? `<button class="btn primary" data-sendall="${r.pending}">Send to everyone (${r.pending})</button>` : ""}`;
+  }).catch(() => {});
+}
+async function sendAll() {
+  const info = document.getElementById("sendInfo"), btns = document.getElementById("sendBtns");
+  btns.innerHTML = ""; info.textContent = "Sending… keep this page open.";
+  let failed = [];
+  for (let round = 0; round < 10; round++) {
+    let r;
+    try { r = await albumApi({ action: "sendall", token: AL.token }, 330000); } catch (e) { break; }
+    if (!r.ok) { info.textContent = "Stopped: " + r.error; break; }
+    failed = failed.concat(r.failed || []);
+    info.textContent = `Sending… ${r.sent} of ${r.total} sent`;
+    if (!r.pending || !r.sentNow) break;
+  }
+  sendStatus(failed.length ? "Couldn't send: " + esc(failed.join(", ")) : "Done.");
+}
+document.addEventListener("click", e => {
+  const t = e.target;
+  const v = t.closest("[data-cview]");
+  if (v) { cardOpen(v.dataset.cview, v.dataset.corig, "ccid" in v.dataset ? { id: v.dataset.ccid, at: v.dataset.cat, text: v.dataset.ctext } : null); return; }
+  const m = t.closest("[data-cmore]");
+  if (m) { const k = m.dataset.cmore; CARD.show[k] += k === "com" ? 50 : 12; renderCard(); return; }
+  const sv = t.closest("[data-csave]");
+  if (sv) { cardSave(sv); return; }
+  if (t.closest("[data-sendme]")) {
+    document.getElementById("sendInfo").textContent = "Sending yours…";
+    albumApi({ action: "sendme", token: AL.token }, 120000).then(r => sendStatus(r.ok ? "Sent to you." : "Couldn't send: " + esc(r.error))).catch(() => sendStatus("Couldn't send."));
+    return;
+  }
+  const sa = t.closest("[data-sendall]");
+  if (sa) {
+    if (sa.dataset.confirm) { sendAll(); return; }
+    sa.dataset.confirm = "1"; sa.textContent = `Yes, send ${sa.dataset.sendall} emails now`;
+    sa.insertAdjacentHTML("afterend", `<button class="btn" data-sendcancel>Cancel</button>`);
+    return;
+  }
+  if (t.closest("[data-sendcancel]")) sendStatus();
+});
+
 function openTrip() {
   stopTripTimers();
+  loadCard();
   document.getElementById("tripHi").textContent = "";
   if (!TRIP.preview && now() < TRIP.opensAt) return tripLocked();
   if (!TRIP.exec) return tripMsg("🛠️", "Almost ready", "Check back soon.");
@@ -1586,7 +2616,7 @@ function tripNet(retry) {
   document.getElementById("tripRetry").onclick = retry;
 }
 function tripSignOut() {
-  setTripPass(null); saveToken(null); AL.items = null;
+  setTripPass(null); saveToken(null); albWipeLocal();
   if (window.google && google.accounts) google.accounts.id.disableAutoSelect();
   tripSignIn("Pick the Google account you gave for the retreat.");
 }
@@ -1902,7 +2932,7 @@ if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catc
   const standalone = window.matchMedia("(display-mode: standalone)").matches || navigator.standalone;
   let dismissed = false;
   try { dismissed = localStorage.getItem("xm27-install") === "x"; } catch (e) {}
-  if (standalone || dismissed) return;
+  if (standalone || dismissed || now() >= ALBUM.memoriesAt) return;
   document.getElementById("install").hidden = false;
   document.getElementById("installX").onclick = () => {
     document.getElementById("install").hidden = true;
@@ -1910,9 +2940,48 @@ if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catc
   };
 })();
 
+/* ---------- The handbook changes with the trip ----------
+   From 11 Jan 12:00: Info leads with Our Villa + Rooms & Teams; Before You Fly / What to Pack fold up at the
+   bottom; "Save offline" goes.  From 15 Jan: just My Trip (souvenir card) + Album, nothing about saving offline. */
+const STAGE = { tripAt: t("2027-01-11T12:00"), memAt: ALBUM.memoriesAt };
+function applyStage() {
+  const n = now(), trip = n >= STAGE.tripAt, mem = n >= STAGE.memAt;
+  const info = document.getElementById("tab-info");
+  // found by title (the PDF builder relies on the cards' plain markup, so they carry no ids)
+  const byTitle = w => [...info.querySelectorAll(".icard")].find(c => (c.querySelector("h3") || {}).textContent.indexOf(w) !== -1);
+  const villa = byTitle("Our Villa"), groups = document.getElementById("groupsCard");
+  if (trip && !info.dataset.staged) {
+    info.dataset.staged = "1";
+    villa.insertAdjacentElement("afterend", groups);
+    ["Before You Fly", "What to Pack"].forEach(w => {
+      const c = byTitle(w);
+      info.appendChild(c);
+      c.classList.add("fold");
+      const h = c.querySelector("h3");
+      h.insertAdjacentHTML("afterbegin", `<button class="foldbtn" data-fold aria-expanded="false">Show ▾</button>`);
+    });
+    byTitle("Save offline").hidden = true;
+  }
+  if (mem) {
+    ["next", "agenda", "info"].forEach(k => { document.querySelector(`nav [data-tab="${k}"]`).hidden = true; });
+    document.querySelector('nav [data-tab="trip"]').hidden = false;
+    document.getElementById("install").hidden = true;
+    if (["next", "agenda", "info"].indexOf(CUR_TAB) !== -1) showTab("trip");
+  }
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-fold]");
+  if (!b) return;
+  const c = b.closest(".icard"), open = c.classList.toggle("fold") === false;
+  b.textContent = open ? "Hide ▴" : "Show ▾";
+  b.setAttribute("aria-expanded", String(open));
+});
+
 renderCarousel();
 renderHero();
 setInterval(renderHero, 1000);
+applyStage();
+setInterval(applyStage, 60000);
 // My Trip tab + Info → Rooms & Teams stay hidden on the live page until the form opens (12 Nov, 2pm SGT),
 // then appear by themselves (checked every 15 s, so an open page updates too). Always shown on /preview/.
 function applyTripVis() {
@@ -1925,6 +2994,7 @@ function applyTripVis() {
 }
 if (!applyTripVis()) TR.vis = setInterval(applyTripVis, 15000);
 if (location.hash === "#trip" && applyTripVis()) showTab("trip");
+if (params.get("card")) { document.querySelector('nav [data-tab="trip"]').hidden = false; showTab("trip"); }
 </script>
 </body>
 </html>

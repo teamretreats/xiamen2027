@@ -1,5 +1,5 @@
 // Offline cache for the handbook. Bump VERSION on every deploy so phones pick up new files.
-const VERSION = "xm27-v51";
+const VERSION = "xm27-v70";
 const FILES = [
   "./", "./index.html", "./manifest.json", "./Xiamen-2027-Handbook.pdf",
    "./img/apple-touch-icon.png",   "./img/dinner-1.jpg",   "./img/dinner-2.jpg",   "./img/dinner-3.jpg",   "./img/hotel-courtyard.jpg",   "./img/hotel-gym.jpg",   "./img/hotel-pool.jpg",   "./img/hotel-room.jpg",   "./img/hotel-suite.jpg",   "./img/hy-1.jpg",   "./img/hy-2.jpg",   "./img/hy-3.jpg",   "./img/icon-192.png",   "./img/icon-512.png",   "./img/trail-1.jpg",   "./img/trail-2.jpg",   "./img/trail-3.jpg",   "./img/trail-4.jpg"
@@ -11,7 +11,7 @@ self.addEventListener("install", e => {
 
 self.addEventListener("activate", e => {
   e.waitUntil(caches.keys()
-    .then(keys => Promise.all(keys.filter(k => k !== VERSION).map(k => caches.delete(k))))
+    .then(keys => Promise.all(keys.filter(k => k !== VERSION && k !== "xm27-thumbs").map(k => caches.delete(k))))   // album images saved on the phone stay
     .then(() => self.clients.claim()));
 });
 
