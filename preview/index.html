@@ -266,6 +266,50 @@ button{font:inherit;cursor:pointer}
 .vbtn.busy{animation:pulse 1.2s infinite}
 .vbtn .lbl{font-size:13px}
 
+/* Album: reactions, tags, comments (in the photo viewer) + the bottom sheet they open */
+.viewer.soc img{max-height:52vh}
+.vsoc{width:100%;max-width:440px;margin-top:10px;display:grid;gap:8px;color:#fff;touch-action:manipulation}
+.vsoc[hidden]{display:none}
+.rrow{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.rbtn{border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.1);color:#fff;border-radius:999px;height:36px;min-width:44px;padding:0 10px;
+  font-size:17px;display:inline-flex;align-items:center;gap:5px;font-variant-numeric:tabular-nums}
+.rbtn small{font-size:13px;font-weight:600}
+.rbtn.mine{background:#fff;color:var(--sea);border-color:#fff}
+.rbtn.plus{font-size:18px;font-weight:600}
+.rbtn:disabled{opacity:1}
+.slinks{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;font-size:13px}
+.slinks button{border:0;background:none;color:rgba(255,255,255,.85);padding:2px 0;font-size:13px;text-decoration:underline;text-underline-offset:3px}
+.trow{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;font-size:13px;color:rgba(255,255,255,.8)}
+.tchip{background:rgba(255,255,255,.14);border:0;color:#fff;border-radius:999px;padding:4px 10px;font-size:13px;display:inline-flex;gap:6px;align-items:center}
+.tchip b{font-weight:400;opacity:.7;font-size:12px}
+.sheetbg{position:fixed;inset:0;background:rgba(10,20,30,.45);z-index:85;display:none}
+.sheetbg.open{display:block}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:86;background:var(--card);color:var(--ink);border-radius:20px 20px 0 0;
+  max-height:78vh;display:none;flex-direction:column;box-shadow:0 -10px 30px rgba(0,0,0,.2);padding-bottom:env(safe-area-inset-bottom)}
+.sheet.open{display:flex}
+.sheet .shd{display:flex;justify-content:space-between;align-items:center;padding:14px 16px 8px;border-bottom:1px solid var(--line)}
+.sheet .shd h3{margin:0;font-size:16px;letter-spacing:0;text-transform:none;color:var(--sea)}
+.sheet .shd button{border:0;background:var(--sand);width:32px;height:32px;border-radius:50%;font-size:15px;color:var(--sea)}
+.sheet .sbody{overflow-y:auto;padding:8px 16px 12px;-webkit-overflow-scrolling:touch;flex:1}
+.sheet .sfoot{padding:10px 16px 12px;border-top:1px solid var(--line);display:flex;gap:8px;align-items:flex-end}
+.sheet textarea,.sheet input[type=text]{flex:1;font:inherit;font-size:16px;border:1px solid var(--line);border-radius:14px;padding:9px 12px;background:#fff;color:var(--ink);resize:none;min-width:0}
+.sheet .send{border:0;background:var(--sea);color:#fff;border-radius:999px;height:40px;padding:0 16px;font-weight:600}
+.sheet .send:disabled{opacity:.5}
+.cmt{padding:9px 0;border-bottom:1px solid var(--line);font-size:15px}
+.cmt:last-child{border-bottom:0}
+.cmt .ch{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;color:var(--muted)}
+.cmt .ch b{color:var(--sea-2)}
+.cmt p{margin:2px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.cmt.pending{opacity:.55}
+.cmt .cdel{border:0;background:none;color:var(--muted);font-size:12.5px;text-decoration:underline;padding:0}
+.empty{color:var(--muted);font-size:14px;text-align:center;padding:16px 0}
+.plist{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:8px}
+.plist button{border:1px solid var(--line);background:#fff;border-radius:12px;padding:9px 10px;text-align:left;font-size:15px;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wrow{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:15px}
+.wrow:last-child{border-bottom:0}
+.wrow span{font-size:20px;line-height:1.2}
+.ehint{font-size:12.5px;color:var(--muted);margin:6px 0 0}
+
 /* My Trip */
 .tmsg .ic{font-size:30px}
 .tmsg h3{font-family:var(--serif);font-size:20px;color:var(--sea);margin:4px 0 6px;letter-spacing:0;text-transform:none}
@@ -358,7 +402,7 @@ nav button.on .i{transform:translateY(-1px)}
 .driver .close{align-self:flex-start;margin-top:28px;background:#fff;color:var(--sea);border:0;border-radius:999px;padding:11px 22px;font-weight:600}
 
 .toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);
-  background:var(--ink);color:#fff;padding:10px 16px;border-radius:999px;font-size:14px;opacity:0;transition:.25s;z-index:60;pointer-events:none;white-space:nowrap}
+  background:var(--ink);color:#fff;padding:10px 16px;border-radius:999px;font-size:14px;opacity:0;transition:.25s;z-index:95;pointer-events:none;white-space:nowrap}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
 .preview{background:#fff4c2;color:#6b5400;font-size:13px;text-align:center;padding:6px 12px}
@@ -609,6 +653,14 @@ nav button.on .i{transform:translateY(-1px)}
   <p class="vcount" id="viewerCount"></p>
   <p class="vcredit" id="viewerCredit"></p>
   <div class="vact" id="viewerAct" hidden></div>
+  <div class="vsoc" id="viewerSoc" hidden></div>
+</div>
+
+<div class="sheetbg" id="sheetBg"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+  <div class="shd"><h3 id="sheetTitle"></h3><button id="sheetClose" aria-label="Close">✕</button></div>
+  <div class="sbody" id="sheetBody"></div>
+  <div class="sfoot" id="sheetFoot" hidden></div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -864,6 +916,8 @@ function openViewer(key, i) {
   VW.key = key; VW.i = i;
   document.getElementById("viewerCredit").innerHTML = key === "album" ? "" : PLACES[key].credit || "";
   document.getElementById("viewerAct").hidden = key !== "album";
+  document.getElementById("viewerSoc").hidden = key !== "album";
+  document.getElementById("viewer").classList.toggle("soc", key === "album");
   showViewer();
   document.getElementById("viewer").classList.add("open");
 }
@@ -882,7 +936,7 @@ function stepViewer(d) {
   if (n < 0 || n >= list.length) { document.getElementById("viewerImg").style.transform = ""; return; }
   VW.i = n; showViewer();
 }
-function closeViewer() { document.getElementById("viewer").classList.remove("open"); }
+function closeViewer() { document.getElementById("viewer").classList.remove("open"); closeSheet(); }
 (function () {
   const vw = document.getElementById("viewer"), img = document.getElementById("viewerImg");
   let x0 = null, y0 = 0, dx = 0, dy = 0;
@@ -901,7 +955,7 @@ function closeViewer() { document.getElementById("viewer").classList.remove("ope
     x0 = null;
   });
   document.addEventListener("keydown", ev => {
-    if (!vw.classList.contains("open")) return;
+    if (!vw.classList.contains("open") || /^(INPUT|TEXTAREA)$/.test(ev.target.tagName)) return;   // typing a comment
     if (ev.key === "ArrowRight") stepViewer(1);
     if (ev.key === "ArrowLeft") stepViewer(-1);
     if (ev.key === "Escape") closeViewer();
@@ -1389,6 +1443,7 @@ function showAlbumPhoto(img, it) {
   const next = AL.items[VW.i + 1];
   if (next) setTimeout(() => getThumbs([next.id], 1200), 600);
   document.getElementById("viewerCredit").textContent = `${it.video ? "🎬 Video · " : ""}by ${it.by} · ${fmtWhen(it.at)}`;
+  socRender(it);
   const del = it.mine ? `<button class="vbtn" data-adel aria-label="Delete">${ICON.del}</button>` : "";
   document.getElementById("viewerAct").innerHTML = (it.video
     ? `<a class="vbtn" href="${driveLink(it.id)}" target="_blank" rel="noopener" aria-label="Play">${ICON.play}</a>`
@@ -1439,6 +1494,200 @@ function albDelete(btn) {
   }).catch(() => { btn.disabled = false; toast("Couldn't delete. Try again"); });
 }
 
+/* ---------- Reactions, comments, tags (album viewer) ---------- */
+const QUICK = ["❤️", "😂", "🔥", "👏"];
+const canWrite = () => !!(AL.me && AL.me.canWrite);
+const curItem = () => (VW.key === "album" && AL.items) ? AL.items[VW.i] : null;
+
+function socRender(it) {
+  const el = document.getElementById("viewerSoc");
+  if (!it) { el.innerHTML = ""; return; }
+  const r = it.r || [], w = canWrite();
+  const by = {};
+  r.forEach(x => { by[x[0]] = x; });
+  const extra = r.filter(x => QUICK.indexOf(x[0]) === -1);
+  const chip = e => { const x = by[e]; return `<button class="rbtn${x && x[2] ? " mine" : ""}" data-react="${esc(e)}"${w ? "" : " disabled"} aria-label="React ${esc(e)}">${e}${x ? `<small>${x[1]}</small>` : ""}</button>`; };
+  const shown = w ? QUICK.concat(extra.map(x => x[0])) : r.map(x => x[0]);
+  const total = r.reduce((n, x) => n + x[1], 0);
+  const tags = it.t || [];
+  el.innerHTML = `${shown.length || w ? `<div class="rrow">${shown.map(chip).join("")}${w ? `<button class="rbtn plus" data-reactplus aria-label="Pick any emoji">＋</button>` : ""}</div>` : ""}
+    ${tags.length || w ? `<div class="trow">${tags.length ? "With" : ""} ${tags.map(t => `<span class="tchip">${esc(t[0])}${t[1] ? `<button data-untag="${esc(t[0])}" aria-label="Remove ${esc(t[0])}" style="all:unset;cursor:pointer;opacity:.7">✕</button>` : ""}</span>`).join("")}</div>` : ""}
+    <div class="slinks">
+      ${total ? `<button data-who>${total} reaction${total === 1 ? "" : "s"}</button>` : ""}
+      ${it.c || w ? `<button data-comments>${it.c ? `💬 ${it.c} comment${it.c === 1 ? "" : "s"}` : "💬 Comment"}</button>` : ""}
+      ${w ? `<button data-tagadd>👥 Tag who's in it</button>` : ""}
+    </div>`;
+}
+
+// Apply the album script's answer for one photo
+function socSettle(state) {
+  if (!state || !AL.items) return;
+  const it = AL.items.find(x => x.id === state.id);
+  if (!it) return;
+  it.r = state.r; it.t = state.t; it.c = state.c;
+  AL.comments[state.id] = state.comments || [];
+  albSaveLocal();
+  if (curItem() === it) socRender(it);
+  if (SH.kind === "comments" && SH.id === it.id) renderComments(it);
+}
+
+// Change the screen now, save in the background, undo if it didn't save
+function socSend(it, body, change) {
+  const before = JSON.stringify({ r: it.r, t: it.t, c: it.c, cm: AL.comments[it.id] || [] });
+  change();
+  if (curItem() === it) socRender(it);
+  albumApi(Object.assign({ token: AL.token }, body)).then(r => {
+    if (!r.ok) throw new Error(r.error);
+    socSettle(r.item);
+  }).catch(err => {
+    const b = JSON.parse(before);
+    it.r = b.r; it.t = b.t; it.c = b.c; AL.comments[it.id] = b.cm;
+    if (curItem() === it) socRender(it);
+    if (SH.kind === "comments" && SH.id === it.id) renderComments(it);
+    const e = err && err.message;
+    toast(e === "view_only" ? "The album is view-only now" : e === "invalid_token" ? "Please sign in again" : "Couldn't save. Try again");
+  });
+}
+
+function react(it, emoji) {
+  socSend(it, { action: "react", id: it.id, emoji: emoji }, () => {
+    let r = (it.r || []).map(x => [x[0], x[1], x[2], x[3].slice()]);
+    const me = (AL.me && AL.me.short) || "You";
+    const mine = r.find(x => x[2]);
+    if (mine) { mine[1]--; mine[2] = 0; mine[3].splice(mine[3].indexOf(me), 1); }
+    if (!mine || mine[0] !== emoji) {
+      const x = r.find(y => y[0] === emoji);
+      if (x) { x[1]++; x[2] = 1; x[3].push(me); } else r.push([emoji, 1, 1, [me]]);
+    }
+    it.r = r.filter(x => x[1] > 0).sort((a, b) => b[1] - a[1]);
+  });
+}
+
+// Exactly one emoji (skin tones, flags and family emoji count as one)
+function oneEmoji(s) {
+  s = String(s || "").trim();
+  if (!s || s.length > 16) return "";
+  if (window.Intl && Intl.Segmenter) {
+    const parts = [...new Intl.Segmenter().segment(s)];
+    if (parts.length !== 1) return "";
+  }
+  return /^(?:\p{Extended_Pictographic}|\p{Regional_Indicator}|\p{Emoji_Modifier}|[‍️])+$/u.test(s)
+    && /\p{Extended_Pictographic}|\p{Regional_Indicator}/u.test(s) ? s : "";
+}
+
+/* Bottom sheet: comments, tag picker, any-emoji picker, who reacted */
+const SH = { kind: "", id: "" };
+function openSheet(kind, id, title, body, foot) {
+  SH.kind = kind; SH.id = id;
+  document.getElementById("sheetTitle").textContent = title;
+  document.getElementById("sheetBody").innerHTML = body;
+  const f = document.getElementById("sheetFoot");
+  f.innerHTML = foot || ""; f.hidden = !foot;
+  document.getElementById("sheetBg").classList.add("open");
+  document.getElementById("sheet").classList.add("open");
+}
+function closeSheet() {
+  SH.kind = SH.id = "";
+  document.getElementById("sheetBg").classList.remove("open");
+  document.getElementById("sheet").classList.remove("open");
+}
+document.getElementById("sheetBg").addEventListener("click", closeSheet);
+document.getElementById("sheetClose").addEventListener("click", closeSheet);
+
+const fmtAgo = iso => {
+  const m = Math.round((Date.now() - Date.parse(iso)) / 60000);
+  return m < 1 ? "just now" : m < 60 ? m + " min ago" : m < 1440 ? Math.round(m / 60) + " h ago" : fmtWhen(iso);
+};
+function renderComments(it) {
+  const list = AL.comments[it.id] || [];
+  document.getElementById("sheetBody").innerHTML = list.length ? list.map(c =>
+    `<div class="cmt${c[0].indexOf("tmp-") === 0 ? " pending" : ""}"><div class="ch"><span><b>${esc(c[1])}</b> · ${esc(fmtAgo(c[2]))}</span>${c[5] && c[0].indexOf("tmp-") !== 0 ? `<button class="cdel" data-cdel="${esc(c[0])}">Delete</button>` : ""}</div><p>${esc(c[3])}</p></div>`).join("")
+    : `<p class="empty">No comments yet.${canWrite() ? " Be the first!" : ""}</p>`;
+  const b = document.getElementById("sheetBody"); b.scrollTop = b.scrollHeight;
+}
+function openComments(it) {
+  openSheet("comments", it.id, "Comments", "", canWrite()
+    ? `<textarea id="cmtText" rows="1" maxlength="300" placeholder="Add a comment…" aria-label="Your comment"></textarea><button class="send" id="cmtSend" disabled>Post</button>` : "");
+  renderComments(it);
+  const ta = document.getElementById("cmtText");
+  if (!ta) return;
+  const btn = document.getElementById("cmtSend");
+  ta.addEventListener("input", () => { btn.disabled = !ta.value.trim(); ta.style.height = "auto"; ta.style.height = Math.min(ta.scrollHeight, 120) + "px"; });
+  btn.addEventListener("click", () => {
+    const text = ta.value.trim().slice(0, 300);
+    if (!text) return;
+    ta.value = ""; btn.disabled = true; ta.style.height = "auto";
+    socSend(it, { action: "comment", id: it.id, text: text }, () => {
+      const list = (AL.comments[it.id] || []).slice();
+      list.push(["tmp-" + Date.now(), (AL.me && AL.me.short) || "You", new Date().toISOString(), text, 1, 0]);
+      AL.comments[it.id] = list; it.c = (it.c || 0) + 1;
+      renderComments(it);
+    });
+  });
+}
+function openTagPicker(it) {
+  const tagged = (it.t || []).map(t => t[0]);
+  const names = (AL.roster || []).filter(n => tagged.indexOf(n) === -1);
+  const list = q => names.filter(n => !q || n.toLowerCase().indexOf(q.toLowerCase()) !== -1)
+    .map(n => `<button data-tagpick="${esc(n)}">${esc(n)}</button>`).join("") || `<p class="empty">No match</p>`;
+  openSheet("tag", it.id, "Who's in this photo?",
+    `<input type="text" id="tagQ" placeholder="Search a name" aria-label="Search a name" autocomplete="off"><div class="plist" id="tagList">${list("")}</div>`);
+  document.getElementById("tagQ").addEventListener("input", e => { document.getElementById("tagList").innerHTML = list(e.target.value); });
+}
+function openEmojiPicker(it) {
+  openSheet("emoji", it.id, "React with any emoji",
+    `<input type="text" id="emoQ" placeholder="Tap here, then pick one emoji" aria-label="One emoji" autocomplete="off" style="width:100%;font-size:28px;text-align:center">
+     <p class="ehint">On iPhone, tap 😊 or 🌐 on the keyboard to find emoji.</p>`,
+    `<button class="send" id="emoSend" style="flex:1" disabled>React</button>`);
+  const q = document.getElementById("emoQ"), b = document.getElementById("emoSend");
+  q.addEventListener("input", () => { b.disabled = !oneEmoji(q.value); });
+  b.addEventListener("click", () => { const e = oneEmoji(q.value); if (!e) return; closeSheet(); react(it, e); });
+  setTimeout(() => q.focus(), 50);
+}
+function openWho(it) {
+  openSheet("who", it.id, "Reactions", (it.r || []).map(x =>
+    `<div class="wrow"><span>${x[0]}</span><div>${x[3].map(esc).join(", ")}</div></div>`).join("") || `<p class="empty">No reactions yet.</p>`);
+}
+
+document.addEventListener("click", e => {
+  const it = curItem();
+  const t = e.target;
+  if (t.closest("#viewerSoc")) {
+    if (!it) return;
+    const rb = t.closest("[data-react]");
+    if (rb && canWrite()) return react(it, rb.dataset.react);
+    if (t.closest("[data-reactplus]")) return openEmojiPicker(it);
+    if (t.closest("[data-who]")) return openWho(it);
+    if (t.closest("[data-comments]")) return openComments(it);
+    if (t.closest("[data-tagadd]")) return openTagPicker(it);
+    const ut = t.closest("[data-untag]");
+    if (ut) {
+      const name = ut.dataset.untag;
+      return socSend(it, { action: "untag", id: it.id, name: name }, () => { it.t = (it.t || []).filter(x => x[0] !== name); });
+    }
+    return;
+  }
+  if (t.closest("#sheet")) {
+    const sit = AL.items && AL.items.find(x => x.id === SH.id);
+    if (!sit) return;
+    const tp = t.closest("[data-tagpick]");
+    if (tp) {
+      const name = tp.dataset.tagpick;
+      closeSheet();
+      return socSend(sit, { action: "tag", id: sit.id, name: name }, () => { sit.t = (sit.t || []).concat([[name, 1]]); });
+    }
+    const cd = t.closest("[data-cdel]");
+    if (cd) {
+      const cid = cd.dataset.cdel;
+      return socSend(sit, { action: "uncomment", cid: cid }, () => {
+        AL.comments[sit.id] = (AL.comments[sit.id] || []).filter(c => c[0] !== cid);
+        sit.c = Math.max(0, (sit.c || 1) - 1);
+        renderComments(sit);
+      });
+    }
+  }
+});
+
 /* Uploads: one file at a time, 4 MB pieces through the album script, resumable */
 const UP = { queue: [], running: false, CHUNK: 2 * 1024 * 1024 };   // 2 MB pieces: kinder to roaming data
 const UP_MAX_VIDEO = 100 * 1024 * 1024, UP_MAX_SECS = 65;
@@ -1459,11 +1708,12 @@ function videoSeconds(file) {
 function upRow(job) {
   const q = document.getElementById("albQueue");
   if (!job.el) { job.el = document.createElement("div"); job.el.className = "uprow"; q.appendChild(job.el); }
-  const pct = Math.round(100 * job.sent / (job.file.size || 1));
+  const real = Math.round(100 * job.sent / (job.file.size || 1));
+  const pct = job.state === "done" ? 100 : job.est != null ? job.est : real;
   job.el.className = "uprow" + (job.state === "done" ? " ok" : job.state === "error" ? " bad" : "");
   const st = job.state === "done" ? "✓ Uploaded"
     : job.state === "error" ? `${esc(job.msg)}${job.retry ? ` · <button class="linkbtn" data-upretry>Retry</button>` : ""}`
-    : job.state === "waiting" ? "Waiting…" : `${pct}%`;
+    : job.state === "waiting" ? "Waiting…" : job.prep ? "Preparing…" : job.est != null ? "Uploading…" : `${pct}%`;
   job.el.innerHTML = `<span class="nm">${job.file.type.startsWith("video/") ? "🎬" : "📷"} ${esc(job.name)}</span>
     <span class="st">${st}</span><span class="bar"><i style="width:${job.state === "error" ? 0 : pct}%"></i></span>`;
   job.el._job = job;
@@ -1528,15 +1778,35 @@ function shrinkImage(file) {
   });
 }
 
+// One-piece uploads can't report progress, so the bar moves on an estimate from recent uploads on this phone,
+// slows near 90%, and completes when Google confirms.
+function estProgress(job) {
+  let rate = 200, base = 2500;                             // bytes per ms, fixed overhead (ms): first guess
+  try { const j = JSON.parse(localStorage.getItem("xm27-uprate") || "null"); if (j) { rate = j.rate; base = j.base; } } catch (e) {}
+  const eta = base + job.file.size / rate, t0 = Date.now();
+  job.est = 0; upRow(job);
+  const iv = setInterval(() => { job.est = Math.round(92 * (1 - Math.exp(-2.2 * (Date.now() - t0) / eta))); upRow(job); }, 250);
+  return ok => {
+    clearInterval(iv); job.est = null;
+    if (!ok) return;
+    const took = Date.now() - t0, r = job.file.size / Math.max(took - base, 500);
+    try { localStorage.setItem("xm27-uprate", JSON.stringify({ rate: Math.round((rate + r) / 2), base: base })); } catch (e) {}
+  };
+}
+
 async function uploadOne(job) {
   job.state = "sending"; job.msg = ""; upRow(job);
   if (!job.ready) {                                        // one photo at a time, so big photos don't fill the phone's memory
+    job.prep = true; upRow(job);
     job.file = await shrinkImage(job.file);
     if (/\.jpg$/i.test(job.file.name)) job.name = job.name.replace(/\.[^.]+$/, ".jpg");
-    job.ready = true; upRow(job);
+    job.ready = true; job.prep = false; upRow(job);
   }
   if (!job.uploadId && job.file.size <= UP.CHUNK) {        // small enough: start + send in one call
-    const r = await upCall({ action: "upstart", name: job.name, mime: job.file.type, size: job.file.size, data: await readB64(job.file) });
+    const stop = estProgress(job);
+    let r;
+    try { r = await upCall({ action: "upstart", name: job.name, mime: job.file.type, size: job.file.size, data: await readB64(job.file) }); }
+    finally { stop(r && r.ok); }
     if (!r.ok) throw r;
     job.uploadId = r.uploadId;
     if (r.done) { job.sent = job.file.size; return; }
