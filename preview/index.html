@@ -1912,7 +1912,7 @@ document.addEventListener("click", e => {
     const sit = AL.items && AL.items.find(x => x.id === SH.id);
     if (!sit) return;
     const ej = t.closest("[data-ejump]");
-    if (ej) { const h = document.getElementById("egrp" + ej.dataset.ejump), b = document.getElementById("sheetBody"); if (h) b.scrollTo({ top: h.offsetTop - b.querySelector(".ejump").offsetHeight - 6, behavior: "smooth" }); return; }
+    if (ej) { const h = document.getElementById("egrp" + ej.dataset.ejump), b = document.getElementById("sheetBody"); if (h) b.scrollTo({ top: b.scrollTop + h.getBoundingClientRect().top - b.getBoundingClientRect().top - b.querySelector(".ejump").offsetHeight - 4, behavior: "smooth" }); return; }
     const ep = t.closest("[data-epick]");
     if (ep) { const e = oneEmoji(ep.dataset.epick); closeSheet(); if (e) react(sit, e); return; }
     const tp = t.closest("[data-tagpick]");
