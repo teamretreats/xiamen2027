@@ -1227,7 +1227,8 @@ function albMarkSeen() {
   if (!AL.items || !AL.items.length) return;
   const old = albSeen() || { p: 0, a: 0 };
   const p = Math.max(old.p, ...AL.items.map(x => Date.parse(x.at) || 0));
-  try { localStorage.setItem("xm27-seen", JSON.stringify({ p: p, a: Date.now() })); } catch (e) {}
+  const a = Math.max(old.a || 0, AL.shownAt || 0);          // things that came in after the last check you saw stay "new"
+  try { localStorage.setItem("xm27-seen", JSON.stringify({ p: p, a: a })); } catch (e) {}
 }
 document.addEventListener("visibilitychange", () => { if (document.hidden && CUR_TAB === "album") albMarkSeen(); });
 function saveToken(tok) {
@@ -1299,6 +1300,7 @@ function loadGis() {
 function checkAccess(tok, quiet) {
   AL.busy = true; AL.token = tok;
   if (!quiet) albCard(`<div class="ic">⏳</div><h3>Checking the guest list…</h3>`);
+  const t0 = Date.now();
   albumApi({ action: "open", token: tok, since: (AL.seen && AL.seen.a) || 0 }).then(r => {
     if (!r.ok) {
       if (r.error === "invalid_token") return signInAgain();
@@ -1310,6 +1312,7 @@ function checkAccess(tok, quiet) {
     if (r.access === "ok") {
       AL.email = r.email;
       albApply(r);
+      AL.shownAt = t0;
       renderGrid();
       albSaveLocal();
       albViewerBits(curItem());
@@ -1363,17 +1366,31 @@ function albApply(r) {
   AL.roster = r.roster || [];
 }
 
+// What the grid shows that can change: the photos, and which tiles have a new-activity dot
+const gridKey = () => (AL.items || []).map(x => x.id).join() + "|" + newActivity().map(a => a.f + a.at).join();
 function refreshGallery() {
+  if (AL.refreshing) return;
+  AL.refreshing = true;
+  const t0 = Date.now();
+  const before = gridKey();
+  const vOpen = document.getElementById("viewer").classList.contains("open") && VW.key === "album";
+  const curId = vOpen && curItem() ? curItem().id : null;
   albumApi({ action: "list", token: AL.token, since: (AL.seen && AL.seen.a) || 0 }).then(r => {
     if (!r.ok) { if (r.error === "invalid_token") signInAgain(); return; }
-    const same = (AL.items || []).map(x => x.id).join() === r.items.map(x => x.id).join();
     AL.me = r;
     albApply(r);
+    AL.shownAt = t0;
     albSaveLocal();
-    if (!same) renderGrid(); else renderActivity();
-    if (document.getElementById("viewer").classList.contains("open")) albViewerBits(curItem());
-  }).catch(() => {});
+    if (curId) { const i = AL.items.findIndex(x => x.id === curId); if (i >= 0) VW.i = i; }   // new photos arrive at the top
+    if (gridKey() !== before) renderGrid(); else renderActivity();
+    if (vOpen && curItem()) albViewerBits(curItem());
+    if (SH.kind === "comments" && curItem() && SH.id === curItem().id) { SH.keepScroll = true; renderComments(curItem()); SH.keepScroll = false; }
+  }).catch(() => {}).finally(() => { AL.refreshing = false; });
 }
+// Almost live: while the album is on screen, check every 30 s (the album script shares one answer for everyone)
+setInterval(() => {
+  if (CUR_TAB === "album" && !document.hidden && AL.items && tokOk(AL.token) && !AL.busy) refreshGallery();
+}, 30000);
 
 function renderGrid() {
   renderActivity();
@@ -1621,14 +1638,14 @@ function albBackground() {
   if (CUR_TAB === "album" || AL.busy || !ALBUM.exec) return;
   if (!ALBUM.preview && now() < ALBUM.opensAt) return;
   const tok = (tokOk(AL.token) && AL.token) || albumToken();
-  if (!tok || Date.now() - _albBg < 120000) return;
+  if (!tok || Date.now() - _albBg < 60000) return;
   _albBg = Date.now();
   AL.seen = albSeen();
   if (!AL.seen) return;                                      // never opened the album on this phone yet
   albumApi({ action: "list", token: tok, since: AL.seen.a || 0 }).then(r => {
     if (!r.ok) return;
     AL.token = tok; AL.me = r; AL.email = r.email;
-    albApply(r); albSaveLocal(); setBadge();
+    albApply(r); albSaveLocal(); setBadge();          // (not "shown" yet: AL.shownAt only moves when you're in the album)
   }).catch(() => {});
 }
 document.addEventListener("visibilitychange", () => { if (!document.hidden) albBackground(); });
