@@ -333,6 +333,7 @@ button{font:inherit;cursor:pointer}
 .empty{color:var(--muted);font-size:14px;text-align:center;padding:16px 0}
 .sheet .tagq{width:100%;position:sticky;top:0;z-index:1;box-shadow:0 6px 8px -6px var(--card)}
 .sheet .sbody:has(.tagq){padding-top:10px}
+.plist button.grp{background:#fff4e8;border-color:#f8dcc0;color:#8a4a1f;font-weight:600}
 .plist{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:8px}
 .plist button{border:1px solid var(--line);background:#fff;border-radius:12px;padding:9px 10px;text-align:left;font-size:15px;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .wrow{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:15px}
@@ -368,6 +369,9 @@ button{font:inherit;cursor:pointer}
 .sloved img{width:100%;height:100%;object-fit:cover;display:block}
 .sloved .rx{position:absolute;left:10px;bottom:10px;display:flex;gap:6px}
 .sloved .rx span{background:rgba(255,253,249,.92);color:var(--ink);border-radius:999px;padding:3px 9px;font-size:13px}
+.sday{font-size:14px;font-weight:600;color:var(--sea);margin:12px 0 6px}
+.sday:first-of-type{margin-top:0}
+.sday small{font-weight:400;color:var(--muted);font-size:12px}
 .scap{font-size:13px;color:var(--muted);margin:8px 0 0}
 .sgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
 .sgrid .atile{border-radius:6px}
@@ -1426,6 +1430,7 @@ function albApply(r) {
   AL.activity = r.activity || [];
   AL.activityCount = r.activityCount || 0;
   AL.roster = r.roster || [];
+  AL.groups = r.groups || AL.groups || { teams: [], villas: [] };
 }
 
 // What the grid shows that can change: the photos, and which tiles have a new-activity dot
@@ -1719,7 +1724,8 @@ function socRender(it) {
   const total = r.reduce((n, x) => n + x[1], 0);
   const tags = it.t || [];
   el.innerHTML = `${shown.length || w ? `<div class="rrow">${shown.map(chip).join("")}${w ? `<button class="rbtn plus" data-reactplus aria-label="Pick any emoji">＋</button>` : ""}</div>` : ""}
-    ${tags.length || w ? `<div class="trow">${tags.length ? "With" : ""} ${tags.map(t => `<span class="tchip">${esc(t[0])}${t[1] ? `<button data-untag="${esc(t[0])}" aria-label="Remove ${esc(t[0])}" style="all:unset;cursor:pointer;opacity:.7">✕</button>` : ""}</span>`).join("")}</div>` : ""}
+    ${!tags.length && w ? `<div class="trow"><button class="tchip" data-tagadd style="cursor:pointer">👥 Who's in this photo? Tag them</button></div>` : ""}
+    ${tags.length ? `<div class="trow">With ${tags.map(t => `<span class="tchip">${esc(t[0])}${t[1] ? `<button data-untag="${esc(t[0])}" aria-label="Remove ${esc(t[0])}" style="all:unset;cursor:pointer;opacity:.7">✕</button>` : ""}</span>`).join("")}</div>` : ""}
     <div class="slinks">
       ${total ? `<button data-who>${total} reaction${total === 1 ? "" : "s"}</button>` : ""}
     </div>`;
@@ -1824,9 +1830,9 @@ const fmtAgo = iso => {
 // "@Wai Leong" → bold, for names on the guest list (longest names first, so "@Jess" doesn't eat "@Jessica")
 function withMentions(text) {
   let h = esc(text);
-  const names = (AL.roster || []).slice().sort((a, b) => b.length - a.length);
+  const names = groupList().concat(AL.roster || []).sort((a, b) => b.length - a.length);
   names.forEach(n => {
-    const e = esc(n).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const e = esc(n).replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/ /g, " ?");   // "@Team 6" or "@Team6"
     h = h.replace(new RegExp("(^|[^\\w@])@(" + e + ")(?![\\w])", "gi"), (m, pre, nm) => `${pre}<span class="men">@${nm}</span>`);
   });
   return h;
@@ -1864,7 +1870,9 @@ function openComments(it) {
     const q = atQuery();
     if (q === null) { sug.hidden = true; return; }
     const ql = q.toLowerCase().trim();
-    const hits = (AL.roster || []).filter(n => !ql || n.toLowerCase().indexOf(ql) === 0 || n.toLowerCase().indexOf(" " + ql) !== -1).slice(0, 12);
+    const pool = groupList().concat(AL.roster || []);
+    const hits = pool.filter(n => !ql || n.toLowerCase().indexOf(ql) === 0 || n.toLowerCase().indexOf(" " + ql) !== -1
+      || n.toLowerCase().replace(/\s+/g, "").indexOf(ql.replace(/\s+/g, "")) === 0).slice(0, 12);
     sug.innerHTML = hits.map(n => `<button type="button" data-mpick="${esc(n)}">@${esc(n)}</button>`).join("");
     sug.hidden = !hits.length;
     fitSheet();
@@ -1910,13 +1918,20 @@ function setReplyTo(cid, by) {
   }
   fitSheet();
 }
+const groupList = () => ((AL.groups && AL.groups.teams) || []).concat((AL.groups && AL.groups.villas) || []);
 function openTagPicker(it) {
   const tagged = (it.t || []).map(t => t[0]);
-  const names = (AL.roster || []).filter(n => tagged.indexOf(n) === -1);
-  const list = q => names.filter(n => !q || n.toLowerCase().indexOf(q.toLowerCase()) !== -1)
-    .map(n => `<button data-tagpick="${esc(n)}">${esc(n)}</button>`).join("") || `<p class="empty">No match</p>`;
+  const free = arr => arr.filter(n => tagged.indexOf(n) === -1);
+  const groups = free(groupList()), names = free(AL.roster || []);
+  const match = (n, q) => !q || n.toLowerCase().replace(/\s+/g, "").indexOf(q.toLowerCase().replace(/\s+/g, "")) !== -1;
+  const btns = (arr, q, cls) => arr.filter(n => match(n, q)).map(n => `<button data-tagpick="${esc(n)}"${cls ? ` class="${cls}"` : ""}>${cls ? "👥 " : ""}${esc(n)}</button>`).join("");
+  const list = q => {
+    const g = btns(groups, q, "grp"), p = btns(names, q, "");
+    return (g ? `<p class="egrp">Teams &amp; villas</p><div class="plist">${g}</div>` : "")
+      + (p ? `<p class="egrp">People</p><div class="plist">${p}</div>` : "") || `<p class="empty">No match</p>`;
+  };
   openSheet("tag", it.id, "Who's in this photo?",
-    `<input type="text" id="tagQ" class="tagq" placeholder="Search a name" aria-label="Search a name" autocomplete="off" autocorrect="off" autocapitalize="words" enterkeyhint="done"><div class="plist" id="tagList">${list("")}</div>`);
+    `<input type="text" id="tagQ" class="tagq" placeholder="Search a name, team or villa" aria-label="Search a name, team or villa" autocomplete="off" autocorrect="off" autocapitalize="words" enterkeyhint="done"><div id="tagList">${list("")}</div>`);
   document.getElementById("tagQ").addEventListener("input", e => { document.getElementById("tagList").innerHTML = list(e.target.value); });
 }
 // Tap one to react (no keyboard). Kept to emoji that show on older phones too.
@@ -1947,7 +1962,7 @@ function openWho(it) {
 document.addEventListener("click", e => {
   const it = curItem();
   const t = e.target;
-  if (it && t.closest("#viewerAct [data-tagadd]")) return openTagPicker(it);
+  if (it && t.closest("#viewerAct [data-tagadd], #viewerSoc [data-tagadd]")) return openTagPicker(it);
   if (it && t.closest("#viewerAct [data-comments]")) return openComments(it);
   if (t.closest("#viewerSoc")) {
     if (!it) return;
@@ -2063,6 +2078,38 @@ async function upCall(body, tries = 3) {
   }
 }
 
+// When a photo was taken, from its JPEG info (DateTimeOriginal + OffsetTimeOriginal). Read before shrinking.
+async function photoTaken(file) {
+  try {
+    if (!/jpe?g/i.test(file.type)) return "";
+    const v = new DataView(await file.slice(0, 256 * 1024).arrayBuffer());
+    if (v.getUint16(0) !== 0xFFD8) return "";
+    let o = 2;
+    while (o + 4 < v.byteLength) {
+      const mk = v.getUint16(o), len = v.getUint16(o + 2);
+      if (mk === 0xFFE1 && v.getUint32(o + 4) === 0x45786966) {          // "Exif"
+        const t = o + 10, le = v.getUint16(t) === 0x4949;
+        const u16 = x => v.getUint16(t + x, le), u32 = x => v.getUint32(t + x, le);
+        const str = (x, n) => { let r = ""; for (let i = 0; i < n; i++) { const c = v.getUint8(t + x + i); if (!c) break; r += String.fromCharCode(c); } return r; };
+        const tagsAt = ifd => { const out = {}, n = u16(ifd); for (let i = 0; i < n; i++) { const e = ifd + 2 + i * 12; out[u16(e)] = e; } return out; };
+        const ifd0 = tagsAt(u32(4));
+        if (!ifd0[0x8769]) return "";
+        const ex = tagsAt(u32(ifd0[0x8769] + 8));
+        const val = tag => ex[tag] ? str(u32(ex[tag] + 8), u32(ex[tag] + 4)) : "";
+        const d = val(0x9003), off = val(0x9011);                         // "2027:01:11 19:32:05", "+08:00"
+        const m = /^(\d{4}):(\d\d):(\d\d) (\d\d):(\d\d):(\d\d)/.exec(d);
+        if (!m) return "";
+        const tz = /^[+-]\d\d:\d\d$/.test(off) ? off : "+08:00";         // no zone saved: assume Xiamen/Singapore time
+        const iso = `${m[1]}-${m[2]}-${m[3]}T${m[4]}:${m[5]}:${m[6]}${tz}`;
+        return isNaN(Date.parse(iso)) ? "" : iso;
+      }
+      if ((mk & 0xFF00) !== 0xFF00) return "";
+      o += 2 + len;
+    }
+  } catch (e) {}
+  return "";
+}
+
 // Photos go up at 2560px on the long side (JPEG). Faster uploads, and the phone's location tags are left behind.
 const SHRINK = { max: 2560, q: 0.85 };
 function shrinkImage(file) {
@@ -2102,6 +2149,7 @@ async function uploadOne(job) {
   job.state = "sending"; job.msg = ""; upRow(job);
   if (!job.ready) {                                        // one photo at a time, so big photos don't fill the phone's memory
     job.prep = true; upRow(job);
+    job.taken = await photoTaken(job.file);
     job.file = await shrinkImage(job.file);
     if (/\.jpg$/i.test(job.file.name)) job.name = job.name.replace(/\.[^.]+$/, ".jpg");
     job.ready = true; job.prep = false; upRow(job);
@@ -2109,14 +2157,14 @@ async function uploadOne(job) {
   if (!job.uploadId && job.file.size <= UP.CHUNK) {        // small enough: start + send in one call
     const stop = estProgress(job);
     let r;
-    try { r = await upCall({ action: "upstart", name: job.name, mime: job.file.type, size: job.file.size, data: await readB64(job.file) }); }
+    try { r = await upCall({ action: "upstart", name: job.name, mime: job.file.type, size: job.file.size, taken: job.taken || "", data: await readB64(job.file) }); }
     finally { stop(r && r.ok); }
     if (!r.ok) throw r;
     job.uploadId = r.uploadId;
     if (r.done) { job.sent = job.file.size; return; }
     job.sent = r.received || 0;
   } else if (!job.uploadId) {
-    const r = await upCall({ action: "upstart", name: job.name, mime: job.file.type, size: job.file.size });
+    const r = await upCall({ action: "upstart", name: job.name, mime: job.file.type, size: job.file.size, taken: job.taken || "" });
     if (!r.ok) throw r;
     job.uploadId = r.uploadId; job.sent = 0;
   } else {
@@ -2223,7 +2271,7 @@ function tripExchange(cred, show) {
 /* ---------- Souvenir card ("Your Xiamen 2027", My Trip tab) ----------
    Live from 15 Jan (still filling up), fixed from the 21 Jan freeze. Only ever the signed-in person's own card.
    Saved on this phone so it opens offline; signing out wipes it. */
-const CARD = { data: null, list: [], meta: {}, show: { inP: 9, up: 6, com: 4 }, busy: false };
+const CARD = { data: null, list: [], meta: {}, show: { inP: 9, groupP: 6, up: 6, fav: 9, com: 4 }, busy: false };
 const ctile = t => ({ id: t[0], by: t[1], at: t[2], video: !!t[3], pw: t[4], ph: t[5], rot: t[6], with: t[7] || [], n: t[8] || 0 });
 function cardSaved() { try { return JSON.parse(localStorage.getItem("xm27-card") || "null"); } catch (e) { return null; } }
 function loadCard() {
@@ -2269,49 +2317,61 @@ function cardCharts(ch, me) {
 function renderCard() {
   const box = document.getElementById("cardBox"), d = CARD.data;
   if (!d || !d.card) { box.innerHTML = ""; return; }
-  const c = d.card;
-  const inP = (c.inP || []).map(ctile), up = (c.up || []).map(ctile), loved = c.loved ? ctile(c.loved) : null;
-  // the viewer's list: photos you're in, then yours (no repeats)
+  const c = d.card, me = c.short;
+  const L = k => (c[k] || []).map(ctile);
+  const inP = L("inP"), groupP = L("groupP"), up = L("up"), fav = L("fav");
+  const days = (c.days || []).map(x => ({ title: x.title, n: x.n, tiles: x.tiles.map(ctile) }));
+  const loved = c.loved ? ctile(c.loved) : null, moment = c.moment ? ctile(c.moment) : null, hero = loved || moment;
+  // one list for the viewer (no repeats)
   const seen = {};
-  CARD.list = inP.concat(up, loved ? [loved] : []).filter(t => !seen[t.id] && (seen[t.id] = 1));
+  CARD.list = [].concat(hero ? [hero] : [], inP, groupP, ...days.map(x => x.tiles), up, fav).filter(t => !seen[t.id] && (seen[t.id] = 1));
   CARD.meta = {};
   CARD.list.forEach(t => { CARD.meta[t.id] = t; });
   const S = CARD.show;
-  const lovedHtml = loved ? `<div class="sbox"><h4>Your most-loved photo</h4>
-      <button class="sloved" data-cview="${esc(loved.id)}" data-id="${esc(loved.id)}"><img alt="" id="cardLoved"><span class="rx"><span>❤️ ${loved.n}</span></span></button>
-      <p class="scap">${loved.by === c.short ? "Shared by you" : "By " + esc(loved.by)} · ${esc(fmtWhen(loved.at))}${loved.with.filter(x => x !== c.short).length ? `<br>With ${esc(loved.with.filter(x => x !== c.short).join(", "))}` : ""}</p></div>` : "";
-  const comById = {};
-  CARD.list.forEach(t => { comById[t.id] = t; });
-  const com = (c.com || []);
-  const comHtml = com.length ? `<div class="sbox"><h4>Comments <small>${com.length}</small></h4>${com.slice(0, S.com).map(x =>
+  const grid = (key, list, n, mine) => list.length ? `<div class="sgrid">${cardTiles(list, n, mine)}</div>${list.length > n ? `<button class="smore" data-cmore="${key}">See more</button>` : ""}` : "";
+  const box1 = (title, count, inner) => inner ? `<div class="sbox"><h4>${title}${count ? ` <small>${count}</small>` : ""}</h4>${inner}</div>` : "";
+  // numbers: only ones worth showing; if they're all small, trip facts instead
+  const st = c.stats || {};
+  const nums = [[st.inP, "photos<br>you're in"], [st.up, "photos<br>you shared"], [st.reacts, "reactions<br>on yours"]].filter(x => x[0] > 0);
+  const facts = [[4, "days in<br>Xiamen"], c.room ? [esc(c.room.villa.replace("Villa ", "")), "your<br>villa"] : null, c.team ? [esc(c.team.name.replace("Team ", "")), "your<br>team"] : null, st.album ? [st.album, "photos of<br>the trip"] : null].filter(Boolean);
+  const statRow = (nums.length >= 2 ? nums : facts).map(x => `<div><b>${x[0]}</b><span>${x[1]}</span></div>`).join("");
+  const heroHtml = hero ? `<div class="sbox"><h4>${loved ? "Your most-loved photo" : "A moment from your trip"}</h4>
+      <button class="sloved" data-cview="${esc(hero.id)}" data-id="${esc(hero.id)}"><img alt="" id="cardLoved">${loved ? `<span class="rx"><span>❤️ ${loved.n}</span></span>` : ""}</button>
+      <p class="scap">${hero.by === me ? "Shared by you" : "By " + esc(hero.by)} · ${esc(fmtWhen(hero.at))}${hero.with.filter(x => x !== me).length ? `<br>With ${esc(hero.with.filter(x => x !== me).join(", "))}` : ""}</p></div>` : "";
+  const daysHtml = days.length ? `<div class="sbox"><h4>Your trip, day by day</h4>${days.map((x, k) =>
+      `<p class="sday">${esc(x.title)}${x.n > x.tiles.length ? ` <small>${x.n} photos</small>` : ""}</p><div class="sgrid">${cardTiles(x.tiles, 6)}</div>`).join("")}</div>` : "";
+  const com = c.com || [];
+  const comHtml = com.length >= 2 ? `<div class="sbox"><h4>Comments <small>${com.length}</small></h4>${com.slice(0, S.com).map(x =>
       `<button class="scom" data-cview="${esc(x[0])}"><img alt="" data-cimg="${esc(x[0])}"><p><b>${esc(x[1])}</b>${withMentions(x[3])}</p></button>`).join("")}
       ${com.length > S.com ? `<button class="smore" data-cmore="com">See all ${com.length} comments</button>` : ""}</div>` : "";
-  const nudge = !d.frozen && Date.now() < (d.me && d.me.freezeAt || 0)
+  const nudge = !d.frozen && Date.now() < ((d.me && d.me.freezeAt) || 0)
     ? `<div class="snudge"><span>Got leftover photos? Add them before 21 Jan.</span><button data-tab="album">Add</button></div>` : "";
-  const rt = (c.room || c.team) ? `<div class="sbox chartcard"><h4>Rooms &amp; Teams</h4>${cardCharts(d.charts || {}, c.short)}</div>` : "";
-  const nPhotos = CARD.list.filter(t => !t.video).length;
+  const teamTitle = [c.team && c.team.name, c.room && c.room.villa].filter(Boolean).join(" & ");
+  const rt = (c.room || c.team) ? `<div class="sbox chartcard"><h4>Rooms &amp; Teams</h4>${cardCharts(d.charts || {}, me)}</div>` : "";
+  const nSave = [].concat(hero ? [hero] : [], inP, up).filter((t, i, a) => !t.video && a.findIndex(x => x.id === t.id) === i).length;
   box.innerHTML = `<div class="scard">
-    <div class="sc-top"><p class="eb">EXO Team Retreat 2027 Xiamen</p><h3>${esc(c.short)}</h3><p class="dt">厦门 · Mon 11 – Thu 14 January 2027</p>
+    <div class="sc-top"><p class="eb">EXO Team Retreat 2027 Xiamen</p><h3>${esc(me)}</h3><p class="dt">厦门 · Mon 11 – Thu 14 January 2027</p>
       <span class="sc-pill"><i></i>${d.frozen ? "Kept since 21 Jan 2027" : "Still filling up · locks 21 Jan"}</span></div>
     <div class="sc-body">
-      <div class="sbox sstats"><div><b>${c.stats.inP}</b><span>photos<br>you're in</span></div><div><b>${c.stats.up}</b><span>photos<br>you shared</span></div><div><b>${c.stats.reacts}</b><span>reactions<br>on yours</span></div></div>
-      ${lovedHtml}
-      ${inP.length ? `<div class="sbox"><h4>Photos you're in <small>${inP.length}</small></h4><div class="sgrid">${cardTiles(inP, S.inP)}</div>${inP.length > S.inP ? `<button class="smore" data-cmore="inP">See more</button>` : ""}</div>` : ""}
-      <div class="sbox"><h4>Photos you shared <small>${c.stats.up}${c.stats.up > up.length ? ` · ${up.length} kept` : ""}</small></h4>${nudge}
-        ${up.length ? `<div class="sgrid">${cardTiles(up, S.up, true)}</div>${up.length > S.up ? `<button class="smore" data-cmore="up">See more</button>` : ""}` : `<p class="muted" style="margin:0">None yet.</p>`}</div>
+      <div class="sbox sstats" style="grid-template-columns:repeat(${(nums.length >= 2 ? nums : facts).length},1fr)">${statRow}</div>
+      ${heroHtml}
+      ${box1("Photos you're in", inP.length, grid("inP", inP, S.inP))}
+      ${box1(teamTitle ? "Your " + esc(teamTitle) + " photos" : "Your team photos", groupP.length, grid("groupP", groupP, S.groupP))}
+      ${daysHtml}
+      ${box1("Photos you shared", st.up > up.length ? `${st.up} · ${up.length} kept` : up.length, (nudge || "") + (up.length ? grid("up", up, S.up, true) : (nudge ? `<p class="muted" style="margin:0">None yet.</p>` : "")))}
       ${comHtml}
+      ${box1("Everyone's favourites", "", grid("fav", fav, S.fav))}
       ${rt}
-      ${nPhotos ? `<button class="ssave" id="cardSave" data-csave>⤓ Save my photos (${nPhotos})</button>` : ""}
+      ${nSave ? `<button class="ssave" id="cardSave" data-csave>⤓ Save my photos (${nSave})</button>` : ""}
       <p class="sfoot">${d.frozen ? "Saved on this phone · opens offline" : "Your card keeps updating until 21 Jan"}</p>
       ${d.me && d.me.admin ? `<div class="sbox sadmin" id="cardAdmin"><h4>Souvenir emails <small>only you see this</small></h4><p id="sendInfo">${d.frozen ? "Checking…" : "Emails can be sent after the freeze on 21 Jan."}</p><div class="btns" id="sendBtns"></div></div>` : ""}
     </div></div>`;
-  // images: grid tiles via the shared loader, plus the most-loved photo and comment thumbnails
   box.querySelectorAll(".sgrid .atile").forEach(t => {
     const u = TH[t.dataset.id + "|400"];
     if (u) setImg(t.querySelector("img"), u); else tileObserver().observe(t);
   });
-  if (loved) getThumbs([loved.id], 1200).then(() => { const im = document.getElementById("cardLoved"); if (im && TH[loved.id + "|1200"]) im.src = TH[loved.id + "|1200"]; });
-  const cids = [...new Set(com.slice(0, S.com).map(x => x[0]))];
+  if (hero) getThumbs([hero.id], 1200).then(() => { const im = document.getElementById("cardLoved"); if (im && TH[hero.id + "|1200"]) im.src = TH[hero.id + "|1200"]; });
+  const cids = com.length >= 2 ? [...new Set(com.slice(0, S.com).map(x => x[0]))] : [];
   if (cids.length) getThumbs(cids, 400).then(() => box.querySelectorAll("[data-cimg]").forEach(im => { const u = TH[im.dataset.cimg + "|400"]; if (u) im.src = u; }));
   if (rt) requestAnimationFrame(fitCharts);
   if (d.me && d.me.admin && d.frozen) sendStatus();
@@ -2332,7 +2392,9 @@ function showCardPhoto(img, it) {
 // Save my photos: a set of 10 at a time into the phone's Photos (share sheet), at the size they were uploaded
 const SAVE = { files: [], next: 0 };
 async function cardSave(btn) {
-  const photos = CARD.list.filter(t => !t.video);
+  const c = CARD.data.card, ids = {};
+  [].concat(c.loved ? [c.loved] : [], c.moment ? [c.moment] : [], c.inP || [], c.up || []).forEach(t => { ids[t[0]] = 1; });
+  const photos = CARD.list.filter(t => !t.video && ids[t.id]);
   if (SAVE.files.length) {                                   // ready: hand this set to the share sheet (needs the tap)
     const files = SAVE.files; SAVE.files = [];
     if (navigator.canShare && navigator.canShare({ files })) {
