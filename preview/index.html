@@ -987,9 +987,10 @@ function renderCarousel() {
 
 let CUR_TAB = "next";
 function showTab(name) {
-  if (CUR_TAB === "album" && name !== "album") { albMarkSeen(); AL.seen = albSeen(); setBadge(); }
+  const leaving = CUR_TAB === "album" && name !== "album";
+  if (leaving) { albMarkSeen(); AL.seen = albSeen(); }
   CUR_TAB = name;
-  if (name === "album") setBadge(0);
+  if (name === "album") setBadge(0); else if (leaving) setBadge();   // after leaving: count what waited while you were in
   document.querySelectorAll("nav [data-tab]").forEach(b => b.classList.toggle("on", b.dataset.tab === name));
   ["next", "agenda", "info", "trip", "album"].forEach(k => document.getElementById("tab-" + k).hidden = k !== name);
   if (name === "agenda") renderAgenda();
