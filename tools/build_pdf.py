@@ -137,7 +137,7 @@ def info_html():
     # scams: expandable on the page, shown in full in the PDF
     sec = re.sub(r"<details><summary>(.*?)</summary>", r"<b>\1</b>", sec, flags=re.S).replace("</details>", "")
     # drop "Rooms & Teams" (names are private: sign-in only) and "Save offline" (not relevant in the PDF)
-    sec = sec[:sec.index('<div class="icard chartcard" id="groupsCard">')]
+    sec = sec[:re.search(r'<div class="icard chartcard" id="groupsCard"[^>]*>', sec).start()]   # (may carry "hidden")
     sec = sec[sec.index(">") + 1:]
     sec = sec.replace("See the live Xiamen weather above", "See Xiamen weather above")   # no live weather in the PDF
     return "<h2>Handy Info</h2>" + EMOJI.sub("", sec)

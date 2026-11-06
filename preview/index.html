@@ -150,6 +150,9 @@ button{font:inherit;cursor:pointer}
 /* Info tab */
 .icard{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin:18px 0 0}
 .icard h3{font-family:var(--serif);font-size:20px;margin:0 0 10px;color:var(--sea)}
+.icard.fold > :not(h3){display:none}
+.icard.fold h3{margin:0}
+.icard .foldbtn{float:right;border:0;background:none;color:var(--sea-2);font:600 13px var(--sans);padding:4px 0}
 .icard h4{font-size:15px;margin:16px 0 6px}
 .icard p{margin:6px 0}
 .icard .muted{color:var(--muted);font-size:14px}
@@ -318,6 +321,8 @@ button{font:inherit;cursor:pointer}
 .cmt .ch b{color:var(--sea-2)}
 .cmt p{margin:2px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}
 .cmt.pending{opacity:.55}
+.cmt.flash{animation:cflash 2.4s ease}
+@keyframes cflash{0%,55%{background:#fff4e8}100%{background:transparent}}
 .cmt.reply{margin-left:22px;padding-left:10px;border-left:2px solid var(--line);border-bottom:0;padding-top:6px;padding-bottom:6px}
 .cmt .cacts{display:flex;gap:14px;margin-top:3px}
 .cmt .cacts button{border:0;background:none;color:var(--muted);font-size:12.5px;font-weight:600;padding:0}
@@ -1877,7 +1882,7 @@ function renderComments(it) {
   const tops = list.filter(c => !c[6] || !list.some(x => x[0] === c[6]));
   const one = (c, reply) => {
     const tmp = c[0].indexOf("tmp-") === 0;
-    return `<div class="cmt${reply ? " reply" : ""}${tmp ? " pending" : ""}"><div class="ch"><span><b>${esc(c[1])}</b> · ${esc(fmtAgo(c[2]))}</span></div>
+    return `<div class="cmt${reply ? " reply" : ""}${tmp ? " pending" : ""}" data-cid="${esc(c[0])}"><div class="ch"><span><b>${esc(c[1])}</b> · ${esc(fmtAgo(c[2]))}</span></div>
       <p>${withMentions(c[3])}</p>${tmp ? "" : `<div class="cacts">${canWrite() ? `<button data-creply="${esc(c[0])}" data-cby="${esc(c[1])}">Reply</button>` : ""}${c[5] ? `<button data-cdel="${esc(c[0])}">Delete</button>` : ""}</div>`}</div>`;
   };
   document.getElementById("sheetBody").innerHTML = tops.length ? tops.map(c =>
@@ -2314,7 +2319,7 @@ function tripExchange(cred, show) {
    Live from 15 Jan (still filling up), fixed from the 21 Jan freeze. Only ever the signed-in person's own card.
    Saved on this phone so it opens offline; signing out wipes it. */
 const CARD = { data: null, list: [], meta: {}, show: { inP: 9, groupP: 6, up: 6, fav: 9, com: 4 }, busy: false };
-const ctile = t => ({ id: t[0], by: t[1], at: t[2], video: !!t[3], pw: t[4], ph: t[5], rot: t[6], with: t[7] || [], n: t[8] || 0 });
+const ctile = t => ({ id: t[0], by: t[1], at: t[2], video: !!t[3], pw: t[4], ph: t[5], rot: t[6], with: t[7] || [], n: t[8] || 0, orig: t[10] || t[0] });
 function cardSaved() { try { return JSON.parse(localStorage.getItem("xm27-card") || "null"); } catch (e) { return null; } }
 function loadCard() {
   const box = document.getElementById("cardBox");
@@ -2384,7 +2389,7 @@ function renderCard() {
       `<p class="sday">${esc(x.title)}${x.n > x.tiles.length ? ` <small>${x.n} photos</small>` : ""}</p><div class="sgrid">${cardTiles(x.tiles, 6)}</div>`).join("")}</div>` : "";
   const com = c.com || [];
   const comHtml = com.length >= 2 ? `<div class="sbox"><h4>Comments <small>${com.length}</small></h4>${com.slice(0, S.com).map(x =>
-      `<button class="scom" data-cview="${esc(x[0])}"><img alt="" data-cimg="${esc(x[0])}"><p><b>${esc(x[1])}</b>${withMentions(x[3])}</p></button>`).join("")}
+      `<button class="scom" data-cview="${esc(x[0])}" data-corig="${esc(x[5] || x[0])}" data-ccid="${esc(x[4] || "")}"><img alt="" data-cimg="${esc(x[0])}"><p><b>${esc(x[1])}</b>${withMentions(x[3])}</p></button>`).join("")}
       ${com.length > S.com ? `<button class="smore" data-cmore="com">See all ${com.length} comments</button>` : ""}</div>` : "";
   const frozen = d.frozen || simFrozen();
   const nudge = !frozen && now() < ((d.me && d.me.freezeAt) || ALBUM.freezeAt)
@@ -2406,7 +2411,7 @@ function renderCard() {
       ${box1("Everyone's favourites", "", grid("fav", fav, S.fav))}
       ${rt}
       ${nSave ? `<button class="ssave" id="cardSave" data-csave>⤓ Save my photos (${nSave})</button>` : ""}
-      <p class="sfoot">${frozen ? "Saved on this phone · opens offline" : "Your card keeps updating until 21 Jan"}</p>
+      ${frozen ? "" : `<p class="sfoot">Your card keeps updating until 21 Jan</p>`}
       ${d.me && d.me.admin ? `<div class="sbox sadmin" id="cardAdmin"><h4>Souvenir emails <small>only you see this</small></h4><p id="sendInfo">${d.frozen ? "Checking…" : simFrozen() ? "Preview: after the real freeze, the send buttons show here." : "Emails can be sent after the freeze on 21 Jan."}</p><div class="btns" id="sendBtns"></div></div>` : ""}
     </div></div>`;
   box.querySelectorAll(".sgrid .atile").forEach(t => {
@@ -2418,6 +2423,27 @@ function renderCard() {
   if (cids.length) getThumbs(cids, 400).then(() => box.querySelectorAll("[data-cimg]").forEach(im => { const u = TH[im.dataset.cimg + "|400"]; if (u) im.src = u; }));
   if (rt) requestAnimationFrame(fitCharts);
   if (d.me && d.me.admin && d.frozen) sendStatus();
+}
+
+// Tapping a card photo or comment opens it in the Album (reactions + comments). If the album has closed
+// or the photo was deleted since, it opens here on the card instead.
+async function cardOpen(id, orig, cid) {
+  const t = CARD.meta[id];
+  const albumId = orig || (t && t.orig) || id;
+  const here = msg => { const i = CARD.list.findIndex(x => x.id === id); if (msg) toast(msg); if (i >= 0) openViewer("card", i); };
+  if (AL.me && AL.me.access && AL.me.access !== "ok") return here();
+  showTab("album");
+  const t0 = Date.now();
+  while (Date.now() - t0 < 20000 && !(AL.items && AL.me)) await new Promise(r => setTimeout(r, 150));
+  if (!AL.items || !AL.me || AL.me.access !== "ok") { showTab("trip"); return here(); }
+  const i = AL.items.findIndex(x => x.id === albumId);
+  if (i < 0) { showTab("trip"); return here("That photo is no longer in the album"); }
+  openViewer("album", i);
+  if (cid) {
+    openComments(AL.items[i]);
+    const c = document.querySelector(`#sheetBody .cmt[data-cid="${CSS.escape(cid)}"]`);
+    if (c) { c.scrollIntoView({ block: "center" }); c.classList.add("flash"); }
+  }
 }
 
 // Viewer for card photos: download (or play, for videos); no reactions here
@@ -2492,7 +2518,7 @@ async function sendAll() {
 document.addEventListener("click", e => {
   const t = e.target;
   const v = t.closest("[data-cview]");
-  if (v) { const i = CARD.list.findIndex(x => x.id === v.dataset.cview); if (i >= 0) openViewer("card", i); return; }
+  if (v) { cardOpen(v.dataset.cview, v.dataset.corig, v.dataset.ccid); return; }
   const m = t.closest("[data-cmore]");
   if (m) { const k = m.dataset.cmore; CARD.show[k] += k === "com" ? 50 : 12; renderCard(); return; }
   const sv = t.closest("[data-csave]");
@@ -2886,7 +2912,7 @@ if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catc
   const standalone = window.matchMedia("(display-mode: standalone)").matches || navigator.standalone;
   let dismissed = false;
   try { dismissed = localStorage.getItem("xm27-install") === "x"; } catch (e) {}
-  if (standalone || dismissed) return;
+  if (standalone || dismissed || now() >= ALBUM.memoriesAt) return;
   document.getElementById("install").hidden = false;
   document.getElementById("installX").onclick = () => {
     document.getElementById("install").hidden = true;
@@ -2894,9 +2920,48 @@ if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catc
   };
 })();
 
+/* ---------- The handbook changes with the trip ----------
+   From 11 Jan 12:00: Info leads with Our Villa + Rooms & Teams; Before You Fly / What to Pack fold up at the
+   bottom; "Save offline" goes.  From 15 Jan: just My Trip (souvenir card) + Album, nothing about saving offline. */
+const STAGE = { tripAt: t("2027-01-11T12:00"), memAt: ALBUM.memoriesAt };
+function applyStage() {
+  const n = now(), trip = n >= STAGE.tripAt, mem = n >= STAGE.memAt;
+  const info = document.getElementById("tab-info");
+  // found by title (the PDF builder relies on the cards' plain markup, so they carry no ids)
+  const byTitle = w => [...info.querySelectorAll(".icard")].find(c => (c.querySelector("h3") || {}).textContent.indexOf(w) !== -1);
+  const villa = byTitle("Our Villa"), groups = document.getElementById("groupsCard");
+  if (trip && !info.dataset.staged) {
+    info.dataset.staged = "1";
+    villa.insertAdjacentElement("afterend", groups);
+    ["Before You Fly", "What to Pack"].forEach(w => {
+      const c = byTitle(w);
+      info.appendChild(c);
+      c.classList.add("fold");
+      const h = c.querySelector("h3");
+      h.insertAdjacentHTML("afterbegin", `<button class="foldbtn" data-fold aria-expanded="false">Show ▾</button>`);
+    });
+    byTitle("Save offline").hidden = true;
+  }
+  if (mem) {
+    ["next", "agenda", "info"].forEach(k => { document.querySelector(`nav [data-tab="${k}"]`).hidden = true; });
+    document.querySelector('nav [data-tab="trip"]').hidden = false;
+    document.getElementById("install").hidden = true;
+    if (["next", "agenda", "info"].indexOf(CUR_TAB) !== -1) showTab("trip");
+  }
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-fold]");
+  if (!b) return;
+  const c = b.closest(".icard"), open = c.classList.toggle("fold") === false;
+  b.textContent = open ? "Hide ▴" : "Show ▾";
+  b.setAttribute("aria-expanded", String(open));
+});
+
 renderCarousel();
 renderHero();
 setInterval(renderHero, 1000);
+applyStage();
+setInterval(applyStage, 60000);
 // My Trip tab + Info → Rooms & Teams stay hidden on the live page until the form opens (12 Nov, 2pm SGT),
 // then appear by themselves (checked every 15 s, so an open page updates too). Always shown on /preview/.
 function applyTripVis() {
