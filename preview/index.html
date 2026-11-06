@@ -349,6 +349,50 @@ button{font:inherit;cursor:pointer}
 .egrid button:active,.egrid button.mine{background:var(--sand)}
 .egrid button.mine{box-shadow:inset 0 0 0 2px var(--sun)}
 
+/* Souvenir card (My Trip, from 15 Jan) */
+.scard{border-radius:var(--radius);overflow:hidden;background:var(--sand);box-shadow:0 10px 30px rgba(20,50,74,.14);margin:0 0 18px}
+.sc-top{color:#fff;background:linear-gradient(180deg,#14324a 0%,#2b4f73 45%,#c9677a 80%,#f08a4b 100%);padding:22px 18px 48px}
+.sc-top .eb{font-size:12px;letter-spacing:.18em;text-transform:uppercase;opacity:.85;margin:0}
+.sc-top h3{font-family:var(--serif);font-weight:600;font-size:34px;line-height:1.1;margin:6px 0 2px;letter-spacing:0;text-transform:none;color:#fff}
+.sc-top .dt{margin:0;font-size:14px;opacity:.92}
+.sc-pill{display:inline-flex;align-items:center;gap:6px;margin-top:12px;font-size:12px;font-weight:600;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);border-radius:999px;padding:4px 10px}
+.sc-pill i{width:7px;height:7px;border-radius:50%;background:var(--sun-2)}
+.sc-body{padding:0 12px 14px;margin-top:-32px;position:relative;display:grid;gap:12px}
+.sbox{background:var(--card);border-radius:var(--radius);box-shadow:0 8px 24px rgba(20,50,74,.08);padding:14px}
+.sbox h4{font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--sea-2);margin:0 0 10px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.sbox h4 small{font-size:12px;letter-spacing:0;text-transform:none;color:var(--muted);font-weight:400}
+.sstats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
+.sstats b{display:block;font-family:var(--serif);font-size:26px;line-height:1.1;color:var(--sea);font-variant-numeric:tabular-nums}
+.sstats span{font-size:11.5px;color:var(--muted);line-height:1.25;display:block;margin-top:3px}
+.sloved{position:relative;border:0;padding:0;width:100%;border-radius:12px;overflow:hidden;aspect-ratio:4/3;background:var(--line);display:block}
+.sloved img{width:100%;height:100%;object-fit:cover;display:block}
+.sloved .rx{position:absolute;left:10px;bottom:10px;display:flex;gap:6px}
+.sloved .rx span{background:rgba(255,253,249,.92);color:var(--ink);border-radius:999px;padding:3px 9px;font-size:13px}
+.scap{font-size:13px;color:var(--muted);margin:8px 0 0}
+.sgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
+.sgrid .atile{border-radius:6px}
+.atile .lab{position:absolute;left:0;right:0;bottom:0;padding:14px 5px 4px;background:linear-gradient(transparent,rgba(10,25,38,.72));color:#fff;text-align:left;line-height:1.25;display:grid;z-index:1}
+.atile .lab b,.atile .lab i{font-size:10.5px;font-style:normal;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.atile .lab b{font-weight:600}
+.smore{margin-top:10px;width:100%;background:none;border:1px solid var(--line);border-radius:12px;padding:8px;color:var(--sea-2);font-size:14px;font-weight:600}
+.snudge{background:#fff4e8;border:1px solid #f8dcc0;color:#8a4a1f;border-radius:12px;padding:10px 12px;font-size:14px;margin-bottom:10px;display:flex;gap:10px;align-items:center;justify-content:space-between}
+.snudge button{border:0;background:var(--sun);color:#fff;border-radius:999px;padding:6px 12px;font-size:13px;font-weight:600;white-space:nowrap}
+.scom{display:grid;grid-template-columns:44px 1fr;gap:10px;align-items:start;border:0;background:none;padding:0;text-align:left;width:100%;color:var(--ink)}
+.scom + .scom{margin-top:10px}
+.scom img{width:44px;height:44px;border-radius:8px;object-fit:cover;background:var(--line)}
+.scom p{margin:0;font-size:14.5px;background:var(--sand);border-radius:4px 14px 14px 14px;padding:8px 11px;min-width:0;overflow-wrap:anywhere}
+.scom p b{display:block;font-size:12px;color:var(--sea-2)}
+.scom .men{color:var(--sea-2);font-weight:700}
+.sbox.chartcard{padding:14px 8px}
+.sbox.chartcard h4{padding:0 6px}
+.sbox .gsec{font-size:13.5px;color:var(--sea);margin:4px 6px 0;letter-spacing:.04em}
+.ssave{width:100%;border:0;background:var(--sea);color:#fff;border-radius:14px;padding:13px;font-size:15.5px;font-weight:600}
+.ssave:disabled{opacity:.6}
+.sfoot{text-align:center;font-size:12px;color:var(--muted);margin:2px 0 0}
+.sadmin{border:1px dashed var(--sun);background:#fffaf3}
+.sadmin p{margin:0 0 10px;font-size:14px}
+.sadmin .btns{display:flex;gap:8px;flex-wrap:wrap}
+
 /* My Trip */
 .tmsg .ic{font-size:30px}
 .tmsg h3{font-family:var(--serif);font-size:20px;color:var(--sea);margin:4px 0 6px;letter-spacing:0;text-transform:none}
@@ -645,6 +689,7 @@ nav button{position:relative}
   <!-- MY TRIP (trip details form + room/team scratch cards) -->
   <section id="tab-trip" hidden>
     <div class="alb-top"><h2>My Trip</h2><span id="tripHi"></span></div>
+    <div id="cardBox"></div>
     <div id="tripBody"></div>
   </section>
 
@@ -956,12 +1001,12 @@ function showTab(name) {
 
 /* ---------- Photo viewer (swipe left/right, swipe down to close) ---------- */
 const VW = { key: null, i: 0 };
-const vlist = () => VW.key === "album" ? AL.items : PLACES[VW.key].photos;
+const vlist = () => VW.key === "album" ? AL.items : VW.key === "card" ? CARD.list : PLACES[VW.key].photos;
 function openViewer(key, i) {
   VW.key = key; VW.i = i;
   if (key === "album" && AL.items && AL.items[i]) actOpened(AL.items[i].id);
   document.getElementById("viewerCredit").innerHTML = key === "album" ? "" : PLACES[key].credit || "";
-  document.getElementById("viewerAct").hidden = key !== "album";
+  document.getElementById("viewerAct").hidden = key !== "album" && key !== "card";
   document.getElementById("viewerSoc").hidden = key !== "album";
   const vd = document.getElementById("viewerDel");
   if (!vd.innerHTML) vd.innerHTML = ICON.del;
@@ -975,6 +1020,7 @@ function showViewer() {
   const img = document.getElementById("viewerImg");
   img.style.transform = ""; img.style.opacity = "";
   if (VW.key === "album") showAlbumPhoto(img, list[VW.i]);
+  else if (VW.key === "card") showCardPhoto(img, list[VW.i]);
   else img.src = list[VW.i];
   document.getElementById("viewerCount").textContent = list.length > 1 ? `${VW.i + 1} / ${list.length}` : "";
   document.querySelector(".vprev").disabled = VW.i === 0;
@@ -1142,6 +1188,7 @@ const ALBUM = {
   exec: "https://script.google.com/macros/s/AKfycbwBcpE0UCqXaOewE2eCKNARiBq-kX9Qz6XYwQT19JlbvLtbtCO94reBbkp9Q6ujrPo/exec",                                                        // album script /exec URL (set after deploy)
   clientId: "294551766250-mgcvcckj5p9596uneaokeght448sb4pi.apps.googleusercontent.com",
   opensAt: new Date("2027-01-11T00:00:00+08:00").getTime(),        // the live page stays locked until then
+  memoriesAt: new Date("2027-01-15T00:00:00+08:00").getTime(),     // souvenir card shows in My Trip from then
   preview: location.pathname.includes("/preview/")                 // preview is never locked, for testing
 };
 const AL = { token: null, gis: null, busy: false, email: "", items: null };
@@ -1223,7 +1270,9 @@ function albLoadLocal() {
   try { return JSON.parse(localStorage.getItem("xm27-alb") || "null"); } catch (e) { return null; }
 }
 function albWipeLocal() {
-  ["xm27-alb", "xm27-apass", "xm27-seen", "xm27-fu"].forEach(k => { try { localStorage.removeItem(k); } catch (e) {} });
+  const cb = document.getElementById("cardBox"); if (cb) cb.innerHTML = "";
+  if (typeof CARD !== "undefined") { CARD.data = null; CARD.list = []; CARD.meta = {}; }
+  ["xm27-alb", "xm27-apass", "xm27-seen", "xm27-fu", "xm27-card"].forEach(k => { try { localStorage.removeItem(k); } catch (e) {} });
   if (window.caches) caches.delete(TSTORE).catch(() => {});
   Object.keys(TH).forEach(k => delete TH[k]);
   AL.items = null; AL.seen = null;
@@ -1485,7 +1534,7 @@ function upright(url, it) {
     im.src = url;
   });
 }
-const itemById = id => (AL.items || []).find(x => x.id === id);
+const itemById = id => (AL.items || []).find(x => x.id === id) || (CARD.meta && CARD.meta[id]);
 
 function getThumbs(ids, size) {
   const want = ids.filter(id => !TH[id + "|" + size]);
@@ -1533,7 +1582,7 @@ function albViewerBits(it) {
 
 const DL = { id: null, file: null };
 function albDownload(btn) {
-  const it = AL.items[VW.i];
+  const it = vlist()[VW.i];
   if (DL.id === it.id && DL.file) return saveFile(DL.file, btn);
   btn.disabled = true; btn.classList.add("busy");
   const full = Math.min(3000, Math.max(it.pw || 0, it.ph || 0) || 2000);   // the size it was uploaded at
@@ -1565,6 +1614,7 @@ function saveFile(file, btn) {
 
 /* Delete your own upload (goes to Trash on the album account) */
 function albDelete(btn) {
+  if (VW.key !== "album") return;
   const it = AL.items[VW.i];
   if (!confirm(`Delete this ${it.video ? "video" : "photo"} from the album for everyone?`)) return;
   btn.disabled = true;
@@ -2157,7 +2207,7 @@ function tripExchange(cred, show) {
   if (!TRIP.exec) return;
   if (show) tripMsg("⏳", "Signing you in…");
   tripApi({ action: "signin", idToken: cred, keep: keepPref() }).then(r => {
-    if (r.ok) { setTripPass(r.pass, r.exp); if (show) tripLoad(r.pass); return; }
+    if (r.ok) { setTripPass(r.pass, r.exp); if (show) tripLoad(r.pass); if (CUR_TAB === "trip") loadCard(); return; }
     if (!show) { if (r.error === "not_listed" || r.error === "not_matched") albumSignIn(cred); return; }
     if (r.error === "not_listed") return tripWrong(r.email);
     if (r.error === "not_matched") return tripUnmatched(r.email);
@@ -2165,8 +2215,196 @@ function tripExchange(cred, show) {
   }).catch(() => { if (show) tripNet(() => tripExchange(cred, true)); });
 }
 
+/* ---------- Souvenir card ("Your Xiamen 2027", My Trip tab) ----------
+   Live from 15 Jan (still filling up), fixed from the 21 Jan freeze. Only ever the signed-in person's own card.
+   Saved on this phone so it opens offline; signing out wipes it. */
+const CARD = { data: null, list: [], meta: {}, show: { inP: 9, up: 6, com: 4 }, busy: false };
+const ctile = t => ({ id: t[0], by: t[1], at: t[2], video: !!t[3], pw: t[4], ph: t[5], rot: t[6], with: t[7] || [], n: t[8] || 0 });
+function cardSaved() { try { return JSON.parse(localStorage.getItem("xm27-card") || "null"); } catch (e) { return null; } }
+function loadCard() {
+  const box = document.getElementById("cardBox");
+  if (!ALBUM.exec) return;
+  if (!ALBUM.preview && now() < ALBUM.memoriesAt) { box.innerHTML = ""; return; }
+  const tok = (tokOk(AL.token) && AL.token) || albumToken();
+  if (!tok) { box.innerHTML = ""; return; }
+  AL.token = tok;
+  if (!CARD.data) { const c = cardSaved(); if (c) { CARD.data = c; renderCard(); } }
+  if (CARD.busy) return;
+  CARD.busy = true;
+  albumApi({ action: "card", token: tok }, 30000).then(r => {
+    if (!r.ok) {
+      if (r.error === "no_card" || r.error === "not_matched") { CARD.data = null; box.innerHTML = ""; try { localStorage.removeItem("xm27-card"); } catch (e) {} }
+      return;
+    }
+    CARD.data = { card: r.card, charts: r.charts, frozen: r.frozen, me: r.me };
+    try { localStorage.setItem("xm27-card", JSON.stringify(CARD.data)); } catch (e) {}
+    renderCard();
+  }).catch(() => {}).finally(() => { CARD.busy = false; });
+}
+
+function cardTiles(list, n, mineList) {
+  const me = CARD.data.card.short;
+  return list.slice(0, n).map(t => {
+    const w = t.with.filter(x => x !== me);
+    const lab = (mineList ? "" : `<b>📷 ${esc(t.by)}</b>`) + (w.length ? `<i>with ${esc(w.slice(0, 2).join(", "))}${w.length > 2 ? ` +${w.length - 2}` : ""}</i>` : "");
+    return `<button class="atile${t.video ? " vid" : ""}" data-cview="${esc(t.id)}" data-id="${esc(t.id)}" aria-label="${t.video ? "Video" : "Photo"} by ${esc(t.by)}"><img alt="">${lab ? `<span class="lab">${lab}</span>` : ""}</button>`;
+  }).join("");
+}
+function cardCharts(ch, me) {
+  const nm = (n, lead) => `<div class="nm${lead ? " ld" : ""}${n === me ? " me" : ""}">${esc(n)}</div>`;
+  const chart = (cols, fixed) => `<div class="chart" data-n="${cols.length}"${fixed ? ` data-cols="${fixed}"` : ""}>${cols.map(c =>
+    `<div class="col"><h5><span>${esc(c.name)}</span>${c.extra ? `<small>(${esc(c.extra.replace(/\s+room$/i, ""))})</small>` : ""}</h5>${c.body}</div>`).join("")}</div>`;
+  const vno = v => Number((v.name.match(/\d+/) || [0])[0]);
+  const vs = (ch.villas || []).filter(v => vno(v) >= 20).concat((ch.villas || []).filter(v => vno(v) < 20));
+  const rooms = chart(vs.map(v => ({ name: v.name, extra: v.extra, body: v.names.map(n => nm(n)).join("") })), 3);
+  const teams = chart((ch.teams || []).map(t => ({ name: t.name, body: t.lead.map(n => nm(n, true)).join("") + t.members.map(n => nm(n)).join("") })));
+  return `<h4 class="gsec">🛏️ Rooms</h4>${rooms}<hr class="gdiv"><h4 class="gsec">🎽 Teams<span class="gnote">Team Lead in bold</span></h4>${teams}`;
+}
+
+function renderCard() {
+  const box = document.getElementById("cardBox"), d = CARD.data;
+  if (!d || !d.card) { box.innerHTML = ""; return; }
+  const c = d.card;
+  const inP = (c.inP || []).map(ctile), up = (c.up || []).map(ctile), loved = c.loved ? ctile(c.loved) : null;
+  // the viewer's list: photos you're in, then yours (no repeats)
+  const seen = {};
+  CARD.list = inP.concat(up, loved ? [loved] : []).filter(t => !seen[t.id] && (seen[t.id] = 1));
+  CARD.meta = {};
+  CARD.list.forEach(t => { CARD.meta[t.id] = t; });
+  const S = CARD.show;
+  const lovedHtml = loved ? `<div class="sbox"><h4>Your most-loved photo</h4>
+      <button class="sloved" data-cview="${esc(loved.id)}" data-id="${esc(loved.id)}"><img alt="" id="cardLoved"><span class="rx"><span>❤️ ${loved.n}</span></span></button>
+      <p class="scap">${loved.by === c.short ? "Shared by you" : "By " + esc(loved.by)} · ${esc(fmtWhen(loved.at))}${loved.with.filter(x => x !== c.short).length ? `<br>With ${esc(loved.with.filter(x => x !== c.short).join(", "))}` : ""}</p></div>` : "";
+  const comById = {};
+  CARD.list.forEach(t => { comById[t.id] = t; });
+  const com = (c.com || []);
+  const comHtml = com.length ? `<div class="sbox"><h4>Comments <small>${com.length}</small></h4>${com.slice(0, S.com).map(x =>
+      `<button class="scom" data-cview="${esc(x[0])}"><img alt="" data-cimg="${esc(x[0])}"><p><b>${esc(x[1])}</b>${withMentions(x[3])}</p></button>`).join("")}
+      ${com.length > S.com ? `<button class="smore" data-cmore="com">See all ${com.length} comments</button>` : ""}</div>` : "";
+  const nudge = !d.frozen && Date.now() < (d.me && d.me.freezeAt || 0)
+    ? `<div class="snudge"><span>Got leftover photos? Add them before 21 Jan.</span><button data-tab="album">Add</button></div>` : "";
+  const rt = (c.room || c.team) ? `<div class="sbox chartcard"><h4>Rooms &amp; Teams</h4>${cardCharts(d.charts || {}, c.short)}</div>` : "";
+  const nPhotos = CARD.list.filter(t => !t.video).length;
+  box.innerHTML = `<div class="scard">
+    <div class="sc-top"><p class="eb">Your Xiamen 2027</p><h3>${esc(c.short)}</h3><p class="dt">厦门 · Mon 11 – Thu 14 January 2027</p>
+      <span class="sc-pill"><i></i>${d.frozen ? "Kept since 21 Jan 2027" : "Still filling up · locks 21 Jan"}</span></div>
+    <div class="sc-body">
+      <div class="sbox sstats"><div><b>${c.stats.inP}</b><span>photos<br>you're in</span></div><div><b>${c.stats.up}</b><span>photos<br>you shared</span></div><div><b>${c.stats.reacts}</b><span>reactions<br>on yours</span></div></div>
+      ${lovedHtml}
+      ${inP.length ? `<div class="sbox"><h4>Photos you're in <small>${inP.length}</small></h4><div class="sgrid">${cardTiles(inP, S.inP)}</div>${inP.length > S.inP ? `<button class="smore" data-cmore="inP">See more</button>` : ""}</div>` : ""}
+      <div class="sbox"><h4>Photos you shared <small>${c.stats.up}${c.stats.up > up.length ? ` · ${up.length} kept` : ""}</small></h4>${nudge}
+        ${up.length ? `<div class="sgrid">${cardTiles(up, S.up, true)}</div>${up.length > S.up ? `<button class="smore" data-cmore="up">See more</button>` : ""}` : `<p class="muted" style="margin:0">None yet.</p>`}</div>
+      ${comHtml}
+      ${rt}
+      ${nPhotos ? `<button class="ssave" id="cardSave" data-csave>⤓ Save my photos (${nPhotos})</button>` : ""}
+      <p class="sfoot">${d.frozen ? "Saved on this phone · opens offline" : "Your card keeps updating until 21 Jan"}</p>
+      ${d.me && d.me.admin ? `<div class="sbox sadmin" id="cardAdmin"><h4>Souvenir emails <small>only you see this</small></h4><p id="sendInfo">${d.frozen ? "Checking…" : "Emails can be sent after the freeze on 21 Jan."}</p><div class="btns" id="sendBtns"></div></div>` : ""}
+    </div></div>`;
+  // images: grid tiles via the shared loader, plus the most-loved photo and comment thumbnails
+  box.querySelectorAll(".sgrid .atile").forEach(t => {
+    const u = TH[t.dataset.id + "|400"];
+    if (u) setImg(t.querySelector("img"), u); else tileObserver().observe(t);
+  });
+  if (loved) getThumbs([loved.id], 1200).then(() => { const im = document.getElementById("cardLoved"); if (im && TH[loved.id + "|1200"]) im.src = TH[loved.id + "|1200"]; });
+  const cids = [...new Set(com.slice(0, S.com).map(x => x[0]))];
+  if (cids.length) getThumbs(cids, 400).then(() => box.querySelectorAll("[data-cimg]").forEach(im => { const u = TH[im.dataset.cimg + "|400"]; if (u) im.src = u; }));
+  if (rt) requestAnimationFrame(fitCharts);
+  if (d.me && d.me.admin && d.frozen) sendStatus();
+}
+
+// Viewer for card photos: download (or play, for videos); no reactions here
+function showCardPhoto(img, it) {
+  img.src = TH[it.id + "|1200"] || TH[it.id + "|400"] || "";
+  if (!TH[it.id + "|1200"]) getThumbs([it.id], 1200).then(() => { if (vlist()[VW.i] === it && TH[it.id + "|1200"]) img.src = TH[it.id + "|1200"]; });
+  const w = it.with.filter(x => x !== (CARD.data && CARD.data.card.short));
+  document.getElementById("viewerCredit").textContent = `${it.video ? "🎬 Video · " : ""}by ${it.by} · ${fmtWhen(it.at)}${w.length ? " · with " + w.join(", ") : ""}`;
+  document.getElementById("viewerAct").innerHTML = it.video
+    ? `<a class="vbtn" href="${driveLink(it.id)}" target="_blank" rel="noopener" aria-label="Play">${ICON.play}</a>`
+    : `<button class="vbtn" data-adl aria-label="Download">${ICON.download}</button>`;
+  document.getElementById("viewerDel").hidden = true;
+}
+
+// Save my photos: a set of 10 at a time into the phone's Photos (share sheet), at the size they were uploaded
+const SAVE = { files: [], next: 0 };
+async function cardSave(btn) {
+  const photos = CARD.list.filter(t => !t.video);
+  if (SAVE.files.length) {                                   // ready: hand this set to the share sheet (needs the tap)
+    const files = SAVE.files; SAVE.files = [];
+    if (navigator.canShare && navigator.canShare({ files })) {
+      try { await navigator.share({ files }); } catch (e) {}
+    } else files.forEach(f => saveFile(f, btn));
+    btn.textContent = SAVE.next < photos.length ? `⤓ Get the next ${Math.min(10, photos.length - SAVE.next)} photos` : "✓ All saved";
+    if (SAVE.next >= photos.length) { btn.disabled = true; SAVE.next = 0; }
+    return;
+  }
+  const set = photos.slice(SAVE.next, SAVE.next + 10);
+  btn.disabled = true;
+  for (let i = 0; i < set.length; i++) {
+    btn.textContent = `Getting photo ${SAVE.next + i + 1} of ${photos.length}…`;
+    const t = set[i], size = Math.min(3000, Math.max(t.pw || 0, t.ph || 0) || 2000);
+    try {
+      const r = await albumApi({ action: "thumbs", token: AL.token, ids: [t.id], size }, 60000);
+      const u = r.ok && r.thumbs[t.id];
+      if (u) {
+        const blob = await (await fetch(await upright(u, t))).blob();
+        SAVE.files.push(new File([blob], `Xiamen2027_${String(SAVE.next + i + 1).padStart(2, "0")}.jpg`, { type: "image/jpeg" }));
+      }
+    } catch (e) {}
+  }
+  SAVE.next += set.length;
+  btn.disabled = false;
+  btn.textContent = SAVE.files.length ? `⤓ Tap to save ${SAVE.files.length} photo${SAVE.files.length === 1 ? "" : "s"}` : "Couldn't get the photos. Try again";
+}
+
+// Admin only: send the souvenir emails (yours goes out by itself at the freeze; everyone else's waits for this)
+function sendStatus(msg) {
+  albumApi({ action: "sendstatus", token: AL.token }).then(r => {
+    const info = document.getElementById("sendInfo"), btns = document.getElementById("sendBtns");
+    if (!info || !r.ok) return;
+    info.innerHTML = (msg ? msg + "<br>" : "") + `Sent <b>${r.sent}</b> of ${r.total}${r.mineSent ? " · yours went out " + esc(fmtWhen(r.mineSent)) : " · yours not sent yet"} · ${r.quota} emails left today`;
+    btns.innerHTML = `<button class="btn" data-sendme>Send mine again</button>${r.pending ? `<button class="btn primary" data-sendall="${r.pending}">Send to everyone (${r.pending})</button>` : ""}`;
+  }).catch(() => {});
+}
+async function sendAll() {
+  const info = document.getElementById("sendInfo"), btns = document.getElementById("sendBtns");
+  btns.innerHTML = ""; info.textContent = "Sending… keep this page open.";
+  let failed = [];
+  for (let round = 0; round < 10; round++) {
+    let r;
+    try { r = await albumApi({ action: "sendall", token: AL.token }, 330000); } catch (e) { break; }
+    if (!r.ok) { info.textContent = "Stopped: " + r.error; break; }
+    failed = failed.concat(r.failed || []);
+    info.textContent = `Sending… ${r.sent} of ${r.total} sent`;
+    if (!r.pending || !r.sentNow) break;
+  }
+  sendStatus(failed.length ? "Couldn't send: " + esc(failed.join(", ")) : "Done.");
+}
+document.addEventListener("click", e => {
+  const t = e.target;
+  const v = t.closest("[data-cview]");
+  if (v) { const i = CARD.list.findIndex(x => x.id === v.dataset.cview); if (i >= 0) openViewer("card", i); return; }
+  const m = t.closest("[data-cmore]");
+  if (m) { const k = m.dataset.cmore; CARD.show[k] += k === "com" ? 50 : 12; renderCard(); return; }
+  const sv = t.closest("[data-csave]");
+  if (sv) { cardSave(sv); return; }
+  if (t.closest("[data-sendme]")) {
+    document.getElementById("sendInfo").textContent = "Sending yours…";
+    albumApi({ action: "sendme", token: AL.token }, 120000).then(r => sendStatus(r.ok ? "Sent to you." : "Couldn't send: " + esc(r.error))).catch(() => sendStatus("Couldn't send."));
+    return;
+  }
+  const sa = t.closest("[data-sendall]");
+  if (sa) {
+    if (sa.dataset.confirm) { sendAll(); return; }
+    sa.dataset.confirm = "1"; sa.textContent = `Yes, send ${sa.dataset.sendall} emails now`;
+    sa.insertAdjacentHTML("afterend", `<button class="btn" data-sendcancel>Cancel</button>`);
+    return;
+  }
+  if (t.closest("[data-sendcancel]")) sendStatus();
+});
+
 function openTrip() {
   stopTripTimers();
+  loadCard();
   document.getElementById("tripHi").textContent = "";
   if (!TRIP.preview && now() < TRIP.opensAt) return tripLocked();
   if (!TRIP.exec) return tripMsg("🛠️", "Almost ready", "Check back soon.");
@@ -2561,6 +2799,7 @@ function applyTripVis() {
 }
 if (!applyTripVis()) TR.vis = setInterval(applyTripVis, 15000);
 if (location.hash === "#trip" && applyTripVis()) showTab("trip");
+if (params.get("card")) { document.querySelector('nav [data-tab="trip"]').hidden = false; showTab("trip"); }
 </script>
 </body>
 </html>
