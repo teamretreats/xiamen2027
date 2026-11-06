@@ -321,8 +321,9 @@ button{font:inherit;cursor:pointer}
 .cmt .ch b{color:var(--sea-2)}
 .cmt p{margin:2px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}
 .cmt.pending{opacity:.55}
-.cmt.flash{animation:cflash 2.4s ease}
-@keyframes cflash{0%,55%{background:#fff4e8}100%{background:transparent}}
+.cmt.picked{background:#fff4e8;box-shadow:inset 4px 0 0 var(--sun);margin:0 -16px;padding-left:16px;padding-right:16px}
+.cmt.picked .ch::after{content:"From your souvenir card";color:var(--sun);font-weight:600;font-size:11.5px}
+.cmt.reply.picked{margin-left:6px;padding-left:12px}
 .cmt.reply{margin-left:22px;padding-left:10px;border-left:2px solid var(--line);border-bottom:0;padding-top:6px;padding-bottom:6px}
 .cmt .cacts{display:flex;gap:14px;margin-top:3px}
 .cmt .cacts button{border:0;background:none;color:var(--muted);font-size:12.5px;font-weight:600;padding:0}
@@ -1839,7 +1840,7 @@ function openSheet(kind, id, title, body, foot) {
   fitSheet();
 }
 function closeSheet() {
-  SH.kind = SH.id = "";
+  SH.kind = SH.id = ""; SH.picked = "";
   document.getElementById("sheetBg").classList.remove("open");
   const sh = document.getElementById("sheet");
   sh.classList.remove("open");
@@ -1882,7 +1883,7 @@ function renderComments(it) {
   const tops = list.filter(c => !c[6] || !list.some(x => x[0] === c[6]));
   const one = (c, reply) => {
     const tmp = c[0].indexOf("tmp-") === 0;
-    return `<div class="cmt${reply ? " reply" : ""}${tmp ? " pending" : ""}" data-cid="${esc(c[0])}"><div class="ch"><span><b>${esc(c[1])}</b> · ${esc(fmtAgo(c[2]))}</span></div>
+    return `<div class="cmt${reply ? " reply" : ""}${tmp ? " pending" : ""}${SH.picked === c[0] ? " picked" : ""}" data-cid="${esc(c[0])}"><div class="ch"><span><b>${esc(c[1])}</b> · ${esc(fmtAgo(c[2]))}</span></div>
       <p>${withMentions(c[3])}</p>${tmp ? "" : `<div class="cacts">${canWrite() ? `<button data-creply="${esc(c[0])}" data-cby="${esc(c[1])}">Reply</button>` : ""}${c[5] ? `<button data-cdel="${esc(c[0])}">Delete</button>` : ""}</div>`}</div>`;
   };
   document.getElementById("sheetBody").innerHTML = tops.length ? tops.map(c =>
@@ -2389,7 +2390,7 @@ function renderCard() {
       `<p class="sday">${esc(x.title)}${x.n > x.tiles.length ? ` <small>${x.n} photos</small>` : ""}</p><div class="sgrid">${cardTiles(x.tiles, 6)}</div>`).join("")}</div>` : "";
   const com = c.com || [];
   const comHtml = com.length >= 2 ? `<div class="sbox"><h4>Comments <small>${com.length}</small></h4>${com.slice(0, S.com).map(x =>
-      `<button class="scom" data-cview="${esc(x[0])}" data-corig="${esc(x[5] || x[0])}" data-ccid="${esc(x[4] || "")}"><img alt="" data-cimg="${esc(x[0])}"><p><b>${esc(x[1])}</b>${withMentions(x[3])}</p></button>`).join("")}
+      `<button class="scom" data-cview="${esc(x[0])}" data-corig="${esc(x[5] || x[0])}" data-ccid="${esc(x[4] || "")}" data-cat="${esc(x[2])}" data-ctext="${esc(x[3].slice(0, 120))}"><img alt="" data-cimg="${esc(x[0])}"><p><b>${esc(x[1])}</b>${withMentions(x[3])}</p></button>`).join("")}
       ${com.length > S.com ? `<button class="smore" data-cmore="com">See all ${com.length} comments</button>` : ""}</div>` : "";
   const frozen = d.frozen || simFrozen();
   const nudge = !frozen && now() < ((d.me && d.me.freezeAt) || ALBUM.freezeAt)
@@ -2425,26 +2426,44 @@ function renderCard() {
   if (d.me && d.me.admin && d.frozen) sendStatus();
 }
 
-// Tapping a card photo or comment opens it in the Album (reactions + comments). If the album has closed
-// or the photo was deleted since, it opens here on the card instead.
-async function cardOpen(id, orig, cid, isComment) {
+// Tapping a card photo or comment opens it from the Album (reactions + comments) right over the card, so closing
+// it leaves you exactly where you were. If the album has closed or the photo was deleted, it opens from the card.
+async function albumData() {
+  if (AL.items && AL.me && tokOk(AL.token)) return AL.me.access === "ok";
+  const tok = (tokOk(AL.token) && AL.token) || albumToken();
+  if (!tok) return false;
+  try {
+    const r = await albumApi({ action: "open", token: tok, since: 0 });
+    if (!r.ok) return false;
+    AL.token = tok; AL.me = r; AL.email = r.email;
+    if (r.access !== "ok") return false;
+    fuState(); albApply(r); AL.shownAt = Date.now(); albSaveLocal();
+    return true;
+  } catch (e) { return false; }
+}
+async function cardOpen(id, orig, com) {
   const t = CARD.meta[id];
   const albumId = orig || (t && t.orig) || id;
   const here = msg => { const i = CARD.list.findIndex(x => x.id === id); if (msg) toast(msg); if (i >= 0) openViewer("card", i); };
-  if (AL.me && AL.me.access && AL.me.access !== "ok") return here();
-  showTab("album");
-  const t0 = Date.now();
-  while (Date.now() - t0 < 20000 && !(AL.items && AL.me)) await new Promise(r => setTimeout(r, 150));
-  if (!AL.items || !AL.me || AL.me.access !== "ok") { showTab("trip"); return here(); }
+  if (CARD.opening) return;
+  CARD.opening = true;
+  const slow = setTimeout(() => toast("Opening…"), 400);
+  const ok = await albumData();
+  clearTimeout(slow); CARD.opening = false;
+  if (!ok) return here();
   const i = AL.items.findIndex(x => x.id === albumId);
-  if (i < 0) { showTab("trip"); return here("That photo is no longer in the album"); }
+  if (i < 0) return here("That photo is no longer in the album");
   openViewer("album", i);
-  if (isComment) {
-    openComments(AL.items[i]);
-    if (!cid) return;
-    const c = document.querySelector(`#sheetBody .cmt[data-cid="${CSS.escape(cid)}"]`);
-    if (c) { c.scrollIntoView({ block: "center" }); c.classList.add("flash"); }
-  }
+  if (!com) return;
+  openComments(AL.items[i]);
+  // the comment you tapped: by its id, or (cards made before ids were kept) by when it was written + its text
+  const list = AL.comments[AL.items[i].id] || [];
+  const hit = list.find(c => com.id && c[0] === com.id) || list.find(c => c[2] === com.at && c[3].slice(0, 120) === com.text)
+    || list.find(c => c[2] === com.at);
+  if (!hit) return;
+  SH.picked = hit[0];
+  const el = document.querySelector(`#sheetBody .cmt[data-cid="${CSS.escape(hit[0])}"]`);
+  if (el) { el.classList.add("picked"); el.scrollIntoView({ block: "center" }); }
 }
 
 // Viewer for card photos: download (or play, for videos); no reactions here
@@ -2519,7 +2538,7 @@ async function sendAll() {
 document.addEventListener("click", e => {
   const t = e.target;
   const v = t.closest("[data-cview]");
-  if (v) { cardOpen(v.dataset.cview, v.dataset.corig, v.dataset.ccid, "ccid" in v.dataset); return; }
+  if (v) { cardOpen(v.dataset.cview, v.dataset.corig, "ccid" in v.dataset ? { id: v.dataset.ccid, at: v.dataset.cat, text: v.dataset.ctext } : null); return; }
   const m = t.closest("[data-cmore]");
   if (m) { const k = m.dataset.cmore; CARD.show[k] += k === "com" ? 50 : 12; renderCard(); return; }
   const sv = t.closest("[data-csave]");
