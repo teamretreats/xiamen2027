@@ -303,6 +303,8 @@ button{font:inherit;cursor:pointer}
 .cmt.pending{opacity:.55}
 .cmt .cdel{border:0;background:none;color:var(--muted);font-size:12.5px;text-decoration:underline;padding:0}
 .empty{color:var(--muted);font-size:14px;text-align:center;padding:16px 0}
+.sheet .tagq{width:100%;position:sticky;top:0;z-index:1;box-shadow:0 6px 8px -6px var(--card)}
+.sheet .sbody:has(.tagq){padding-top:10px}
 .plist{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:8px}
 .plist button{border:1px solid var(--line);background:#fff;border-radius:12px;padding:9px 10px;text-align:left;font-size:15px;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .wrow{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:15px}
@@ -1585,11 +1587,28 @@ function openSheet(kind, id, title, body, foot) {
   f.innerHTML = foot || ""; f.hidden = !foot;
   document.getElementById("sheetBg").classList.add("open");
   document.getElementById("sheet").classList.add("open");
+  fitSheet();
 }
 function closeSheet() {
   SH.kind = SH.id = "";
   document.getElementById("sheetBg").classList.remove("open");
-  document.getElementById("sheet").classList.remove("open");
+  const sh = document.getElementById("sheet");
+  sh.classList.remove("open");
+  sh.style.bottom = sh.style.maxHeight = sh.style.paddingBottom = "";
+}
+// iPhone keyboards cover the page instead of shrinking it: keep the sheet just above the keyboard,
+// sized to the space that's left, so the name list and comment box stay in view while typing.
+function fitSheet() {
+  const vv = window.visualViewport, sh = document.getElementById("sheet");
+  if (!vv || !sh.classList.contains("open")) return;
+  const kb = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+  sh.style.bottom = kb + "px";
+  sh.style.maxHeight = Math.round(vv.height * (kb ? 0.96 : 0.78)) + "px";
+  sh.style.paddingBottom = kb ? "0px" : "";
+}
+if (window.visualViewport) {
+  visualViewport.addEventListener("resize", fitSheet);
+  visualViewport.addEventListener("scroll", fitSheet);
 }
 document.getElementById("sheetBg").addEventListener("click", closeSheet);
 document.getElementById("sheetClose").addEventListener("click", closeSheet);
@@ -1631,7 +1650,7 @@ function openTagPicker(it) {
   const list = q => names.filter(n => !q || n.toLowerCase().indexOf(q.toLowerCase()) !== -1)
     .map(n => `<button data-tagpick="${esc(n)}">${esc(n)}</button>`).join("") || `<p class="empty">No match</p>`;
   openSheet("tag", it.id, "Who's in this photo?",
-    `<input type="text" id="tagQ" placeholder="Search a name" aria-label="Search a name" autocomplete="off"><div class="plist" id="tagList">${list("")}</div>`);
+    `<input type="text" id="tagQ" class="tagq" placeholder="Search a name" aria-label="Search a name" autocomplete="off" autocorrect="off" autocapitalize="words" enterkeyhint="done"><div class="plist" id="tagList">${list("")}</div>`);
   document.getElementById("tagQ").addEventListener("input", e => { document.getElementById("tagList").innerHTML = list(e.target.value); });
 }
 function openEmojiPicker(it) {
