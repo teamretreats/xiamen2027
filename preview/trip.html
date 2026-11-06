@@ -303,7 +303,7 @@ function phoneText(F) {
   return "+" + cc + " " + (n.length === 8 && (cc === "65" || cc === "852") ? n.slice(0, 4) + " " + n.slice(4) : n);
 }
 const ppClean = s => String(s || "").toUpperCase().replace(/[\u2018\u2019`]/g, "'").replace(/\s+/g, " ").trim();
-const ppOk = s => /^[A-Z][A-Z ,'\-\/@.]*$/.test(s) && (s.match(/[A-Z]/g) || []).length >= 2;
+const ppOk = s => /^[A-Z][A-Z ,'\-\/@.()]*$/.test(s) && (s.match(/[A-Z]/g) || []).length >= 2;
 
 /* ---------- the form ---------- */
 const DOW = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
