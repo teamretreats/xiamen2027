@@ -304,6 +304,17 @@ button{font:inherit;cursor:pointer}
 .cmt .ch b{color:var(--sea-2)}
 .cmt p{margin:2px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}
 .cmt.pending{opacity:.55}
+.cmt.reply{margin-left:22px;padding-left:10px;border-left:2px solid var(--line);border-bottom:0;padding-top:6px;padding-bottom:6px}
+.cmt .cacts{display:flex;gap:14px;margin-top:3px}
+.cmt .cacts button{border:0;background:none;color:var(--muted);font-size:12.5px;font-weight:600;padding:0}
+.cmt .men{color:var(--sea-2);font-weight:700}
+.cwrap{flex:1;display:grid;gap:6px;min-width:0}
+.crow{display:flex;gap:8px;align-items:flex-end}
+.rto{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--muted)}
+.rto button{border:0;background:none;color:var(--muted);font-size:14px;padding:0 2px}
+.msug{display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.msug::-webkit-scrollbar{display:none}
+.msug button{flex:none;border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 12px;font-size:14px;color:var(--sea-2);font-weight:600}
 .cmt .cdel{border:0;background:none;color:var(--muted);font-size:12.5px;text-decoration:underline;padding:0}
 .empty{color:var(--muted);font-size:14px;text-align:center;padding:16px 0}
 .sheet .tagq{width:100%;position:sticky;top:0;z-index:1;box-shadow:0 6px 8px -6px var(--card)}
@@ -1628,32 +1639,94 @@ const fmtAgo = iso => {
   const m = Math.round((Date.now() - Date.parse(iso)) / 60000);
   return m < 1 ? "just now" : m < 60 ? m + " min ago" : m < 1440 ? Math.round(m / 60) + " h ago" : fmtWhen(iso);
 };
+// "@Wai Leong" → bold, for names on the guest list (longest names first, so "@Jess" doesn't eat "@Jessica")
+function withMentions(text) {
+  let h = esc(text);
+  const names = (AL.roster || []).slice().sort((a, b) => b.length - a.length);
+  names.forEach(n => {
+    const e = esc(n).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    h = h.replace(new RegExp("(^|[^\\w@])@(" + e + ")(?![\\w])", "gi"), (m, pre, nm) => `${pre}<span class="men">@${nm}</span>`);
+  });
+  return h;
+}
+// Comments with their replies underneath (one level, like Facebook)
 function renderComments(it) {
   const list = AL.comments[it.id] || [];
-  document.getElementById("sheetBody").innerHTML = list.length ? list.map(c =>
-    `<div class="cmt${c[0].indexOf("tmp-") === 0 ? " pending" : ""}"><div class="ch"><span><b>${esc(c[1])}</b> · ${esc(fmtAgo(c[2]))}</span>${c[5] && c[0].indexOf("tmp-") !== 0 ? `<button class="cdel" data-cdel="${esc(c[0])}">Delete</button>` : ""}</div><p>${esc(c[3])}</p></div>`).join("")
+  const tops = list.filter(c => !c[6] || !list.some(x => x[0] === c[6]));
+  const one = (c, reply) => {
+    const tmp = c[0].indexOf("tmp-") === 0;
+    return `<div class="cmt${reply ? " reply" : ""}${tmp ? " pending" : ""}"><div class="ch"><span><b>${esc(c[1])}</b> · ${esc(fmtAgo(c[2]))}</span></div>
+      <p>${withMentions(c[3])}</p>${tmp ? "" : `<div class="cacts">${canWrite() ? `<button data-creply="${esc(c[0])}" data-cby="${esc(c[1])}">Reply</button>` : ""}${c[5] ? `<button data-cdel="${esc(c[0])}">Delete</button>` : ""}</div>`}</div>`;
+  };
+  document.getElementById("sheetBody").innerHTML = tops.length ? tops.map(c =>
+    one(c, false) + list.filter(r => r[6] === c[0]).map(r => one(r, true)).join("")).join("")
     : `<p class="empty">No comments yet.${canWrite() ? " Be the first!" : ""}</p>`;
-  const b = document.getElementById("sheetBody"); b.scrollTop = b.scrollHeight;
+  if (!SH.keepScroll) { const b = document.getElementById("sheetBody"); b.scrollTop = b.scrollHeight; }
 }
 function openComments(it) {
+  SH.replyTo = ""; SH.keepScroll = false;
   openSheet("comments", it.id, "Comments", "", canWrite()
-    ? `<textarea id="cmtText" rows="1" maxlength="300" placeholder="Add a comment…" aria-label="Your comment"></textarea><button class="send" id="cmtSend" disabled>Post</button>` : "");
+    ? `<div class="cwrap"><div class="rto" id="rto" hidden></div><div class="msug" id="msug" hidden></div>
+       <div class="crow"><textarea id="cmtText" rows="1" maxlength="300" placeholder="Add a comment… type @ to mention" aria-label="Your comment"></textarea><button class="send" id="cmtSend" disabled>Post</button></div></div>` : "");
   renderComments(it);
   const ta = document.getElementById("cmtText");
   if (!ta) return;
-  const btn = document.getElementById("cmtSend");
-  ta.addEventListener("input", () => { btn.disabled = !ta.value.trim(); ta.style.height = "auto"; ta.style.height = Math.min(ta.scrollHeight, 120) + "px"; });
+  const btn = document.getElementById("cmtSend"), sug = document.getElementById("msug");
+  const grow = () => { btn.disabled = !ta.value.trim(); ta.style.height = "auto"; ta.style.height = Math.min(ta.scrollHeight, 120) + "px"; };
+  // "@" + a few letters right before the cursor → name suggestions
+  const atQuery = () => {
+    const m = /(^|\s)@([^@\n]{0,24})$/.exec(ta.value.slice(0, ta.selectionStart));
+    return m ? m[2] : null;
+  };
+  const suggest = () => {
+    const q = atQuery();
+    if (q === null) { sug.hidden = true; return; }
+    const ql = q.toLowerCase().trim();
+    const hits = (AL.roster || []).filter(n => !ql || n.toLowerCase().indexOf(ql) === 0 || n.toLowerCase().indexOf(" " + ql) !== -1).slice(0, 12);
+    sug.innerHTML = hits.map(n => `<button type="button" data-mpick="${esc(n)}">@${esc(n)}</button>`).join("");
+    sug.hidden = !hits.length;
+    fitSheet();
+  };
+  ta.addEventListener("input", () => { grow(); suggest(); });
+  ta.addEventListener("click", suggest);
+  ["mousedown", "pointerdown"].forEach(ev => sug.addEventListener(ev, e => e.preventDefault()));   // keep the keyboard up
+  sug.addEventListener("click", e => {
+    const b = e.target.closest("[data-mpick]");
+    if (!b) return;
+    const pos = ta.selectionStart, before = ta.value.slice(0, pos).replace(/@([^@\n]{0,24})$/, "@" + b.dataset.mpick + " ");
+    ta.value = before + ta.value.slice(pos);
+    ta.setSelectionRange(before.length, before.length);
+    ta.focus(); sug.hidden = true; grow();
+  });
   btn.addEventListener("click", () => {
     const text = ta.value.trim().slice(0, 300);
     if (!text) return;
-    ta.value = ""; btn.disabled = true; ta.style.height = "auto";
-    socSend(it, { action: "comment", id: it.id, text: text }, () => {
+    const parent = SH.replyTo;
+    ta.value = ""; btn.disabled = true; ta.style.height = "auto"; sug.hidden = true;
+    setReplyTo("", "");
+    socSend(it, { action: "comment", id: it.id, text: text, parent: parent }, () => {
       const list = (AL.comments[it.id] || []).slice();
-      list.push(["tmp-" + Date.now(), (AL.me && AL.me.short) || "You", new Date().toISOString(), text, 1, 0]);
+      const p = parent && list.find(c => c[0] === parent);
+      list.push(["tmp-" + Date.now(), (AL.me && AL.me.short) || "You", new Date().toISOString(), text, 1, 0, p ? (p[6] || p[0]) : ""]);
       AL.comments[it.id] = list; it.c = (it.c || 0) + 1;
-      renderComments(it);
+      SH.keepScroll = !!parent; renderComments(it); SH.keepScroll = false;
     });
   });
+}
+// Replying: "Replying to Sam ✕" above the box, and "@Sam " filled in
+function setReplyTo(cid, by) {
+  SH.replyTo = cid;
+  const bar = document.getElementById("rto"), ta = document.getElementById("cmtText");
+  if (!bar) return;
+  bar.hidden = !cid;
+  bar.innerHTML = cid ? `<span>Replying to <b>${esc(by)}</b></span><button type="button" data-rtoclear aria-label="Cancel reply">✕</button>` : "";
+  if (cid && ta) {
+    const tag = "@" + by + " ";
+    if (by !== ((AL.me && AL.me.short) || "") && ta.value.indexOf(tag) !== 0) ta.value = tag + ta.value;
+    ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length);
+    ta.dispatchEvent(new Event("input"));
+  }
+  fitSheet();
 }
 function openTagPicker(it) {
   const tagged = (it.t || []).map(t => t[0]);
@@ -1706,13 +1779,17 @@ document.addEventListener("click", e => {
       closeSheet();
       return socSend(sit, { action: "tag", id: sit.id, name: name }, () => { sit.t = (sit.t || []).concat([[name, 1]]); });
     }
+    const cr = t.closest("[data-creply]");
+    if (cr) return setReplyTo(cr.dataset.creply, cr.dataset.cby);
+    if (t.closest("[data-rtoclear]")) return setReplyTo("", "");
     const cd = t.closest("[data-cdel]");
     if (cd) {
       const cid = cd.dataset.cdel;
       return socSend(sit, { action: "uncomment", cid: cid }, () => {
-        AL.comments[sit.id] = (AL.comments[sit.id] || []).filter(c => c[0] !== cid);
-        sit.c = Math.max(0, (sit.c || 1) - 1);
-        renderComments(sit);
+        const before = (AL.comments[sit.id] || []).length;
+        AL.comments[sit.id] = (AL.comments[sit.id] || []).filter(c => c[0] !== cid && c[6] !== cid);   // its replies go too
+        sit.c = Math.max(0, (sit.c || 0) - (before - AL.comments[sit.id].length));
+        SH.keepScroll = true; renderComments(sit); SH.keepScroll = false;
       });
     }
   }
