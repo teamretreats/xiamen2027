@@ -270,6 +270,8 @@ button{font:inherit;cursor:pointer}
 .linkbtn{border:0;background:none;color:var(--sea-2);font-weight:600;padding:0;text-decoration:underline;font-size:13px}
 .vact{display:flex;gap:18px;justify-content:center;margin-top:8px}
 .vact[hidden]{display:none}
+.vdel{position:absolute;right:calc(10px + env(safe-area-inset-right));bottom:calc(14px + env(safe-area-inset-bottom));opacity:.85}
+.vdel[hidden]{display:none}
 .vbtn{background:none;border:0;border-radius:999px;height:44px;min-width:44px;padding:0 10px;display:inline-flex;align-items:center;justify-content:center;gap:6px;
   font-weight:600;font-size:14px;color:#fff;text-decoration:none}
 .vbtn:active{background:rgba(255,255,255,.14)}
@@ -336,6 +338,10 @@ button{font:inherit;cursor:pointer}
 .wrow{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:15px}
 .wrow:last-child{border-bottom:0}
 .wrow span{font-size:20px;line-height:1.2}
+.ejump{position:sticky;top:-8px;z-index:1;display:flex;justify-content:space-between;background:var(--card);padding:8px 0 6px;margin-top:-8px;border-bottom:1px solid var(--line)}
+.ejump button{border:0;background:none;font-size:21px;padding:4px;border-radius:8px}
+.ejump button:active{background:var(--sand)}
+.sheet .sbody:has(.ejump){position:relative}
 .egrp{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:12px 0 6px}
 .egrp:first-child{margin-top:4px}
 .egrid{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:2px}
@@ -645,7 +651,6 @@ nav button{position:relative}
   <!-- ALBUM -->
   <section id="tab-album" hidden>
     <div class="alb-top"><h2>Shared Album</h2><span id="albCount"></span></div>
-    <button class="actv" id="albAct" hidden data-actopen></button>
     <div class="alb-up" id="albUp" hidden>
       <div class="btns">
         <label class="btn primary" for="albCam">📷 Camera</label>
@@ -691,6 +696,7 @@ nav button{position:relative}
   <p class="vcount" id="viewerCount"></p>
   <p class="vcredit" id="viewerCredit"></p>
   <div class="vact" id="viewerAct" hidden></div>
+  <button class="vbtn vdel" id="viewerDel" data-adel aria-label="Delete" hidden></button>
   <div class="vsoc" id="viewerSoc" hidden></div>
 </div>
 
@@ -957,6 +963,9 @@ function openViewer(key, i) {
   document.getElementById("viewerCredit").innerHTML = key === "album" ? "" : PLACES[key].credit || "";
   document.getElementById("viewerAct").hidden = key !== "album";
   document.getElementById("viewerSoc").hidden = key !== "album";
+  const vd = document.getElementById("viewerDel");
+  if (!vd.innerHTML) vd.innerHTML = ICON.del;
+  if (key !== "album") vd.hidden = true;
   document.getElementById("viewer").classList.toggle("soc", key === "album");
   showViewer();
   document.getElementById("viewer").classList.add("open");
@@ -1214,7 +1223,7 @@ function albLoadLocal() {
   try { return JSON.parse(localStorage.getItem("xm27-alb") || "null"); } catch (e) { return null; }
 }
 function albWipeLocal() {
-  ["xm27-alb", "xm27-apass", "xm27-seen"].forEach(k => { try { localStorage.removeItem(k); } catch (e) {} });
+  ["xm27-alb", "xm27-apass", "xm27-seen", "xm27-fu"].forEach(k => { try { localStorage.removeItem(k); } catch (e) {} });
   if (window.caches) caches.delete(TSTORE).catch(() => {});
   Object.keys(TH).forEach(k => delete TH[k]);
   AL.items = null; AL.seen = null;
@@ -1301,7 +1310,7 @@ function checkAccess(tok, quiet) {
   AL.busy = true; AL.token = tok;
   if (!quiet) albCard(`<div class="ic">⏳</div><h3>Checking the guest list…</h3>`);
   const t0 = Date.now();
-  albumApi({ action: "open", token: tok, since: (AL.seen && AL.seen.a) || 0 }).then(r => {
+  albumApi({ action: "open", token: tok, since: 0 }).then(r => {
     if (!r.ok) {
       if (r.error === "invalid_token") return signInAgain();
       throw new Error(r.error);
@@ -1311,6 +1320,7 @@ function checkAccess(tok, quiet) {
     AL.me = r;
     if (r.access === "ok") {
       AL.email = r.email;
+      fuState();                                         // first time on this phone: older activity doesn't count
       albApply(r);
       AL.shownAt = t0;
       renderGrid();
@@ -1347,6 +1357,7 @@ const ICON = {
   hd: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-8 12H9.5v-2h-2v2H6V9h1.5v2.5h2V9H11v6zm2-6h4c.55 0 1 .45 1 1v4c0 .55-.45 1-1 1h-4V9zm1.5 4.5h2v-3h-2v3z"/></svg>`,
   del: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>`,
   play: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>`,
+  chat: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg>`,
   at: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10h5v-2h-5c-4.34 0-8-3.66-8-8s3.66-8 8-8 8 3.66 8 8v1.43c0 .79-.71 1.57-1.5 1.57s-1.5-.78-1.5-1.57V12c0-2.76-2.24-5-5-5s-5 2.24-5 5 2.24 5 5 5c1.38 0 2.64-.56 3.54-1.47.65.89 1.77 1.47 2.96 1.47 1.97 0 3.5-1.6 3.5-3.57V12c0-5.52-4.48-10-10-10zm0 13c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3z"/></svg>`
 };
 const DRIVE_SVG = `<svg class="drv" viewBox="0 0 87.3 78" aria-hidden="true"><path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/><path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0-1.2 4.5h27.5z" fill="#00ac47"/><path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335"/><path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"/><path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc"/><path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/></svg>`;
@@ -1367,7 +1378,7 @@ function albApply(r) {
 }
 
 // What the grid shows that can change: the photos, and which tiles have a new-activity dot
-const gridKey = () => (AL.items || []).map(x => x.id).join() + "|" + newActivity().map(a => a.f + a.at).join();
+const gridKey = () => (AL.items || []).map(x => x.id).join() + "|" + Object.keys(followUps()).join();
 function refreshGallery() {
   if (AL.refreshing) return;
   AL.refreshing = true;
@@ -1375,7 +1386,7 @@ function refreshGallery() {
   const before = gridKey();
   const vOpen = document.getElementById("viewer").classList.contains("open") && VW.key === "album";
   const curId = vOpen && curItem() ? curItem().id : null;
-  albumApi({ action: "list", token: AL.token, since: (AL.seen && AL.seen.a) || 0 }).then(r => {
+  albumApi({ action: "list", token: AL.token, since: 0 }).then(r => {
     if (!r.ok) { if (r.error === "invalid_token") signInAgain(); return; }
     AL.me = r;
     albApply(r);
@@ -1510,11 +1521,14 @@ function showAlbumPhoto(img, it) {
 function albViewerBits(it) {
   if (!it) return;
   socRender(it);
-  const tag = canWrite() ? `<button class="vbtn" data-tagadd aria-label="Tag who's in this photo">${ICON.at}</button>` : "";
-  const del = it.mine ? `<button class="vbtn" data-adel aria-label="Delete">${ICON.del}</button>` : "";
-  document.getElementById("viewerAct").innerHTML = tag + (it.video
+  const w = canWrite();
+  const tag = w ? `<button class="vbtn" data-tagadd aria-label="Tag who's in this photo">${ICON.at}</button>` : "";
+  const cmt = w || it.c ? `<button class="vbtn" data-comments aria-label="Comments">${ICON.chat}${it.c ? `<span class="lbl">${it.c}</span>` : ""}</button>` : "";
+  document.getElementById("viewerAct").innerHTML = tag + cmt + (it.video
     ? `<a class="vbtn" href="${driveLink(it.id)}" target="_blank" rel="noopener" aria-label="Play">${ICON.play}</a>`
-    : `<button class="vbtn" data-adl aria-label="Download">${ICON.download}</button>`) + del;
+    : `<button class="vbtn" data-adl aria-label="Download">${ICON.download}</button>`);
+  const del = document.getElementById("viewerDel");
+  del.hidden = !it.mine;
 }
 
 const DL = { id: null, file: null };
@@ -1561,76 +1575,58 @@ function albDelete(btn) {
   }).catch(() => { btn.disabled = false; toast("Couldn't delete. Try again"); });
 }
 
-/* ---------- What's new for me: activity strip, Album tab badge, tile dots ---------- */
-// Only what happened after you last left the album (on this phone). First visit on a phone: nothing is "new".
-function newActivity() {
-  if (!AL.seen || !AL.activity) return [];
-  const since = new Date(AL.seen.a || 0).toISOString(), live = {};
+/* ---------- Follow-up dots: a 💬 / ❤️ / @ on photos with something new for you, until you open that photo ---------- */
+// On this phone: when the album was first opened here (older things don't count) and when you last opened each photo.
+function fuGet() {
+  try { return JSON.parse(localStorage.getItem("xm27-fu") || "null"); } catch (e) { return null; }
+}
+function fuSave(f) { try { localStorage.setItem("xm27-fu", JSON.stringify(f)); } catch (e) {} }
+function fuState() {
+  let f = fuGet();
+  if (!f) { f = { base: Date.now(), open: {} }; fuSave(f); }
+  return f;
+}
+// Per photo: what's new since you last opened it (reactions/comments on yours, replies/mentions to you, tags of you)
+function followUps() {
+  const f = fuGet(), out = {};
+  if (!f || !AL.activity) return out;
+  const live = {};
   (AL.items || []).forEach(x => { live[x.id] = 1; });
-  return AL.activity.filter(a => a.at > since && live[a.f]);
+  AL.activity.forEach(a => {
+    if (!live[a.f]) return;
+    const since = Math.max(f.base, f.open[a.f] || 0);
+    if (Date.parse(a.at) <= since) return;
+    (out[a.f] || (out[a.f] = [])).push(a);
+  });
+  return out;
 }
 function newPhotos() {
   if (!AL.seen || !AL.items) return 0;
   return AL.items.filter(it => !it.mine && (Date.parse(it.at) || 0) > AL.seen.p).length;
 }
-function actLine(a) {
-  const q = a.v ? `<span class="q">“${esc(a.v.length > 60 ? a.v.slice(0, 60) + "…" : a.v)}”</span>` : "";
-  if (a.k === "react") return `<b>${esc(a.by)}</b> reacted ${esc(a.v)} to your photo`;
-  if (a.k === "comment") return `<b>${esc(a.by)}</b> commented: ${q}`;
-  if (a.k === "reply") return `<b>${esc(a.by)}</b> replied to you: ${q}`;
-  if (a.k === "mention") return `<b>${esc(a.by)}</b> mentioned you: ${q}`;
-  if (a.k === "tag") return `<b>${esc(a.by)}</b> tagged you in a photo`;
-  return "";
-}
+// Album tab badge: new photos + photos waiting for a follow-up
 function setBadge(n) {
   const b = document.getElementById("albBadge");
-  if (n === undefined) n = CUR_TAB === "album" ? 0 : newPhotos() + newActivity().length;
+  if (n === undefined) n = CUR_TAB === "album" ? 0 : newPhotos() + Object.keys(followUps()).length;
   b.textContent = n > 99 ? "99+" : String(n);
   b.hidden = !n;
 }
-function renderActivity() {
-  const el = document.getElementById("albAct"), list = newActivity();
-  setBadge();
-  if (!list.length) { el.hidden = true; return; }
-  const short = a => a.k === "react" ? `${esc(a.by)} ${esc(a.v)}` : a.k === "tag" ? `${esc(a.by)} tagged you`
-    : `${esc(a.by)}: “${esc(a.v.slice(0, 24))}${a.v.length > 24 ? "…" : ""}”`;
-  el.innerHTML = `<span class="bell">🔔</span><span class="txt">${list.slice(0, 2).map(short).join(" · ")}</span>${list.length > 2 ? `<span class="more">+${list.length - 2} more</span>` : `<span class="more">View</span>`}`;
-  el.hidden = false;
-}
-// A small ❤️ / 💬 on your tiles that got something new (gone once you open the photo)
-AL.opened = {};
+function renderActivity() { setBadge(); }
 function actDot(it) {
-  if (AL.opened[it.id]) return "";
-  const mine = newActivity().filter(a => a.f === it.id && a.k !== "tag");
-  if (!mine.length) return "";
-  return `<span class="adot" aria-label="New activity">${mine.some(a => a.k !== "react") ? "💬" : "❤️"}</span>`;
+  const list = followUps()[it.id];
+  if (!list) return "";
+  const ic = list.some(a => a.k !== "react" && a.k !== "tag") ? "💬" : list.some(a => a.k === "react") ? "❤️" : "@";
+  return `<span class="adot" aria-label="Something new to follow up">${ic}</span>`;
 }
 function actOpened(id) {
-  AL.opened[id] = 1;
+  const f = fuState();
+  f.open[id] = Date.now();
+  const ids = Object.keys(f.open);
+  if (ids.length > 600) ids.sort((a, b) => f.open[a] - f.open[b]).slice(0, ids.length - 600).forEach(k => delete f.open[k]);
+  fuSave(f);
   const d = document.querySelector(`.atile[data-id="${CSS.escape(id)}"] .adot`);
   if (d) d.remove();
 }
-function openActivity() {
-  const list = newActivity();
-  openSheet("activity", "", "What's new", list.map(a => {
-    const i = AL.items.findIndex(x => x.id === a.f);
-    const th = TH[a.f + "|400"] || "";
-    return `<button class="arow" data-actgo="${i}" data-actk="${esc(a.k)}"><img src="${th}" alt="" data-actimg="${esc(a.f)}"><span><span>${actLine(a)}</span><span class="at">${esc(fmtAgo(a.at))}</span></span></button>`;
-  }).join("") || `<p class="empty">You're all caught up.</p>`);
-  getThumbs([...new Set(list.map(a => a.f))].slice(0, 12), 400).then(() => {
-    document.querySelectorAll("[data-actimg]").forEach(im => { const u = TH[im.dataset.actimg + "|400"]; if (u) im.src = u; });
-  });
-}
-document.addEventListener("click", e => {
-  if (e.target.closest("[data-actopen]")) return openActivity();
-  const g = e.target.closest("[data-actgo]");
-  if (!g) return;
-  const i = +g.dataset.actgo, k = g.dataset.actk;
-  closeSheet();
-  if (i < 0) return toast("That photo was deleted");
-  openViewer("album", i);
-  if (k === "comment" || k === "reply" || k === "mention") openComments(AL.items[i]);
-});
 
 // Keep the Album badge up to date in the background (on opening the handbook, and when you come back to it)
 let _albBg = 0;
@@ -1642,7 +1638,7 @@ function albBackground() {
   _albBg = Date.now();
   AL.seen = albSeen();
   if (!AL.seen) return;                                      // never opened the album on this phone yet
-  albumApi({ action: "list", token: tok, since: AL.seen.a || 0 }).then(r => {
+  albumApi({ action: "list", token: tok, since: 0 }).then(r => {
     if (!r.ok) return;
     AL.token = tok; AL.me = r; AL.email = r.email;
     albApply(r); albSaveLocal(); setBadge();          // (not "shown" yet: AL.shownAt only moves when you're in the album)
@@ -1671,7 +1667,6 @@ function socRender(it) {
     ${tags.length || w ? `<div class="trow">${tags.length ? "With" : ""} ${tags.map(t => `<span class="tchip">${esc(t[0])}${t[1] ? `<button data-untag="${esc(t[0])}" aria-label="Remove ${esc(t[0])}" style="all:unset;cursor:pointer;opacity:.7">✕</button>` : ""}</span>`).join("")}</div>` : ""}
     <div class="slinks">
       ${total ? `<button data-who>${total} reaction${total === 1 ? "" : "s"}</button>` : ""}
-      ${it.c || w ? `<button data-comments>${it.c ? `💬 ${it.c} comment${it.c === 1 ? "" : "s"}` : "💬 Comment"}</button>` : ""}
     </div>`;
 }
 
@@ -1683,7 +1678,7 @@ function socSettle(state) {
   it.r = state.r; it.t = state.t; it.c = state.c;
   AL.comments[state.id] = state.comments || [];
   albSaveLocal();
-  if (curItem() === it) socRender(it);
+  if (curItem() === it) albViewerBits(it);
   if (SH.kind === "comments" && SH.id === it.id) renderComments(it);
 }
 
@@ -1871,16 +1866,22 @@ function openTagPicker(it) {
 }
 // Tap one to react (no keyboard). Kept to emoji that show on older phones too.
 const EMOJI = [
-  ["Smileys", "😀 😃 😄 😁 😆 😅 🤣 😂 🙂 😉 😊 😇 🥰 😍 🤩 😘 😋 😛 😜 🤪 😎 🥳 🤗 🤭 🤔 😏 😌 😴 🥹 😢 😭 😤 😱 😳 🤯 🙃 😬 🤤"],
-  ["Hands", "👍 👎 👏 🙌 🙏 💪 🤝 👌 ✌️ 🤞 🤟 🤙 👋 💯"],
-  ["Hearts & sparkle", "❤️ 🧡 💛 💚 💙 💜 🖤 🤍 💖 💕 💘 ✨ 🔥 ⭐ 🌟 💥 🎉 🎊"],
-  ["Trip & food", "✈️ 🏝️ 🌊 🌅 🏖️ ⛰️ 🥾 📸 🧳 🗺️ 🏨 🍜 🥟 🍲 🍤 🦀 🍵 🧋 🍻 🥂 🎂 🍰"],
-  ["Fun", "🙈 🐶 🐱 🐼 🦁 🐒 🐟 🎤 🎶 🕺 💃 🀄 🎲 🏆 🥇 👑 🤑 💰"]
+  ["😀", "Smileys", "😀 😃 😄 😁 😆 😅 🤣 😂 🙂 🙃 😉 😊 😇 🥰 😍 🤩 😘 😗 😚 😋 😛 😜 🤪 😝 🤑 🤗 🤭 🤫 🤔 🤐 🤨 😐 😑 😶 😏 😒 🙄 😬 😌 😔 😪 🤤 😴 😷 🤒 🤕 🤢 🤮 🤧 🥵 🥶 🥴 😵 🤯 🤠 🥳 😎 🤓 🧐 😕 😟 🙁 😮 😯 😲 😳 🥺 🥹 😦 😧 😨 😰 😥 😢 😭 😱 😖 😣 😞 😓 😩 😫 🥱 😤 😡 😠 🤬 😈 💀 🤡 👻 👽 🤖 💩 😺 😸 😹 😻 😼 😽 🙀 😿 😾 🙈 🙉 🙊"],
+  ["👍", "Hands & people", "👋 🤚 🖐️ ✋ 🖖 👌 🤌 🤏 ✌️ 🤞 🤟 🤘 🤙 👈 👉 👆 👇 ☝️ 👍 👎 ✊ 👊 🤛 🤜 👏 🙌 👐 🤲 🤝 🙏 ✍️ 💅 🤳 💪 👀 🧠 👶 🧒 👦 👧 🧑 👨 👩 🧓 👴 👵 🙋 🙆 🙅 🤷 🤦 💁 🙇 🚶 🏃 💃 🕺 👯 🧘 🏊 🚴 🧗 🤸 👫 👭 👬 💑"],
+  ["❤️", "Hearts & symbols", "❤️ 🧡 💛 💚 💙 💜 🤎 🖤 🤍 💔 ❣️ 💕 💞 💓 💗 💖 💘 💝 ✨ ⭐ 🌟 💫 🔥 💥 💯 💢 💦 💨 🎉 🎊 ✅ ❌ ❓ ❗ ‼️ 💤 🆗 🆒 🆕 🔝"],
+  ["🐶", "Animals & nature", "🐶 🐱 🐭 🐹 🐰 🦊 🐻 🐼 🐨 🐯 🦁 🐮 🐷 🐸 🐵 🐒 🐔 🐧 🐦 🐤 🦆 🦉 🐺 🐴 🦄 🐝 🦋 🐌 🐞 🐢 🐍 🐙 🦑 🦐 🦀 🐠 🐟 🐬 🐳 🦈 🐊 🐘 🦒 🐪 🌸 🌺 🌻 🌹 🌷 🌼 🌿 🍀 🍁 🍂 🌴 🌵 🌲 🌈 ☀️ 🌤️ ⛅ 🌧️ ⛈️ ❄️ 🌊 🌙"],
+  ["🍜", "Food & drink", "🍎 🍊 🍋 🍌 🍉 🍇 🍓 🍒 🍑 🥭 🍍 🥥 🥝 🍅 🥑 🌽 🌶️ 🥔 🍞 🥐 🧀 🥚 🍳 🥞 🥓 🍗 🍖 🌭 🍔 🍟 🍕 🥪 🌮 🌯 🥗 🍝 🍜 🍲 🍛 🍣 🍱 🥟 🍤 🍙 🍚 🍘 🍥 🥮 🍢 🍡 🍧 🍨 🍦 🥧 🍰 🎂 🧁 🍮 🍭 🍬 🍫 🍿 🍩 🍪 ☕ 🍵 🧋 🥤 🧃 🍶 🍺 🍻 🥂 🍷 🥃 🍸 🍹"],
+  ["✈️", "Travel & places", "✈️ 🛫 🛬 🚀 🚁 🚄 🚇 🚌 🚕 🚗 🚲 🛵 ⛴️ 🚢 ⛵ 🗺️ 🧭 🏔️ ⛰️ 🌋 🏕️ 🏖️ 🏝️ 🏞️ 🏟️ 🏛️ 🏯 🏰 🗼 🗽 ⛩️ 🎡 🎢 🎠 🌃 🌆 🌇 🌅 🌄 🌉 🏨 🏠 🧳 🎒 📍 🛍️"],
+  ["⚽", "Activities", "⚽ 🏀 🏈 ⚾ 🎾 🏐 🏓 🏸 ⛳ 🥾 🎣 🎯 🎳 🎮 🎲 🧩 🀄 🃏 🎤 🎧 🎵 🎶 🎸 🎹 🥁 🎷 🎺 🎬 📸 🎨 🎭 🎁 🎈 🏆 🥇 🥈 🥉 🏅 🎖️ 👑 💍 💎"],
+  ["💡", "Objects", "📱 💻 ⌚ 📷 🔋 💡 🔦 🕯️ 💰 💵 💳 🧧 ✉️ 📦 📝 📌 📎 ✂️ 🔑 🔒 🛏️ 🛁 🧴 🎀 👓 🕶️ 👕 👗 👙 👠 👟 🧢 🎩 🧥"],
+  ["🇸🇬", "Flags", "🇸🇬 🇨🇳 🇲🇾 🇭🇰 🇹🇼 🇯🇵 🇰🇷 🇹🇭 🇮🇩 🇵🇭 🇻🇳 🇮🇳 🇦🇺 🇺🇸 🇬🇧 🏳️‍🌈 🏁 🎌"]
 ];
 function openEmojiPicker(it) {
   const mine = ((it.r || []).find(x => x[2]) || [])[0];
-  openSheet("emoji", it.id, "React", EMOJI.map(([g, list]) =>
-    `<p class="egrp">${g}</p><div class="egrid">${list.split(" ").map(e =>
+  openSheet("emoji", it.id, "React",
+    `<div class="ejump">${EMOJI.map(([ic, g], k) => `<button type="button" data-ejump="${k}" aria-label="${g}">${ic}</button>`).join("")}</div>`
+    + EMOJI.map(([ic, g, list], k) =>
+    `<p class="egrp" id="egrp${k}">${g}</p><div class="egrid">${list.split(" ").map(e =>
       `<button type="button" data-epick="${e}" class="${e === mine ? "mine" : ""}" aria-label="${e}">${e}</button>`).join("")}</div>`).join(""));
 }
 function openWho(it) {
@@ -1892,6 +1893,7 @@ document.addEventListener("click", e => {
   const it = curItem();
   const t = e.target;
   if (it && t.closest("#viewerAct [data-tagadd]")) return openTagPicker(it);
+  if (it && t.closest("#viewerAct [data-comments]")) return openComments(it);
   if (t.closest("#viewerSoc")) {
     if (!it) return;
     const rb = t.closest("[data-react]");
@@ -1909,6 +1911,8 @@ document.addEventListener("click", e => {
   if (t.closest("#sheet")) {
     const sit = AL.items && AL.items.find(x => x.id === SH.id);
     if (!sit) return;
+    const ej = t.closest("[data-ejump]");
+    if (ej) { const h = document.getElementById("egrp" + ej.dataset.ejump), b = document.getElementById("sheetBody"); if (h) b.scrollTo({ top: h.offsetTop - b.querySelector(".ejump").offsetHeight - 6, behavior: "smooth" }); return; }
     const ep = t.closest("[data-epick]");
     if (ep) { const e = oneEmoji(ep.dataset.epick); closeSheet(); if (e) react(sit, e); return; }
     const tp = t.closest("[data-tagpick]");
