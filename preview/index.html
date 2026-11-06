@@ -1307,6 +1307,7 @@ function openAlbum() {
   }
   if (AL.busy) return;
   AL.seen = albSeen();                               // what was new is fixed while you're here
+  AL.dotCut = Date.now();                            // follow-up dots: only what came in before now (see followUps)
   if (AL.items && tokOk(AL.token)) { renderGrid(); return refreshGallery(); }
   const tok = (tokOk(AL.token) && AL.token) || albumToken();
   let quiet = false;
@@ -1642,10 +1643,13 @@ function followUps() {
   if (!f || !AL.activity) return out;
   const live = {};
   (AL.items || []).forEach(x => { live[x.id] = 1; });
+  // While you're in the album, nothing new pops up: only what happened before you came in.
+  // The rest waits (it isn't marked as seen) and shows the next time you open the album.
+  const cut = CUR_TAB === "album" && AL.dotCut ? AL.dotCut : Infinity;
   AL.activity.forEach(a => {
     if (!live[a.f]) return;
-    const since = Math.max(f.base, f.open[a.f] || 0);
-    if (Date.parse(a.at) <= since) return;
+    const since = Math.max(f.base, f.open[a.f] || 0), t = Date.parse(a.at);
+    if (t <= since || t > cut) return;
     (out[a.f] || (out[a.f] = [])).push(a);
   });
   return out;
