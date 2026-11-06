@@ -313,7 +313,7 @@ button{font:inherit;cursor:pointer}
 .chart h5 span{display:block;white-space:nowrap;overflow:hidden}
 .chart h5,.chart h5 span,.chart h5 small{text-align:center}
 .gsec{text-transform:uppercase}
-.gnote{text-transform:none;font-weight:400;font-size:13px;color:var(--muted);margin-left:6px}
+.gnote{text-transform:none;font-weight:400;font-size:.85em;color:var(--muted);margin-left:6px}
 .gdiv{border:0;border-top:1px solid var(--line);margin:28px 0 0}
 .gdiv + h4{margin-top:24px}
 .chart.glast{margin-bottom:14px}
@@ -1867,6 +1867,8 @@ function fitCharts() {
     return fit(el, n, 10) || (n > 3 ? fit(el, Math.ceil(n / 2), 8) || 8 : 8);
   });
   const fs = Math.min.apply(null, sizes);
+  // ROOMS / TEAMS titles: 1.15 × the chart's name size (user's pick)
+  document.querySelectorAll("#groupsBody .gsec").forEach(h => { h.style.fontSize = (fs * 1.15) + "px"; });
   charts.forEach(el => {
     el.style.fontSize = fs + "px";
     // same title height across each row, so the first names line up
