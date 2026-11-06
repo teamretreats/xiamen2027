@@ -496,7 +496,11 @@ nav button{position:relative}
   background:var(--ink);color:#fff;padding:10px 16px;border-radius:999px;font-size:14px;opacity:0;transition:.25s;z-index:95;pointer-events:none;white-space:nowrap}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-.preview{background:#fff4c2;color:#6b5400;font-size:13px;text-align:center;padding:6px 12px}
+.preview{background:#fff4c2;color:#6b5400;font-size:13px;text-align:center;padding:6px 8px;display:flex;gap:6px;justify-content:center;flex-wrap:wrap;align-items:center}
+.preview[hidden]{display:none}
+.preview .pvl{font-weight:600}
+.preview button{border:1px solid #e7cf7a;background:#fffbe6;color:#6b5400;border-radius:999px;padding:3px 10px;font-size:12.5px}
+.preview button.on{background:#6b5400;color:#fff;border-color:#6b5400}
 [hidden]{display:none!important}
 </style>
 </head>
@@ -833,10 +837,26 @@ const params = new URLSearchParams(location.search);
 const fakeNow = params.get("now");                      // preview only: ?now=2027-01-11T16:30
 const offset = fakeNow ? t(fakeNow) - Date.now() : 0;
 const now = () => Date.now() + offset;
-if (fakeNow) {
+// Preview only: a bar to see the handbook as it will look on other dates (reloads with ?now=…)
+const SIM_DATES = [["Before 11 Jan", "2027-01-05T10:00"], ["11–14 Jan", "2027-01-12T10:00"],
+  ["15–20 Jan", "2027-01-17T10:00"], ["From 21 Jan", "2027-01-25T10:00"]];
+const SIM = !!fakeNow;                                   // a pretend date: the page acts out that period itself
+if (location.pathname.includes("/preview/") || fakeNow) {
   const bar = document.getElementById("previewBar");
   bar.hidden = false;
-  bar.textContent = "Preview mode — pretending it is " + fakeNow.replace("T", " ") + " (Xiamen time)";
+  const cur = fakeNow || "";
+  bar.innerHTML = `<span class="pvl">Preview as:</span>` + SIM_DATES.map(([l, d]) =>
+    `<button data-simdate="${d}" class="${cur === d ? "on" : ""}">${l}</button>`).join("")
+    + `<button data-simdate="" class="${cur ? "" : "on"}">Real time</button>`
+    + (cur && !SIM_DATES.some(x => x[1] === cur) ? `<span class="pvl">${cur.replace("T", " ")}</span>` : "");
+  bar.addEventListener("click", e => {
+    const b = e.target.closest("[data-simdate]");
+    if (!b) return;
+    const q = new URLSearchParams(location.search);
+    if (b.dataset.simdate) q.set("now", b.dataset.simdate); else q.delete("now");
+    q.delete("card");
+    location.search = q.toString();
+  });
 }
 
 const timed = EVENTS.filter(e => !e.tba && !e.noCountdown);
@@ -1194,6 +1214,7 @@ const ALBUM = {
   clientId: "294551766250-mgcvcckj5p9596uneaokeght448sb4pi.apps.googleusercontent.com",
   opensAt: new Date("2027-01-11T00:00:00+08:00").getTime(),        // the live page stays locked until then
   memoriesAt: new Date("2027-01-15T00:00:00+08:00").getTime(),     // souvenir card shows in My Trip from then
+  freezeAt: new Date("2027-01-21T00:00:00+08:00").getTime(),       // cards fixed, album view-only
   preview: location.pathname.includes("/preview/")                 // preview is never locked, for testing
 };
 const AL = { token: null, gis: null, busy: false, email: "", items: null };
@@ -1300,7 +1321,7 @@ function saveToken(tok) {
 }
 
 function openAlbum() {
-  if (!ALBUM.preview && now() < ALBUM.opensAt) {
+  if ((!ALBUM.preview || SIM) && now() < ALBUM.opensAt) {
     albCountText(null);
     albCard(`<div class="ic">🔒</div><h3>Opens Mon 11 Jan 2027</h3>
       <p>Snap with your camera or upload from your gallery. Everyone's photos, all in one place.</p>`);
@@ -1459,6 +1480,17 @@ setInterval(() => {
   if (CUR_TAB === "album" && !document.hidden && AL.items && tokOk(AL.token) && !AL.busy) refreshGallery();
 }, 30000);
 
+// After 21 Jan: no adding photos, reactions, comments or tags
+function albViewOnlyNote() {
+  let n = document.getElementById("albVo");
+  const show = AL.me && !canWrite();
+  if (!show) { if (n) n.remove(); return; }
+  if (!n) {
+    n = document.createElement("div"); n.id = "albVo"; n.className = "snudge";
+    document.getElementById("albUp").insertAdjacentElement("afterend", n);
+  }
+  n.innerHTML = `<span>📦 The album is view-only now. Your souvenir card is in My Trip.</span><button data-tab="trip">Open</button>`;
+}
 function renderGrid() {
   renderActivity();
   const items = AL.items;
@@ -1480,7 +1512,8 @@ function renderGrid() {
     `<button class="atile${it.video ? " vid" : ""}${isNew(it) ? " new" : ""}" data-aview="${i}" data-id="${esc(it.id)}" aria-label="${it.video ? "Video" : "Photo"} by ${esc(it.by)}${isNew(it) ? ", new" : ""}"><img alt="">${it.mine ? `<span class="you">You</span>` : ""}${actDot(it)}</button>`
     + (nNew && i === lastNew && i < items.length - 1 ? `<div class="caught">You're all caught up</div>` : "")).join("");
   document.getElementById("albWall").hidden = true;
-  document.getElementById("albUp").hidden = false;
+  document.getElementById("albUp").hidden = !canWrite();
+  albViewOnlyNote();
   grid.hidden = false;
   const f = document.getElementById("albFoot");
   f.innerHTML = foot; f.hidden = false;
@@ -1709,7 +1742,8 @@ setTimeout(albBackground, 1500);
 
 /* ---------- Reactions, comments, tags (album viewer) ---------- */
 const QUICK = ["❤️", "😂", "🔥", "👏"];
-const canWrite = () => !!(AL.me && AL.me.canWrite);
+const simFrozen = () => SIM && now() >= ALBUM.freezeAt;       // preview: pretend the 21 Jan freeze happened
+const canWrite = () => !!(AL.me && AL.me.canWrite) && !simFrozen();
 const curItem = () => (VW.key === "album" && AL.items) ? AL.items[VW.i] : null;
 
 function socRender(it) {
@@ -2243,7 +2277,15 @@ function tripApi(body, ms = 25000) {
   const ctl = new AbortController();
   const tm = setTimeout(() => ctl.abort(), ms);
   return fetch(TRIP.exec, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(body), signal: ctl.signal })
-    .then(r => r.json()).finally(() => clearTimeout(tm));
+    .then(r => r.json()).then(simWindow).finally(() => clearTimeout(tm));
+}
+// Preview with a pretend date: the form's open/closed state follows that date (the script uses the real one)
+function simWindow(r) {
+  if (SIM && r && r.window && r.window.opensAt) {
+    const n = now();
+    r.window.status = n < r.window.opensAt ? "before" : n > r.window.closesAt ? "closed" : "open";
+  }
+  return r;
 }
 const tripCard = html => { document.getElementById("tripBody").innerHTML = html; };
 const tripMsg = (ic, h, p, extra) => tripCard(`<div class="icard center tmsg"><div class="ic">${ic}</div><h3>${h}</h3>${p ? `<p class="muted">${p}</p>` : ""}${extra || ""}</div>`);
@@ -2277,7 +2319,7 @@ function cardSaved() { try { return JSON.parse(localStorage.getItem("xm27-card")
 function loadCard() {
   const box = document.getElementById("cardBox");
   if (!ALBUM.exec) return;
-  if (!ALBUM.preview && now() < ALBUM.memoriesAt) { box.innerHTML = ""; return; }
+  if ((!ALBUM.preview || SIM) && now() < ALBUM.memoriesAt) { box.innerHTML = ""; return; }
   const tok = (tokOk(AL.token) && AL.token) || albumToken();
   if (!tok) { box.innerHTML = ""; return; }
   AL.token = tok;
@@ -2344,14 +2386,15 @@ function renderCard() {
   const comHtml = com.length >= 2 ? `<div class="sbox"><h4>Comments <small>${com.length}</small></h4>${com.slice(0, S.com).map(x =>
       `<button class="scom" data-cview="${esc(x[0])}"><img alt="" data-cimg="${esc(x[0])}"><p><b>${esc(x[1])}</b>${withMentions(x[3])}</p></button>`).join("")}
       ${com.length > S.com ? `<button class="smore" data-cmore="com">See all ${com.length} comments</button>` : ""}</div>` : "";
-  const nudge = !d.frozen && Date.now() < ((d.me && d.me.freezeAt) || 0)
+  const frozen = d.frozen || simFrozen();
+  const nudge = !frozen && now() < ((d.me && d.me.freezeAt) || ALBUM.freezeAt)
     ? `<div class="snudge"><span>Got leftover photos? Add them before 21 Jan.</span><button data-tab="album">Add</button></div>` : "";
   const teamTitle = [c.team && c.team.name, c.room && c.room.villa].filter(Boolean).join(" & ");
   const rt = (c.room || c.team) ? `<div class="sbox chartcard"><h4>Rooms &amp; Teams</h4>${cardCharts(d.charts || {}, me)}</div>` : "";
   const nSave = [].concat(hero ? [hero] : [], inP, up).filter((t, i, a) => !t.video && a.findIndex(x => x.id === t.id) === i).length;
   box.innerHTML = `<div class="scard">
     <div class="sc-top"><p class="eb">EXO Team Retreat 2027 Xiamen</p><h3>${esc(me)}</h3><p class="dt">厦门 · Mon 11 – Thu 14 January 2027</p>
-      <span class="sc-pill"><i></i>${d.frozen ? "Kept since 21 Jan 2027" : "Still filling up · locks 21 Jan"}</span></div>
+      <span class="sc-pill"><i></i>${frozen ? "Kept since 21 Jan 2027" : "Still filling up · locks 21 Jan"}</span></div>
     <div class="sc-body">
       <div class="sbox sstats" style="grid-template-columns:repeat(${(nums.length >= 2 ? nums : facts).length},1fr)">${statRow}</div>
       ${heroHtml}
@@ -2363,8 +2406,8 @@ function renderCard() {
       ${box1("Everyone's favourites", "", grid("fav", fav, S.fav))}
       ${rt}
       ${nSave ? `<button class="ssave" id="cardSave" data-csave>⤓ Save my photos (${nSave})</button>` : ""}
-      <p class="sfoot">${d.frozen ? "Saved on this phone · opens offline" : "Your card keeps updating until 21 Jan"}</p>
-      ${d.me && d.me.admin ? `<div class="sbox sadmin" id="cardAdmin"><h4>Souvenir emails <small>only you see this</small></h4><p id="sendInfo">${d.frozen ? "Checking…" : "Emails can be sent after the freeze on 21 Jan."}</p><div class="btns" id="sendBtns"></div></div>` : ""}
+      <p class="sfoot">${frozen ? "Saved on this phone · opens offline" : "Your card keeps updating until 21 Jan"}</p>
+      ${d.me && d.me.admin ? `<div class="sbox sadmin" id="cardAdmin"><h4>Souvenir emails <small>only you see this</small></h4><p id="sendInfo">${d.frozen ? "Checking…" : simFrozen() ? "Preview: after the real freeze, the send buttons show here." : "Emails can be sent after the freeze on 21 Jan."}</p><div class="btns" id="sendBtns"></div></div>` : ""}
     </div></div>`;
   box.querySelectorAll(".sgrid .atile").forEach(t => {
     const u = TH[t.dataset.id + "|400"];
