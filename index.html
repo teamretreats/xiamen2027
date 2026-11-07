@@ -1983,16 +1983,17 @@ function setReplyTo(cid, by) {
   }
   fitSheet();
 }
+const allTag = () => (AL.groups && AL.groups.all) || "All";
 const groupList = () => ((AL.groups && AL.groups.teams) || []).concat((AL.groups && AL.groups.villas) || []);
 function openTagPicker(it) {
   const tagged = (it.t || []).map(t => t[0]);
   const free = arr => arr.filter(n => tagged.indexOf(n) === -1);
-  const groups = free(groupList()), names = free(AL.roster || []);
+  const groups = free((AL.groups && AL.groups.all ? [AL.groups.all] : []).concat(groupList())), names = free(AL.roster || []);
   const match = (n, q) => !q || n.toLowerCase().replace(/\s+/g, "").indexOf(q.toLowerCase().replace(/\s+/g, "")) !== -1;
   const btns = (arr, q, cls) => arr.filter(n => match(n, q)).map(n => `<button data-tagpick="${esc(n)}"${cls ? ` class="${cls}"` : ""}>${cls ? "👥 " : ""}${esc(n)}</button>`).join("");
   const list = q => {
     const g = btns(groups, q, "grp"), p = btns(names, q, "");
-    return (g ? `<p class="egrp">Teams &amp; villas</p><div class="plist">${g}</div>` : "")
+    return (g ? `<p class="egrp">All, teams &amp; villas</p><div class="plist">${g}</div>` : "")
       + (p ? `<p class="egrp">People</p><div class="plist">${p}</div>` : "") || `<p class="empty">No match</p>`;
   };
   openSheet("tag", it.id, "Who's in this photo?",
@@ -2344,7 +2345,7 @@ function tripExchange(cred, show) {
 /* ---------- Souvenir card ("Your Xiamen 2027", My Trip tab) ----------
    Live from 15 Jan (still filling up), fixed from the 21 Jan freeze. Only ever the signed-in person's own card.
    Saved on this phone so it opens offline; signing out wipes it. */
-const CARD = { data: null, list: [], meta: {}, show: { inP: 9, groupP: 6, up: 6, fav: 9, com: 4 }, busy: false };
+const CARD = { data: null, list: [], meta: {}, show: { inP: 9, groupP: 6, allP: 9, fav: 9, com: 4 }, busy: false };
 const ctile = t => ({ id: t[0], by: t[1], at: t[2], video: !!t[3], pw: t[4], ph: t[5], rot: t[6], with: t[7] || [], n: t[8] || 0, orig: t[10] || t[0] });
 function cardSaved() { try { return JSON.parse(localStorage.getItem("xm27-card") || "null"); } catch (e) { return null; } }
 function loadCard() {
@@ -2371,8 +2372,8 @@ function loadCard() {
 function cardTiles(list, n, mineList) {
   const me = CARD.data.card.short;
   return list.slice(0, n).map(t => {
-    const w = t.with.filter(x => x !== me);
-    const lab = (mineList ? "" : `<b>📷 ${esc(t.by)}</b>`) + (w.length ? `<i>with ${esc(w.slice(0, 2).join(", "))}${w.length > 2 ? ` +${w.length - 2}` : ""}</i>` : "");
+    const w = t.with.filter(x => x !== me && x !== allTag());
+    const lab = (mineList ? "" : `<b>📷 ${t.by === me ? "You" : esc(t.by)}</b>`) + (w.length ? `<i>with ${esc(w.slice(0, 2).join(", "))}${w.length > 2 ? ` +${w.length - 2}` : ""}</i>` : "");
     return `<button class="atile${t.video ? " vid" : ""}" data-cview="${esc(t.id)}" data-id="${esc(t.id)}" aria-label="${t.video ? "Video" : "Photo"} by ${esc(t.by)}"><img alt="">${lab ? `<span class="lab">${lab}</span>` : ""}</button>`;
   }).join("");
 }
@@ -2392,12 +2393,16 @@ function renderCard() {
   if (!d || !d.card) { box.innerHTML = ""; return; }
   const c = d.card, me = c.short;
   const L = k => (c[k] || []).map(ctile);
-  const inP = L("inP"), groupP = L("groupP"), up = L("up"), fav = L("fav");
-  const days = (c.days || []).map(x => ({ title: x.title, n: x.n, tiles: x.tiles.map(ctile) }));
   const loved = c.loved ? ctile(c.loved) : null, moment = c.moment ? ctile(c.moment) : null, hero = loved || moment;
-  // one list for the viewer (no repeats)
-  const seen = {};
-  CARD.list = [].concat(hero ? [hero] : [], inP, groupP, ...days.map(x => x.tiles), up, fav).filter(t => !seen[t.id] && (seen[t.id] = 1));
+  // a photo shows once per card: hero → you're in → team & villa → "All" → day by day (your own uploads blended in) → favourites
+  const used = hero ? { [hero.id]: 1 } : {};
+  const claim = list => list.filter(t => !used[t.id] && (used[t.id] = 1));
+  const inP = claim(L("inP")), groupP = claim(L("groupP")), allP = claim(L("allP"));
+  const days = (c.days || []).map(x => ({ title: x.title, n: x.n, tiles: claim(x.tiles.map(ctile)) })).filter(x => x.tiles.length);
+  const fav = claim(L("fav"));
+  const mineOnDays = [].concat(...days.map(x => x.tiles)).filter(t => t.by === me);
+  // one list for the viewer, in page order
+  CARD.list = [].concat(allP, hero ? [hero] : [], inP, groupP, ...days.map(x => x.tiles), fav);
   CARD.meta = {};
   CARD.list.forEach(t => { CARD.meta[t.id] = t; });
   const S = CARD.show;
@@ -2410,32 +2415,30 @@ function renderCard() {
   const statRow = (nums.length >= 2 ? nums : facts).map(x => `<div><b>${x[0]}</b><span>${x[1]}</span></div>`).join("");
   const heroHtml = hero ? `<div class="sbox"><h4>${loved ? "Your most-loved photo" : "A moment from your trip"}</h4>
       <button class="sloved" data-cview="${esc(hero.id)}" data-id="${esc(hero.id)}"><img alt="" id="cardLoved">${loved ? `<span class="rx"><span>❤️ ${loved.n}</span></span>` : ""}</button>
-      <p class="scap">${hero.by === me ? "Shared by you" : "By " + esc(hero.by)} · ${esc(fmtWhen(hero.at))}${hero.with.filter(x => x !== me).length ? `<br>With ${esc(hero.with.filter(x => x !== me).join(", "))}` : ""}</p></div>` : "";
-  const daysHtml = days.length ? `<div class="sbox"><h4>Your trip, day by day</h4>${days.map((x, k) =>
-      `<p class="sday">${esc(x.title)}${x.n > x.tiles.length ? ` <small>${x.n} photos</small>` : ""}</p><div class="sgrid">${cardTiles(x.tiles, 6)}</div>`).join("")}</div>` : "";
+      <p class="scap">${hero.by === me ? "Shared by you" : "By " + esc(hero.by)} · ${esc(fmtWhen(hero.at))}${hero.with.filter(x => x !== me && x !== allTag()).length ? `<br>With ${esc(hero.with.filter(x => x !== me && x !== allTag()).join(", "))}` : ""}</p></div>` : "";
+  const frozen = d.frozen || simFrozen();
+  const nudge = !frozen && now() < ((d.me && d.me.freezeAt) || ALBUM.freezeAt)
+    ? `<div class="snudge"><span>Got leftover photos? Add them before 21 Jan.</span><button data-tab="album">Add</button></div>` : "";
+  const daysHtml = days.length || nudge ? `<div class="sbox"><h4>Your trip, day by day</h4>${nudge}${days.map((x, k) =>
+      `<p class="sday">${esc(x.title)}${x.n > x.tiles.length ? ` <small>${x.n} photos</small>` : ""}</p><div class="sgrid">${cardTiles(x.tiles, x.tiles.length)}</div>`).join("")}</div>` : "";
   const com = c.com || [];
   const comHtml = com.length >= 2 ? `<div class="sbox"><h4>Comments <small>${com.length}</small></h4>${com.slice(0, S.com).map(x =>
       `<button class="scom" data-cview="${esc(x[0])}" data-corig="${esc(x[5] || x[0])}" data-ccid="${esc(x[4] || "")}" data-cat="${esc(x[2])}" data-ctext="${esc(x[3].slice(0, 120))}"><img alt="" data-cimg="${esc(x[0])}"><p><b>${esc(x[1])}</b>${withMentions(x[3])}</p></button>`).join("")}
       ${com.length > S.com ? `<button class="smore" data-cmore="com">See all ${com.length} comments</button>` : ""}</div>` : "";
-  const frozen = d.frozen || simFrozen();
-  const nudge = !frozen && now() < ((d.me && d.me.freezeAt) || ALBUM.freezeAt)
-    ? `<div class="snudge"><span>Got leftover photos? Add them before 21 Jan.</span><button data-tab="album">Add</button></div>` : "";
   const teamTitle = [c.team && c.team.name, c.room && c.room.villa].filter(Boolean).join(" & ");
-  const rt = (c.room || c.team) ? `<div class="sbox chartcard"><h4>Rooms &amp; Teams</h4>${cardCharts(d.charts || {}, me)}</div>` : "";
-  const nSave = [].concat(hero ? [hero] : [], inP, up).filter((t, i, a) => !t.video && a.findIndex(x => x.id === t.id) === i).length;
+  const nSave = [].concat(hero ? [hero] : [], inP, mineOnDays).filter((t, i, a) => !t.video && a.findIndex(x => x.id === t.id) === i).length;
   box.innerHTML = `<div class="scard">
     <div class="sc-top"><p class="eb">EXO Team Retreat 2027 Xiamen</p><h3>${esc(me)}</h3><p class="dt">厦门 · Mon 11 – Thu 14 January 2027</p>
       <span class="sc-pill"><i></i>${frozen ? "Kept since 21 Jan 2027" : "Still filling up · locks 21 Jan"}</span></div>
     <div class="sc-body">
       <div class="sbox sstats" style="grid-template-columns:repeat(${(nums.length >= 2 ? nums : facts).length},1fr)">${statRow}</div>
+      ${allP.length ? `<div class="sbox">${grid("allP", allP, S.allP)}</div>` : ""}
       ${heroHtml}
       ${box1("Photos you're in", inP.length, grid("inP", inP, S.inP))}
       ${box1(teamTitle ? "Your " + esc(teamTitle) + " photos" : "Your team photos", groupP.length, grid("groupP", groupP, S.groupP))}
       ${daysHtml}
-      ${box1("Photos you shared", st.up > up.length ? `${st.up} · ${up.length} kept` : up.length, (nudge || "") + (up.length ? grid("up", up, S.up, true) : (nudge ? `<p class="muted" style="margin:0">None yet.</p>` : "")))}
       ${comHtml}
       ${box1("Everyone's favourites", "", grid("fav", fav, S.fav))}
-      ${rt}
       ${nSave ? `<button class="ssave" id="cardSave" data-csave>⤓ Save my photos (${nSave})</button>` : ""}
       ${frozen ? "" : `<p class="sfoot">Your card keeps updating until 21 Jan</p>`}
       ${d.me && d.me.admin ? `<div class="sbox sadmin" id="cardAdmin"><h4>Souvenir emails <small>only you see this</small></h4><p id="sendInfo">${d.frozen ? "Checking…" : simFrozen() ? "Preview: after the real freeze, the send buttons show here." : "Emails can be sent after the freeze on 21 Jan."}</p><div class="btns" id="sendBtns"></div></div>` : ""}
@@ -2447,7 +2450,6 @@ function renderCard() {
   if (hero) getThumbs([hero.id], 1200).then(() => { const im = document.getElementById("cardLoved"); if (im && TH[hero.id + "|1200"]) im.src = TH[hero.id + "|1200"]; });
   const cids = com.length >= 2 ? [...new Set(com.slice(0, S.com).map(x => x[0]))] : [];
   if (cids.length) getThumbs(cids, 400).then(() => box.querySelectorAll("[data-cimg]").forEach(im => { const u = TH[im.dataset.cimg + "|400"]; if (u) im.src = u; }));
-  if (rt) requestAnimationFrame(fitCharts);
   if (d.me && d.me.admin && d.frozen) sendStatus();
 }
 
@@ -2507,7 +2509,7 @@ function showCardPhoto(img, it) {
 const SAVE = { files: [], next: 0 };
 async function cardSave(btn) {
   const c = CARD.data.card, ids = {};
-  [].concat(c.loved ? [c.loved] : [], c.moment ? [c.moment] : [], c.inP || [], c.up || []).forEach(t => { ids[t[0]] = 1; });
+  [].concat(c.loved ? [c.loved] : [], c.moment ? [c.moment] : [], c.inP || [], c.up || [], ...(c.days || []).map(x => x.tiles.filter(t => t[1] === c.short))).forEach(t => { ids[t[0]] = 1; });
   const photos = CARD.list.filter(t => !t.video && ids[t.id]);
   if (SAVE.files.length) {                                   // ready: hand this set to the share sheet (needs the tap)
     const files = SAVE.files; SAVE.files = [];
