@@ -816,7 +816,7 @@ const DAYS = [
 // doneAt: from then, the item folds away in the Agenda and leaves "What's waiting for you"
 const EVENTS = [
   { day: 1, kind: "otot", start: "2027-01-11T00:00", end: "2027-01-11T15:00",
-    timeLabel: "Before 15:00", title: "Amoy, WE ARE COMING!", noCountdown: true },
+    timeLabel: "Before 15:00", title: "Amoy, WE ARE COMING!", noCountdown: true, doneAt: "2027-01-11T15:00" },
   { day: 1, kind: "logi", start: "2027-01-11T15:00", end: "2027-01-11T18:00",
     timeLabel: "From 15:00", title: "Check-in & Jacket Collection", zh: "酒店入住", place: "hotel",
     note: "Next Up: Welcome Drink at 19:00", noteNextOnly: true,
@@ -827,22 +827,22 @@ const EVENTS = [
     feature: "Welcome Drink", icon: "🍹", tone: "warm", doneAt: "2027-01-11T21:00" },
   { day: 2, kind: "logi", start: "2027-01-12T08:30", end: "2027-01-12T09:00",
     timeLabel: "08:30", title: "Transport for Team Activity",
-    sub: "Gather at Lobby for transport.", note: "Transport departs at 08:30" },
+    sub: "Gather at Lobby for transport.", note: "Transport departs at 08:30", doneAt: "2027-01-12T09:00" },
   { day: 2, kind: "team", start: "2027-01-12T09:00", end: "2027-01-12T13:00",
     timeLabel: "09:00", title: "Team Bonding · Shanhai Health Trail", place: "trail",
     sub: "Estimated end: 12:00 – 13:00 · No meals provided",
     note: "Team jacket, light sportswear, sunscreen & water bottle",
     feature: "Team Bonding", icon: "🥾", tone: "alt", doneAt: "2027-01-12T12:00" },
   { day: 2, kind: "otot", start: "2027-01-12T12:00", end: "2027-01-12T23:59",
-    timeLabel: "After team bonding", title: "Free & easy · OTOT", noCountdown: true },
+    timeLabel: "After team bonding", title: "Free & easy · OTOT", noCountdown: true, doneAt: "2027-01-13T00:00" },
   { day: 3, kind: "otot", start: "2027-01-13T00:00", end: "2027-01-13T17:00",
-    timeLabel: "Before 17:00", title: "Free & easy · OTOT", noCountdown: true },
+    timeLabel: "Before 17:00", title: "Free & easy · OTOT", noCountdown: true, doneAt: "2027-01-13T17:00" },
   { day: 3, kind: "team", start: "2027-01-13T17:00", end: "2027-01-13T21:00",
     timeLabel: "17:00", title: "Team Dinner · Immersive Imperial Feast", place: "huangdu",
     note: "Own transport · DiDi recommended",
     feature: "Team Dinner", icon: "🍽️", tone: "warm", doneAt: "2027-01-13T21:00" },
   { day: 4, kind: "logi", start: "2027-01-14T12:00", end: "2027-01-14T12:00",
-    timeLabel: "By 12:00", title: "Hotel Check-out", zh: "退房" }
+    timeLabel: "By 12:00", title: "Hotel Check-out", zh: "退房", doneAt: "2027-01-14T12:00" }
 ];
 
 /* ---------- Time helpers ---------- */
