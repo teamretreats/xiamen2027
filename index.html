@@ -89,6 +89,14 @@ button{font:inherit;cursor:pointer}
 .dayhead .d{color:var(--muted);font-size:14px}
 .item{position:relative;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin:0 0 10px}
 .item.past{opacity:.55}
+.item.done{padding:10px 14px;opacity:.7}
+.item.done .dbody{display:none}
+.item.done.open{opacity:1}
+.item.done.open .dbody{display:block;margin-top:10px}
+.item .dhead{all:unset;box-sizing:border-box;display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;cursor:pointer;font-size:14px;font-weight:600;color:var(--muted)}
+.item .dhead span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.item .dhead .chev{flex:none;color:var(--sea-2);font-size:13px}
+.item .dhead:focus-visible{outline:2px solid var(--sun);outline-offset:2px;border-radius:6px}
 .item.live{border-color:var(--ok);box-shadow:0 0 0 2px rgba(47,143,107,.15)}
 .item .t{font-variant-numeric:tabular-nums;font-weight:600;color:var(--sea-2);font-size:14px;margin:0}
 .item h4{margin:2px 0 0;font-size:17px}
@@ -805,35 +813,36 @@ const DAYS = [
 
 // kind: team (whole team), logi (logistics), otot (own time own target)
 // feature: shows in the "What's waiting for you" carousel; icon/tone style the placeholder until a photo is added
+// doneAt: from then, the item folds away in the Agenda and leaves "What's waiting for you"
 const EVENTS = [
   { day: 1, kind: "otot", start: "2027-01-11T00:00", end: "2027-01-11T15:00",
-    timeLabel: "Before 15:00", title: "Amoy, WE ARE COMING!", noCountdown: true },
+    timeLabel: "Before 15:00", title: "Amoy, WE ARE COMING!", noCountdown: true, doneAt: "2027-01-11T15:00" },
   { day: 1, kind: "logi", start: "2027-01-11T15:00", end: "2027-01-11T18:00",
     timeLabel: "From 15:00", title: "Check-in & Jacket Collection", zh: "酒店入住", place: "hotel",
     note: "Next Up: Welcome Drink at 19:00", noteNextOnly: true,
-    feature: "4D3N Villa", icon: "🏨" },
+    feature: "4D3N Villa", icon: "🏨", doneAt: "2027-01-11T19:00" },
   { day: 1, kind: "team", start: "2027-01-11T19:00", end: "2027-01-11T21:00",
     timeLabel: "19:00", title: "Welcome Drink · Haiye Tribe", place: "hy",
     note: "Own transport · DiDi recommended",
-    feature: "Welcome Drink", icon: "🍹", tone: "warm" },
+    feature: "Welcome Drink", icon: "🍹", tone: "warm", doneAt: "2027-01-11T21:00" },
   { day: 2, kind: "logi", start: "2027-01-12T08:30", end: "2027-01-12T09:00",
     timeLabel: "08:30", title: "Transport for Team Activity",
-    sub: "Gather at Lobby for transport.", note: "Transport departs at 08:30" },
+    sub: "Gather at Lobby for transport.", note: "Transport departs at 08:30", doneAt: "2027-01-12T09:00" },
   { day: 2, kind: "team", start: "2027-01-12T09:00", end: "2027-01-12T13:00",
     timeLabel: "09:00", title: "Team Bonding · Shanhai Health Trail", place: "trail",
     sub: "Estimated end: 12:00 – 13:00 · No meals provided",
     note: "Team jacket, light sportswear, sunscreen & water bottle",
-    feature: "Team Bonding", icon: "🥾", tone: "alt" },
+    feature: "Team Bonding", icon: "🥾", tone: "alt", doneAt: "2027-01-12T12:00" },
   { day: 2, kind: "otot", start: "2027-01-12T12:00", end: "2027-01-12T23:59",
-    timeLabel: "After team bonding", title: "Free & easy · OTOT", noCountdown: true },
+    timeLabel: "After team bonding", title: "Free & easy · OTOT", noCountdown: true, doneAt: "2027-01-13T00:00" },
   { day: 3, kind: "otot", start: "2027-01-13T00:00", end: "2027-01-13T17:00",
-    timeLabel: "Before 17:00", title: "Free & easy · OTOT", noCountdown: true },
+    timeLabel: "Before 17:00", title: "Free & easy · OTOT", noCountdown: true, doneAt: "2027-01-13T17:00" },
   { day: 3, kind: "team", start: "2027-01-13T17:00", end: "2027-01-13T21:00",
     timeLabel: "17:00", title: "Team Dinner · Immersive Imperial Feast", place: "huangdu",
     note: "Own transport · DiDi recommended",
-    feature: "Team Dinner", icon: "🍽️", tone: "warm" },
+    feature: "Team Dinner", icon: "🍽️", tone: "warm", doneAt: "2027-01-13T21:00" },
   { day: 4, kind: "logi", start: "2027-01-14T12:00", end: "2027-01-14T12:00",
-    timeLabel: "By 12:00", title: "Hotel Check-out", zh: "退房" }
+    timeLabel: "By 12:00", title: "Hotel Check-out", zh: "退房", doneAt: "2027-01-14T12:00" }
 ];
 
 /* ---------- Time helpers ---------- */
@@ -978,6 +987,14 @@ function renderAfter(current) {
 }
 
 let filter = "all";
+const AGENDA_OPEN = {};                                   // finished items you've tapped open
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-itemfold]");
+  if (!b) return;
+  const i = b.dataset.itemfold;
+  AGENDA_OPEN[i] = !AGENDA_OPEN[i];
+  renderAgenda();
+});
 function renderAgenda() {
   const n = now();
   const tags = { team: "Team", logi: "Logistics", otot: "OTOT · Own time" };
@@ -988,7 +1005,9 @@ function renderAgenda() {
       ${items.map(e => {
         if (e.tba) return `<div class="item tba">🧭 Agenda for this day coming soon</div>`;
         const cls = n >= t(e.end) && t(e.end) > t(e.start) ? "past" : (t(e.start) <= n && n < t(e.end) ? "live" : "");
-        return `<div class="item ${cls}" id="ev-${EVENTS.indexOf(e)}">
+        const idx = EVENTS.indexOf(e), done = isDone(e), open = done && AGENDA_OPEN[idx];
+        return `<div class="item ${cls}${done ? " done past" : ""}${open ? " open" : ""}" id="ev-${idx}">
+          ${done ? `<button class="dhead" data-itemfold="${idx}" aria-expanded="${open ? "true" : "false"}"><span>✓ ${esc(e.timeLabel)} · ${esc(e.title)}</span><span class="chev">${open ? "Hide ▴" : "Show ▾"}</span></button><div class="dbody">` : ""}
           ${e.kind === "team" ? photoHTML(e, "banner") : ""}
           <span class="tag ${e.kind}">${tags[e.kind]}</span>
           <p class="t">${esc(e.timeLabel)}</p>
@@ -999,14 +1018,20 @@ function renderAgenda() {
           ${e.kind !== "team" && e.place ? stripHTML(e.place) : ""}
           ${e.place && PLACES[e.place].credit && e.kind === "team" ? `<p class="credit">${PLACES[e.place].credit}</p>` : ""}
           ${e.place ? `<details><summary>📍 ${esc(PLACES[e.place].name)}</summary>${placeHTML(e.place, true)}</details>` : ""}
-        </div>`;
+        ${done ? "</div>" : ""}</div>`;
       }).join("")}
     </div>`;
   }).join("");
 }
 
+const isDone = e => !!e.doneAt && now() >= t(e.doneAt);
 function renderCarousel() {
-  document.getElementById("carousel").innerHTML = EVENTS.filter(e => e.feature).map(e => {
+  const left = EVENTS.filter(e => e.feature && !isDone(e));
+  document.getElementById("carousel").closest(".sec").hidden = !left.length;
+  const key = left.map(e => EVENTS.indexOf(e)).join();
+  if (renderCarousel.key === key) return;                 // unchanged: keep the scroll position
+  renderCarousel.key = key;
+  document.getElementById("carousel").innerHTML = left.map(e => {
     const d = dayOf(e);
     return `<button class="ccard" data-goto="${EVENTS.indexOf(e)}">
       ${photoHTML(e, "")}
@@ -2683,7 +2708,11 @@ window.addEventListener("focus", () => tripCheck());
 /* scratch cards */
 function hashStr(s) { let h = 0; for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return (h >>> 0).toString(36); }
 function scrKey(kind, data) { return "xm27-scr-" + TR.state.me.short + "-" + kind + "-" + hashStr(JSON.stringify(data)); }
-function isScratched(k) { try { return localStorage.getItem(k) === "1"; } catch (e) { return false; } }
+const TRIP_START = t("2027-01-11T00:00");
+function isScratched(k) {
+  if (now() >= TRIP_START) return true;                   // trip has started: rooms & teams show revealed for everyone
+  try { return localStorage.getItem(k) === "1"; } catch (e) { return false; }
+}
 function setScratched(k) { try { localStorage.setItem(k, "1"); } catch (e) {} }
 const joinNames = a => a.length <= 1 ? (a[0] || "") : a.slice(0, -1).join(", ") + " & " + a[a.length - 1];
 
@@ -2711,7 +2740,7 @@ function renderTripCards(justNow) {
   if (c.room) items.push({ kind: "room", face: roomFace(c.room), label: c.room.mates.length > 1 ? "🛏️ Your roommates" : "🛏️ Your roommate", data: c.room });
   if (c.team) items.push({ kind: "team", face: teamFace(c.team, me), label: "🎽 Your team", data: c.team });
   const head = justNow ? `<div class="icard center tmsg"><div class="ic">🎉</div><h3>Got your details, thanks!</h3><p class="muted">Now scratch to reveal…</p></div>`
-    : `<p class="tlead">${items.length ? "Scratch to reveal 👇" : ""}</p>`;
+    : `<p class="tlead">${items.length ? (now() >= TRIP_START ? "Your room &amp; team" : "Scratch to reveal 👇") : ""}</p>`;
   const cards = items.length ? `<div class="tcards">${items.map((it, i) => {
     const k = scrKey(it.kind, it.data), done = isScratched(k);
     return `<div class="scratch${done ? " done" : ""}" data-sk="${k}" data-label="${esc(it.label)}"><div class="face">${it.face}</div>${done ? "" : `<canvas></canvas>`}</div>
@@ -2981,7 +3010,7 @@ renderCarousel();
 renderHero();
 setInterval(renderHero, 1000);
 applyStage();
-setInterval(applyStage, 60000);
+setInterval(() => { applyStage(); renderCarousel(); if (CUR_TAB === "agenda") renderAgenda(); }, 60000);
 // My Trip tab + Info → Rooms & Teams stay hidden on the live page until the form opens (12 Nov, 2pm SGT),
 // then appear by themselves (checked every 15 s, so an open page updates too). Always shown on /preview/.
 function applyTripVis() {
