@@ -2420,7 +2420,7 @@ function renderCard() {
   const nudge = !frozen && now() < ((d.me && d.me.freezeAt) || ALBUM.freezeAt)
     ? `<div class="snudge"><span>Got leftover photos? Add them before 21 Jan.</span><button data-tab="album">Add</button></div>` : "";
   const daysHtml = days.length || nudge ? `<div class="sbox"><h4>Your trip, day by day</h4>${nudge}${days.map((x, k) =>
-      `<p class="sday">${esc(x.title)}${x.n > x.tiles.length ? ` <small>${x.n} photos</small>` : ""}</p><div class="sgrid">${cardTiles(x.tiles, x.tiles.length)}</div>`).join("")}</div>` : "";
+      `<p class="sday">${esc(x.title)}${x.n > x.tiles.length ? ` <small>${x.n} photos</small>` : ""}</p>${grid("day" + k, x.tiles, S["day" + k] || 6)}`).join("")}</div>` : "";
   const com = c.com || [];
   const comHtml = com.length >= 2 ? `<div class="sbox"><h4>Comments <small>${com.length}</small></h4>${com.slice(0, S.com).map(x =>
       `<button class="scom" data-cview="${esc(x[0])}" data-corig="${esc(x[5] || x[0])}" data-ccid="${esc(x[4] || "")}" data-cat="${esc(x[2])}" data-ctext="${esc(x[3].slice(0, 120))}"><img alt="" data-cimg="${esc(x[0])}"><p><b>${esc(x[1])}</b>${withMentions(x[3])}</p></button>`).join("")}
@@ -2567,7 +2567,7 @@ document.addEventListener("click", e => {
   const v = t.closest("[data-cview]");
   if (v) { cardOpen(v.dataset.cview, v.dataset.corig, "ccid" in v.dataset ? { id: v.dataset.ccid, at: v.dataset.cat, text: v.dataset.ctext } : null); return; }
   const m = t.closest("[data-cmore]");
-  if (m) { const k = m.dataset.cmore; CARD.show[k] += k === "com" ? 50 : 12; renderCard(); return; }
+  if (m) { const k = m.dataset.cmore; CARD.show[k] = (CARD.show[k] || 6) + (k === "com" ? 50 : 12); renderCard(); return; }
   const sv = t.closest("[data-csave]");
   if (sv) { cardSave(sv); return; }
   if (t.closest("[data-sendme]")) {
