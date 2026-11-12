@@ -2383,7 +2383,7 @@ function cardCharts(ch, me) {
     `<div class="col"><h5><span>${esc(c.name)}</span>${c.extra ? `<small>(${esc(c.extra.replace(/\s+room$/i, ""))})</small>` : ""}</h5>${c.body}</div>`).join("")}</div>`;
   const vno = v => Number((v.name.match(/\d+/) || [0])[0]);
   const vs = (ch.villas || []).filter(v => vno(v) >= 20).concat((ch.villas || []).filter(v => vno(v) < 20));
-  const rooms = chart(vs.map(v => ({ name: v.name, extra: v.extra, body: v.names.map(n => nm(n)).join("") })), 3);
+  const rooms = chart(vs.map(v => ({ name: v.name, extra: v.extra, body: v.names.filter(n => !isPendingName(n)).map(n => nm(n)).join("") })), 3);
   const teams = chart((ch.teams || []).map(t => ({ name: t.name, body: t.lead.map(n => nm(n, true)).join("") + t.members.map(n => nm(n)).join("") })));
   return `<h4 class="gsec">🛏️ Rooms</h4>${rooms}<hr class="gdiv"><h4 class="gsec">🎽 Teams<span class="gnote">Team Lead in bold</span></h4>${teams}`;
 }
@@ -2716,6 +2716,8 @@ function isScratched(k) {
   try { return localStorage.getItem(k) === "1"; } catch (e) { return false; }
 }
 function setScratched(k) { try { localStorage.setItem(k, "1"); } catch (e) {} }
+// Villa Arrangement placeholder like "(pending)": shown as Pending on that FC's room card, never in the villa charts
+const isPendingName = n => /^\(?\s*pending\b[^)]*\)?$/i.test(String(n || "").trim());
 const joinNames = a => a.length <= 1 ? (a[0] || "") : a.slice(0, -1).join(", ") + " & " + a[a.length - 1];
 
 function teamFace(t, me) {
@@ -2731,6 +2733,11 @@ function roomFace(r) {
   const where = (r.villa ? `<p class="villa">🏡 ${esc(r.villa)}</p>` : "") +
     (r.typeEn ? `<p class="rtype">${esc(r.typeEn)}</p>` : "") + (r.typeCn ? `<p class="rcn">${esc(r.typeCn)}</p>` : "");
   if (!r.mates.length) return `<small>🛏️ Your room</small><b class="big">All yours! 😎</b><p class="lead">A room to yourself</p>${where}`;
+  if (r.mates.some(m => isPendingName(m.name))) {
+    const known = r.mates.filter(m => !isPendingName(m.name)).map(m => m.name);
+    return `<small>🛏️ Your roommate${known.length ? "s" : ""}</small><b class="big">${known.length ? esc(joinNames(known)) + " & …" : "Pending"}</b>
+      <p class="lead">${known.length ? "One more roommate to be confirmed" : "To be confirmed"}</p>${r.self ? `<p class="lead">You · ${esc(r.self)}</p>` : ""}${where}`;
+  }
   const notes = r.mates.filter(m => m.note).map(m => `<p class="lead">${esc(m.name)} · ${esc(m.note)}</p>`).join("");
   return `<small>🛏️ Your roommate${r.mates.length > 1 ? "s" : ""}</small><b class="big">${esc(joinNames(r.mates.map(m => m.name)))}</b>
     ${r.self ? `<p class="lead">You · ${esc(r.self)}</p>` : ""}${notes}${where}`;
@@ -2898,7 +2905,7 @@ function renderGroups() {
     const teams = chart(r.teams.map(t => ({ name: t.name, body: t.lead.map(n => nm(n, true)).join("") + t.members.map(n => nm(n)).join("") }))).replace('class="chart"', 'class="chart glast"');
     const vno = v => Number((v.name.match(/\d+/) || [0])[0]);
     const vs = r.villas.filter(v => vno(v) >= 20).concat(r.villas.filter(v => vno(v) < 20));   // Villa 20s on top, then 8 & 9
-    const rooms = chart(vs.map(v => ({ name: v.name, extra: v.extra, body: v.names.map(n => nm(n)).join("") })), 3);
+    const rooms = chart(vs.map(v => ({ name: v.name, extra: v.extra, body: v.names.filter(n => !isPendingName(n)).map(n => nm(n)).join("") })), 3);
     GR.html = `<h4 class="gsec">🛏️ Rooms</h4>${rooms}<hr class="gdiv"><h4 class="gsec">🎽 Teams<span class="gnote">Team Lead in bold</span></h4>${teams}`;
     if (CUR_TAB === "info") renderGroups();
   }).catch(() => groupsLocked());
