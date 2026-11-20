@@ -274,6 +274,8 @@ button{font:inherit;cursor:pointer}
 .uprow .st{color:var(--muted);font-variant-numeric:tabular-nums}
 .uprow .bar{grid-column:1/-1;height:4px;background:#ece4d6;border-radius:4px;overflow:hidden}
 .uprow .bar i{display:block;height:100%;width:0;background:var(--sea-2);transition:width .3s}
+.ldots i{font-style:normal;opacity:0;animation:ld1 1.2s infinite steps(1,end)}.ldots i:nth-child(2){animation-name:ld2}.ldots i:nth-child(3){animation-name:ld3}
+@keyframes ld1{0%{opacity:0}25%,100%{opacity:1}}@keyframes ld2{0%,25%{opacity:0}50%,100%{opacity:1}}@keyframes ld3{0%,50%{opacity:0}75%,100%{opacity:1}}
 .uprow.ok .bar i{background:var(--ok)}
 .uprow.bad .st{color:var(--rose)}
 .uprow .linkbtn{font-size:12px}
@@ -2093,12 +2095,12 @@ function videoSeconds(file) {
 function upRow(job) {
   const q = document.getElementById("albQueue");
   if (!job.el) { job.el = document.createElement("div"); job.el.className = "uprow"; q.appendChild(job.el); }
-  const real = Math.round(100 * job.sent / (job.file.size || 1));
+  const real = Math.round(100 * Math.max(job.sent, job.live || 0) / (job.file.size || 1));
   const pct = job.state === "done" ? 100 : job.est != null ? job.est : real;
   job.el.className = "uprow" + (job.state === "done" ? " ok" : job.state === "error" ? " bad" : "");
   const st = job.state === "done" ? "✓ Uploaded"
     : job.state === "error" ? `${esc(job.msg)}${job.retry ? ` · <button class="linkbtn" data-upretry>Retry</button>` : ""}`
-    : job.state === "waiting" ? "Waiting…" : job.prep ? "Preparing…" : job.est != null ? "Uploading…" : `${pct}%`;
+    : job.state === "waiting" ? "Waiting…" : (job.prep || pct === 0) ? `<span class="ldots">Loading<i>.</i><i>.</i><i>.</i></span>` : job.est != null ? "Uploading…" : `${pct}%`;
   job.el.innerHTML = `<span class="nm">${job.file.type.startsWith("video/") ? "🎬" : "📷"} ${esc(job.name)}</span>
     <span class="st">${st}</span><span class="bar"><i style="width:${job.state === "error" ? 0 : pct}%"></i></span>`;
   job.el._job = job;
@@ -2211,6 +2213,40 @@ function estProgress(job) {
   };
 }
 
+const DIRECT_CHUNK = 4 * 1024 * 1024;                       // straight-to-Drive pieces (multiple of 256 KB)
+function xhrPut(job, start, end) {
+  return new Promise((ok, no) => {
+    const x = new XMLHttpRequest();
+    x.open("PUT", job.url);
+    x.setRequestHeader("Content-Range", `bytes ${start}-${end - 1}/${job.file.size}`);
+    x.timeout = 300000;
+    x.upload.onprogress = e => { job.live = start + e.loaded; upRow(job); };
+    x.onload = () => ok({ code: x.status, range: x.getResponseHeader("Range") });
+    x.onerror = () => no({ error: "network", blocked: !job.directOk && start === 0 });   // first piece refused = page not allowed
+    x.ontimeout = () => no({ error: "timeout" });
+    x.send(job.file.slice(start, end));
+  });
+}
+async function directSend(job) {
+  if (job.resume) {                                         // after a dropped piece: ask Drive (via the album) how much arrived
+    const r = await upCall({ action: "upstatus", uploadId: job.uploadId });
+    if (!r.ok) throw r;
+    job.resume = false;
+    if (r.done) { job.sent = job.file.size; return; }
+    job.sent = r.received || 0;
+  }
+  while (job.sent < job.file.size) {
+    const end = Math.min(job.sent + DIRECT_CHUNK, job.file.size);
+    let res;
+    try { res = await xhrPut(job, job.sent, end); }
+    catch (e) { job.resume = !e.blocked; job.live = job.sent; throw e; }
+    if (res.code === 200 || res.code === 201) { job.directOk = true; job.sent = job.file.size; return; }
+    if (res.code === 308) { job.directOk = true; job.sent = res.range ? +res.range.split("-")[1] + 1 : end; upRow(job); continue; }
+    if (res.code === 404 || res.code === 410) { job.url = null; job.uploadId = null; job.sent = 0; job.live = 0; throw { error: "upload_expired" }; }
+    job.resume = true; throw { error: "drive_" + res.code };
+  }
+}
+
 async function uploadOne(job) {
   job.state = "sending"; job.msg = ""; upRow(job);
   if (!job.ready) {                                        // one photo at a time, so big photos don't fill the phone's memory
@@ -2219,6 +2255,27 @@ async function uploadOne(job) {
     job.file = await shrinkImage(job.file);
     if (/\.jpg$/i.test(job.file.name)) job.name = job.name.replace(/\.[^.]+$/, ".jpg");
     job.ready = true; job.prep = false; upRow(job);
+  }
+  // Fast way: the album opens a one-file upload link and the phone sends the file straight to Google Drive
+  // (no Google sign-in or Drive access needed). If Google won't take it from the page, use the old way below.
+  if (job.direct !== false) {
+    if (!job.url) {
+      const r = await upCall({ action: "upstart", name: job.name, mime: job.file.type, size: job.file.size, taken: job.taken || "", direct: true });
+      if (!r.ok) throw r;
+      if (r.url) { job.url = r.url; job.uploadId = r.uploadId; job.sent = 0; }
+      else { job.direct = false; job.uploadId = r.uploadId; job.sent = 0; }
+    }
+    if (job.url) {
+      try { await directSend(job); }
+      catch (e) {
+        if (e && e.blocked) { job.direct = false; job.url = null; job.uploadId = null; job.sent = 0; job.live = 0; return uploadOne(job); }
+        throw e;
+      }
+      const r = await upCall({ action: "upstatus", uploadId: job.uploadId });   // the album checks with Drive
+      if (!r.ok) throw r;
+      if (!r.done) { job.sent = r.received || 0; job.resume = true; throw { error: "incomplete" }; }
+      job.sent = job.file.size; return;
+    }
   }
   if (!job.uploadId && job.file.size <= UP.CHUNK) {        // small enough: start + send in one call
     const stop = estProgress(job);
@@ -2263,7 +2320,7 @@ async function runUploads() {
       job.state = "error"; job.retry = true;
       if (e === "invalid_token") { job.msg = "Sign-in expired"; job.retry = false; UP.queue.forEach(j => { j.state = "error"; j.msg = "Sign in again, then add it again"; upRow(j); }); UP.queue = []; upRow(job); signInAgain(); break; }
       if (e === "too_big") { job.msg = "Too big"; job.retry = false; }
-      else if (e === "upload_expired") { job.msg = "Upload timed out"; job.uploadId = null; }
+      else if (e === "upload_expired") { job.msg = "Upload timed out"; job.uploadId = null; job.url = null; job.sent = 0; job.live = 0; }
       else job.msg = `Upload failed${e ? ` (${e})` : ""}`;
     }
     upRow(job);
