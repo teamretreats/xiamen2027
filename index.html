@@ -142,6 +142,7 @@ button{font:inherit;cursor:pointer}
   padding:60px 12px calc(20px + env(safe-area-inset-bottom));touch-action:none;user-select:none;-webkit-user-select:none}
 .viewer.open{display:flex}
 .viewer img{max-width:100%;max-height:72vh;border-radius:12px;transition:transform .2s ease,opacity .2s ease}
+.viewer video{max-width:100%;max-height:72vh;border-radius:12px;background:#000}
 .viewer .vclose{position:absolute;top:calc(14px + env(safe-area-inset-top));right:14px;border:0;background:#fff;color:var(--sea);
   width:40px;height:40px;border-radius:50%;font-size:18px;font-weight:600}
 .viewer .vnav{position:absolute;top:50%;transform:translateY(-50%);border:0;background:rgba(255,255,255,.18);color:#fff;
@@ -727,7 +728,7 @@ nav button{position:relative}
       </div>
       <input type="file" id="albCam" accept="image/*,video/*" capture="environment" hidden>
       <input type="file" id="albPick" accept="image/*,video/*" multiple hidden>
-      <p class="consent">Photos, videos, reactions, comments and tags are shared with all retreat attendees until 28 Feb 2027, then kept on each person's souvenir card.</p>
+      <p class="consent">Photos, videos, reactions, comments and tags are shared with all EXOians in Xverse and kept on each person's souvenir card.</p>
       <div class="upq" id="albQueue"></div>
     </div>
     <div class="alb-wall" id="albWall">
@@ -761,6 +762,7 @@ nav button{position:relative}
   <button class="vclose" aria-label="Close">✕</button>
   <button class="vnav vprev" aria-label="Previous photo">‹</button>
   <img id="viewerImg" alt="">
+  <video id="viewerVid" controls playsinline hidden></video>
   <button class="vnav vnext" aria-label="Next photo">›</button>
   <p class="vcount" id="viewerCount"></p>
   <p class="vcredit" id="viewerCredit"></p>
@@ -1074,6 +1076,7 @@ function openViewer(key, i) {
   document.getElementById("viewer").classList.add("open");
 }
 function showViewer() {
+  vidStop();
   const list = vlist();
   const img = document.getElementById("viewerImg");
   img.style.transform = ""; img.style.opacity = "";
@@ -1089,7 +1092,7 @@ function stepViewer(d) {
   if (n < 0 || n >= list.length) { document.getElementById("viewerImg").style.transform = ""; return; }
   VW.i = n; showViewer();
 }
-function closeViewer() { document.getElementById("viewer").classList.remove("open"); closeSheet(); }
+function closeViewer() { vidStop(); document.getElementById("viewer").classList.remove("open"); closeSheet(); }
 (function () {
   const vw = document.getElementById("viewer"), img = document.getElementById("viewerImg");
   let x0 = null, y0 = 0, dx = 0, dy = 0;
@@ -1208,6 +1211,8 @@ document.addEventListener("click", e => {
   }
   const at = e.target.closest("[data-aview]");
   if (at) { openViewer("album", +at.dataset.aview); return; }
+  const vp = e.target.closest("[data-vplay]");
+  if (vp) { playVid(vp); return; }
   const adl = e.target.closest("[data-adl]");
   if (adl) { albDownload(adl); return; }
   if (e.target.closest("[data-albswitch]")) { switchAccount(); return; }
@@ -1626,7 +1631,50 @@ function getThumbs(ids, size) {
 
 const fmtWhen = iso => new Date(iso).toLocaleString("en-SG",
   { timeZone: "Asia/Shanghai", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
-const driveLink = id => `https://drive.google.com/file/d/${encodeURIComponent(id)}/view`;
+// Videos play from the album script (FCs have no Drive access): the original in 8 MB pieces, 4 at a time
+const VID = { id: null, url: null, job: null };
+function vidStop() {
+  const v = document.getElementById("viewerVid");
+  if (v && !v.hidden) { v.pause(); v.removeAttribute("src"); v.load(); v.hidden = true; document.getElementById("viewerImg").hidden = false; }
+  VID.job = null;
+}
+const b64bytes = s => { const b = atob(s), a = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) a[i] = b.charCodeAt(i); return a; };
+async function playVid(btn) {
+  const it = vlist()[VW.i];
+  if (!it) return;
+  const show = url => {
+    const img = document.getElementById("viewerImg"), v = document.getElementById("viewerVid");
+    img.hidden = true; v.hidden = false; v.src = url; v.play().catch(() => {}); btn.hidden = true;
+  };
+  if (VID.id === it.id && VID.url) return show(VID.url);
+  const job = VID.job = {};
+  const label = t => { btn.innerHTML = ICON.play + (t ? `<span class="lbl">${t}</span>` : ""); };
+  btn.disabled = true; label("Loading…");
+  try {
+    const first = await albumApi({ action: "hd", token: AL.token, id: it.id, part: 0 }, 120000);
+    if (!first.ok) throw new Error(first.error);
+    const total = first.total || 1, n = Math.max(1, Math.ceil(total / 8388608)), parts = [b64bytes(first.data)];
+    let got = parts[0].length, next = 1;
+    const worker = async () => {
+      while (next < n) {
+        const k = next++;
+        let r = null;
+        for (let t = 0; t < 3 && !(r && r.ok); t++) {
+          try { r = await albumApi({ action: "hd", token: AL.token, id: it.id, part: k }, 120000); } catch (e) { r = null; }
+          if (!(r && r.ok)) await new Promise(w => setTimeout(w, 1200 * (t + 1)));
+        }
+        if (!r || !r.ok) throw new Error("hd_failed");
+        parts[k] = b64bytes(r.data); got += parts[k].length;
+        if (VID.job === job) label(Math.min(99, Math.round(100 * got / total)) + "%");
+      }
+    };
+    await Promise.all([worker(), worker(), worker(), worker()]);
+    if (VID.job !== job) return;
+    if (VID.url) URL.revokeObjectURL(VID.url);
+    VID.id = it.id; VID.url = URL.createObjectURL(new Blob(parts, { type: first.mime || "video/mp4" }));
+    btn.disabled = false; show(VID.url);
+  } catch (e) { btn.disabled = false; label(""); if (VID.job === job) toast("Couldn't load the video. Try again"); }
+}
 
 // Viewer: 1200px image, plus Download (2000px copy) and the original in Google Drive
 function showAlbumPhoto(img, it) {
@@ -1644,10 +1692,10 @@ function albViewerBits(it) {
   if (!it) return;
   socRender(it);
   const w = canWrite();
-  const tag = w ? `<button class="vbtn" data-tagadd aria-label="Tag who's in this photo">${ICON.at}</button>` : "";
+  const tag = w && it.ed ? `<button class="vbtn" data-tagadd aria-label="Tag who's in this photo">${ICON.at}</button>` : "";
   const cmt = w || it.c ? `<button class="vbtn" data-comments aria-label="Comments">${ICON.chat}${it.c ? `<span class="lbl">${it.c}</span>` : ""}</button>` : "";
   document.getElementById("viewerAct").innerHTML = tag + cmt + (it.video
-    ? `<a class="vbtn" href="${driveLink(it.id)}" target="_blank" rel="noopener" aria-label="Play">${ICON.play}</a>`
+    ? `<button class="vbtn" data-vplay aria-label="Play">${ICON.play}</button>`
     : `<button class="vbtn" data-adl aria-label="Download">${ICON.download}</button>`);
   const del = document.getElementById("viewerDel");
   del.hidden = !it.mine;
@@ -1791,7 +1839,7 @@ function socRender(it) {
   const total = r.reduce((n, x) => n + x[1], 0);
   const tags = it.t || [];
   el.innerHTML = `${shown.length || w ? `<div class="rrow">${shown.map(chip).join("")}${w ? `<button class="rbtn plus" data-reactplus aria-label="Pick any emoji">＋</button>` : ""}</div>` : ""}
-    ${!tags.length && w ? `<div class="trow"><button class="tchip" data-tagadd style="cursor:pointer">👥 Who's in this photo? Tag them</button></div>` : ""}
+    ${!tags.length && w && it.ed ? `<div class="trow"><button class="tchip" data-tagadd style="cursor:pointer">👥 Who's in this photo? Tag them</button></div>` : ""}
     ${tags.length ? `<div class="trow">With ${tags.map(t => `<span class="tchip">${esc(t[0])}${t[1] ? `<button data-untag="${esc(t[0])}" aria-label="Remove ${esc(t[0])}" style="all:unset;cursor:pointer;opacity:.7">✕</button>` : ""}</span>`).join("")}</div>` : ""}
     <div class="slinks">
       ${total ? `<button data-who>${total} reaction${total === 1 ? "" : "s"}</button>` : ""}
@@ -2557,7 +2605,7 @@ function showCardPhoto(img, it) {
   const w = it.with.filter(x => x !== (CARD.data && CARD.data.card.short));
   document.getElementById("viewerCredit").textContent = `${it.video ? "🎬 Video · " : ""}by ${it.by} · ${fmtWhen(it.at)}${w.length ? " · with " + w.join(", ") : ""}`;
   document.getElementById("viewerAct").innerHTML = it.video
-    ? `<a class="vbtn" href="${driveLink(it.id)}" target="_blank" rel="noopener" aria-label="Play">${ICON.play}</a>`
+    ? `<button class="vbtn" data-vplay aria-label="Play">${ICON.play}</button>`
     : `<button class="vbtn" data-adl aria-label="Download">${ICON.download}</button>`;
   document.getElementById("viewerDel").hidden = true;
 }
