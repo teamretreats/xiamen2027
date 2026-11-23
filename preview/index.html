@@ -519,6 +519,7 @@ nav button{position:relative}
 .preview button{border:1px solid #e7cf7a;background:#fffbe6;color:#6b5400;border-radius:999px;padding:3px 10px;font-size:12.5px}
 .preview button.on{background:#6b5400;color:#fff;border-color:#6b5400}
 [hidden]{display:none!important}
+.hbbar{position:fixed;left:12px;right:12px;top:calc(env(safe-area-inset-top) + 10px);z-index:95;border:0;border-radius:14px;background:var(--sea);color:#fff;font:600 14px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding:12px 14px;box-shadow:0 6px 20px rgba(0,0,0,.25);cursor:pointer}
 </style>
 </head>
 <body>
@@ -3138,6 +3139,47 @@ function applyTripVis() {
 if (!applyTripVis()) TR.vis = setInterval(applyTripVis, 15000);
 if (location.hash === "#trip" && applyTripVis()) showTab("trip");
 if (params.get("card")) { document.querySelector('nav [data-tab="trip"]').hidden = false; showTab("trip"); }
+
+// ---- update checker: an open copy (Home Screen app / old tab) moves to the latest published version ----
+// HB_VER must equal VERSION in sw.js: bump both on every deploy.
+const HB_VER = "xm27-v80";
+const HBU = { last: 0, ready: "" };
+(() => { const q = new URLSearchParams(location.search); if (!q.has("hbv")) return; q.delete("hbv"); const s = q.toString();
+  try { history.replaceState(history.state, "", location.pathname + (s ? "?" + s : "") + location.hash); } catch (e) {} })();
+function hbBusy() {
+  const a = document.activeElement, on = id => { const el = document.getElementById(id); return !!(el && el.classList.contains("open")); };
+  return (typeof UP !== "undefined" && (UP.running || UP.queue.length > 0)) || on("sheet") || on("viewer")
+    || !!(a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName));
+}
+function hbReload() {
+  try { sessionStorage.setItem("hb-upd", HBU.ready); } catch (e) {}
+  const q = new URLSearchParams(location.search); q.set("hbv", HBU.ready);
+  location.replace(location.pathname + "?" + q.toString() + location.hash);
+}
+function hbBar() {
+  if (document.getElementById("hbBar")) return;
+  const b = document.createElement("button"); b.id = "hbBar"; b.className = "hbbar"; b.type = "button";
+  b.textContent = "A new version of the handbook is ready. Tap to refresh"; b.onclick = hbReload; document.body.appendChild(b);
+}
+function hbApply() {
+  if (!HBU.ready) return;
+  let tried = ""; try { tried = sessionStorage.getItem("hb-upd") || ""; } catch (e) {}
+  if (tried === HBU.ready || hbBusy()) hbBar(); else hbReload();   // already reloaded once for this version: never loop, offer the bar
+}
+function hbCheck(force) {
+  if (location.protocol === "file:" || !navigator.onLine) return;
+  if (HBU.ready) { hbApply(); return; }
+  if (!force && Date.now() - HBU.last < 60000) return;
+  HBU.last = Date.now();
+  const ctl = new AbortController(); setTimeout(() => ctl.abort(), 8000);
+  fetch(new URL("index.html?hbcheck=" + Date.now(), location.href), { cache: "no-store", signal: ctl.signal }).then(r => r.ok ? r.text() : "").then(t => {
+    const m = t.match(/const HB_VER = "(xm27-v\d+)";/);
+    if (m && m[1] !== HB_VER) { HBU.ready = m[1]; hbApply(); }
+  }).catch(() => {});
+}
+document.addEventListener("visibilitychange", () => { if (!document.hidden) hbCheck(); });
+setInterval(() => { if (!document.hidden) hbCheck(true); }, 30 * 60000);
+setTimeout(() => hbCheck(true), 4000);
 </script>
 </body>
 </html>
